@@ -1,0 +1,132 @@
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { setHeaderOptions } from '../../components/HeaderTitle';
+import api from '../../services/endpont';
+import EventDetailView from '../../components/EventDetailView';
+import { EventTheme } from '../../components/EventTheme';
+
+export default function EventShow() {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { eventId } = route.params || {};
+
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  async function fetchEvent() {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await api.getEvent(eventId);
+      
+      if (response && response.data) {
+        setEvent(response.data);
+      } else {
+        throw new Error('Dados do evento não encontrados');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar evento:', err);
+      setError('Não foi possível carregar os dados do evento');
+      
+      Alert.alert(
+        'Erro',
+        'Não foi possível carregar os dados do evento. Tente novamente.',
+        [
+          { text: 'Tentar Novamente', onPress: fetchEvent },
+          { text: 'Voltar', onPress: () => navigation.goBack() }
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    // Configuração do header com estilo melhorado
+    setHeaderOptions(navigation, {
+      headerTitle: 'Detalhes do Evento',
+      headerTitleStyle: { 
+        fontFamily: EventTheme.typography.fontFamily.bold,
+        fontSize: EventTheme.typography.fontSize.lg,
+        color: EventTheme.colors.gray[900],
+        fontWeight: EventTheme.typography.fontWeight.bold,
+      },
+      headerTintColor: EventTheme.colors.gray[900],
+      headerStyle: {
+        backgroundColor: EventTheme.colors.white,
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: EventTheme.colors.gray[200],
+      },
+    });
+
+    if (eventId) {
+      fetchEvent();
+    } else {
+      setError('ID do evento não fornecido');
+      setLoading(false);
+    }
+  }, [navigation, eventId]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator 
+          size="large" 
+          color={EventTheme.colors.primary[500]} 
+        />
+      </View>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
+          {error || 'Evento não encontrado'}
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <EventDetailView 
+        event={event}
+        imageBaseUrl="https://eventos.senarmt.org.br/storage/" // Configure com sua URL base
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: EventTheme.colors.gray[50],
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: EventTheme.colors.gray[50],
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: EventTheme.colors.gray[50],
+    paddingHorizontal: EventTheme.spacing.lg,
+  },
+  errorText: {
+    fontSize: EventTheme.typography.fontSize.base,
+    color: EventTheme.colors.error[600],
+    textAlign: 'center',
+    lineHeight: EventTheme.typography.lineHeight.normal * EventTheme.typography.fontSize.base,
+  },
+});
+
