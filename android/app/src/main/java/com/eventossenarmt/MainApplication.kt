@@ -1,4 +1,4 @@
-package com.eventos2
+package com.eventossenarmt;
 
 import android.app.Application
 import com.facebook.react.PackageList

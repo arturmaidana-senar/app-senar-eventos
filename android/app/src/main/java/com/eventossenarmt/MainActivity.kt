@@ -1,4 +1,4 @@
-package com.eventos2
+package com.eventossenarmt;
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

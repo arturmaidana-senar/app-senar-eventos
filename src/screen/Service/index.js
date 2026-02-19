@@ -1,11 +1,10 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  FlatList,
   Animated,
   TouchableWithoutFeedback,
   ScrollView,
@@ -17,26 +16,26 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 
-import QRCodeScanner from 'react-native-qrcode-scanner';
+import { Camera } from 'react-native-camera-kit';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {setHeaderOptions} from '../../components/HeaderTitle';
+import { setHeaderOptions } from '../../components/HeaderTitle';
 import LoadingInfo from '../../components/LoadingInfo';
-import {GlobalStyleSheet} from '../../constants/StyleSheet';
-import {COLORS, FONTS} from '../../constants/theme';
+import { GlobalStyleSheet } from '../../constants/StyleSheet';
+import { COLORS, FONTS } from '../../constants/theme';
 
 import api from '../../services/endpont';
 import apiService from '../../services/api';
 
-import {formatDateEvent} from '../../utils/dateFormat';
-import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
+import { formatDateEvent } from '../../utils/dateFormat';
+import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 export default function Service() {
-  const {colors} = useTheme();
+  const { colors } = useTheme();
   const route = useRoute();
   const navigation = useNavigation();
-  const {eventId} = route.params || {};
+  const { eventId } = route.params || {};
 
   const [loading, setLoading] = useState(true);
   const [titleLoading, setTitleLoading] = useState('Atualizando Informações');
@@ -50,13 +49,12 @@ export default function Service() {
   const [selectedItem, setSelectedItem] = useState(null);
   const modalTranslateY = useRef(new Animated.Value(300)).current;
 
-  // Novo estado para controlar a exibição do botão de menor
   const [hasTerm, setHasTerm] = useState(false);
 
   useEffect(() => {
     setHeaderOptions(navigation, {
       headerTitle: 'Evento',
-      headerTitleStyle: {fontFamily: 'Arial', fontSize: 18, color: '#333333'},
+      headerTitleStyle: { fontFamily: 'Arial', fontSize: 18, color: '#333333' },
       headerTintColor: '#333333',
     });
     firstEvent();
@@ -78,11 +76,10 @@ export default function Service() {
       setTitleLoading('Atualizando Informações');
       firstEvent();
       handleListCheckin();
-      checkEventTerm(); // Verifica o termo ao focar na tela
+      checkEventTerm();
     }, [eventId]),
   );
 
-  // Função para verificar se existe termo configurado
   const checkEventTerm = async () => {
     try {
       const id = eventId || route.params?.eventId;
@@ -90,7 +87,6 @@ export default function Service() {
 
       const response = await apiService.get(`/events/${id}/term`);
 
-      // Verifica se existe texto no retorno (adaptação robusta baseada no histórico)
       const data = response.data;
       if (
         data &&
@@ -119,7 +115,6 @@ export default function Service() {
       const response = await api.getListEventCheckin(eventId);
       setListCheckin(response.data || []);
     } catch {
-      // silencia falhas
     } finally {
       setLoading(false);
     }
@@ -130,7 +125,7 @@ export default function Service() {
     if (data) {
       setLoading(true);
       try {
-        const response = await api.postCheckinEvent({token: data, eventId});
+        const response = await api.postCheckinEvent({ token: data, eventId });
         await handleListCheckin();
         Dialog.show({
           type: response.error ? ALERT_TYPE.DANGER : ALERT_TYPE.SUCCESS,
@@ -201,7 +196,6 @@ export default function Service() {
     return rows;
   };
 
-  // Componente reutilizável para os botões de ação
   const ActionButton = ({
     title,
     subtitle,
@@ -213,9 +207,11 @@ export default function Service() {
     <TouchableOpacity
       style={styles.actionCard}
       onPress={onPress}
-      activeOpacity={0.8}>
+      activeOpacity={0.8}
+    >
       <View
-        style={[styles.actionIconContainer, {backgroundColor: iconBgColor}]}>
+        style={[styles.actionIconContainer, { backgroundColor: iconBgColor }]}
+      >
         <Icon name={iconName} size={28} color={iconColor} />
       </View>
       <View style={styles.actionTextContainer}>
@@ -226,11 +222,10 @@ export default function Service() {
   );
 
   return (
-    <View style={{flex: 1, backgroundColor: '#F2F4F8'}}>
+    <View style={{ flex: 1, backgroundColor: '#F2F4F8' }}>
       <LoadingInfo visible={loading} message={titleLoading} />
       {!scannerVisible && (
-        <View style={[GlobalStyleSheet.container, {flex: 1}]}>
-          {/* Card de Evento */}
+        <View style={[GlobalStyleSheet.container, { flex: 1 }]}>
           <View style={styles.eventCard}>
             <Text style={styles.eventName}>{event.name}</Text>
 
@@ -252,8 +247,7 @@ export default function Service() {
 
           <Text style={styles.sectionTitle}>AÇÕES</Text>
 
-          <ScrollView style={{flex: 1}} showsVerticalScrollIndicator={false}>
-            {/* Botão de Credenciamento Normal */}
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
             {isCredential && (
               <ActionButton
                 title="Credenciamento Participante"
@@ -261,11 +255,10 @@ export default function Service() {
                 iconName="person-add-alt-1"
                 iconColor="#FFF"
                 iconBgColor="#3E7B58"
-                onPress={() => navigation.navigate('Credential', {eventId})}
+                onPress={() => navigation.navigate('Credential', { eventId })}
               />
             )}
 
-            {/* Botão de Check-In */}
             {showCheckInButton && isCheckin && (
               <ActionButton
                 title="Check-In"
@@ -277,7 +270,6 @@ export default function Service() {
               />
             )}
 
-            {/* Botão de Credenciamento de Menor (Independente do isCredential) */}
             {hasTerm && (
               <ActionButton
                 title="Credenciamento de Menor"
@@ -286,7 +278,7 @@ export default function Service() {
                 iconColor="#3E7B58"
                 iconBgColor="#E8F5E9"
                 onPress={() =>
-                  navigation.navigate('CredencialmentoResponsavel', {eventId})
+                  navigation.navigate('CredencialmentoResponsavel', { eventId })
                 }
               />
             )}
@@ -301,11 +293,11 @@ export default function Service() {
                   color: colors.text,
                   fontWeight: 'bold',
                 },
-              ]}>
+              ]}
+            >
               ÚLTIMOS REGISTROS:
             </Text>
 
-            {/* Lista de check-ins renderizada dentro do ScrollView ou separada se preferir */}
             {listCheckin.map(item => (
               <View key={String(item.participant_id)} style={styles.cardList}>
                 <View style={styles.nameContainer}>
@@ -322,27 +314,22 @@ export default function Service() {
                 </View>
               </View>
             ))}
-            <View style={{height: 20}} />
+            <View style={{ height: 20 }} />
           </ScrollView>
         </View>
       )}
 
-      {/* Scanner */}
       {scannerVisible && (
-        <View style={styles.scannerContainer}>
-          <QRCodeScanner
-            onRead={({data}) => handleQRCodeRead(data)}
-            reactivate={false}
-            reactivateTimeout={500}
-            showMarker
-            topContent={
-              <Text style={styles.centerText}>
-                <Text style={styles.textBold}>{''}</Text>
-              </Text>
+        <View style={StyleSheet.absoluteFill}>
+          <Camera
+            style={StyleSheet.absoluteFill}
+            scanBarcode={true}
+            onReadCode={event =>
+              handleQRCodeRead(event.nativeEvent.codeStringValue)
             }
-            bottomContent={
-              <Text style={styles.buttonText}>QrCode Eventos</Text>
-            }
+            showFrame={true}
+            laserColor="red"
+            frameColor="white"
           />
           <TouchableOpacity style={styles.closeButton} onPress={closeScanner}>
             <Text style={styles.closeButtonText}>Fechar</Text>
@@ -350,15 +337,15 @@ export default function Service() {
         </View>
       )}
 
-      {/* Modal de detalhes */}
       {modalVisible && (
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.modalOverlay}>
             <Animated.View
               style={[
                 styles.modal,
-                {transform: [{translateY: modalTranslateY}]},
-              ]}>
+                { transform: [{ translateY: modalTranslateY }] },
+              ]}
+            >
               <Text style={[styles.textBold, styles.modalTitle]}>
                 Check-ins
               </Text>
@@ -372,21 +359,20 @@ export default function Service() {
 }
 
 const styles = StyleSheet.create({
-  // Event Card Styles
   eventCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 20,
+    padding: 10,
     marginTop: 10,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 3,
   },
   eventName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 12,
@@ -397,12 +383,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   infoText: {
-    marginLeft: 10,
+    marginLeft: 5,
     fontSize: 14,
     color: '#757575',
   },
-
-  // Section Title
   sectionTitle: {
     fontSize: 12,
     fontWeight: 'bold',
@@ -410,8 +394,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textTransform: 'uppercase',
   },
-
-  // Action Button Styles
   actionCard: {
     backgroundColor: '#fff',
     flexDirection: 'row',
@@ -420,7 +402,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
     elevation: 2,
@@ -439,52 +421,49 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 2,
   },
   actionSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#757575',
   },
-
-  // List Items
   cardList: {
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 15,
     marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
   },
-  firstName: {fontSize: 16, fontWeight: 'bold', color: '#000'},
+  firstName: { fontSize: 16, fontWeight: 'bold', color: '#000' },
   nameContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 5,
   },
-  lastName: {fontSize: 14, color: '#888'},
-  birthDate: {fontSize: 12, color: '#555', marginLeft: 10},
-
-  // Scanner & Modal
-  scannerContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
-  centerText: {flex: 1, fontSize: 18, padding: 32, color: '#777'},
-  textBold: {fontWeight: '500', color: '#000'},
-  buttonText: {fontSize: 21, color: '#000'},
+  lastName: { fontSize: 14, color: '#888' },
+  birthDate: { fontSize: 12, color: '#555', marginLeft: 10 },
+  scannerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  centerText: { flex: 1, fontSize: 18, padding: 32, color: '#777' },
+  textBold: { fontWeight: '500', color: '#000' },
+  buttonText: { fontSize: 21, color: '#000' },
   closeButton: {
     position: 'absolute',
-    top: 30,
+    top: 50,
     right: 20,
     backgroundColor: COLORS.danger,
     padding: 10,
     borderRadius: 5,
+    zIndex: 999,
   },
-  closeButtonText: {color: '#fff', fontSize: 16},
+  closeButtonText: { color: '#fff', fontSize: 16 },
   modalOverlay: {
     position: 'absolute',
     top: 0,
@@ -508,12 +487,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-  modalContent: {fontSize: 14, color: '#555'},
+  modalContent: { fontSize: 14, color: '#555' },
   checkinRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 10,
   },
-  checkinColumn: {flex: 1, alignItems: 'center'},
-  emptyColumn: {flex: 1},
+  checkinColumn: { flex: 1, alignItems: 'center' },
+  emptyColumn: { flex: 1 },
 });
