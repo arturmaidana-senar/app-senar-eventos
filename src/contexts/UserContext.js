@@ -1,13 +1,13 @@
-import React, {createContext, useState, useEffect, useReducer} from 'react';
-import {useNavigation} from '@react-navigation/native';
-import {initialState, UserReducer} from '../reducers/UserReducer';
+import React, { createContext, useState, useEffect, useReducer } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { initialState, UserReducer } from '../reducers/UserReducer';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
+import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
 export const UserContext = createContext();
 
-export default ({children}) => {
+export default ({ children }) => {
   const navigation = useNavigation();
   const [state, dispatch] = useReducer(UserReducer, initialState);
   const [loadingAuth, setLoadingAuth] = useState(false);
@@ -18,65 +18,37 @@ export default ({children}) => {
   async function loadStorage() {
     try {
       const storageUser = await AsyncStorage.getItem('@eventToken');
-
-      Dialog.show({
-        type: ALERT_TYPE.INFO,
-        title: 'Debug',
-        textBody: storageUser
-          ? 'Token encontrado no storage'
-          : 'Nenhum token no storage',
-        button: 'OK',
-      });
-
-      if (!storageUser) {
-        navigation.reset({routes: [{name: 'SignIn'}]});
-        return;
-      }
-
-      api.defaults.headers['Authorization'] = `Bearer ${storageUser}`;
-
-      Dialog.show({
-        type: ALERT_TYPE.INFO,
-        title: 'Debug',
-        textBody: 'Buscando /user com token',
-        button: 'OK',
-      });
-
-      const response = await api.get('/user');
-
-      console.log('RESPOSTA /user:', response.data);
-
-      if (response?.data?.data?.user) {
-        setUser(response.data.data.user);
-
-        await AsyncStorage.setItem('@eventUser', response.data.data.user.name);
-
-        Dialog.show({
-          type: ALERT_TYPE.SUCCESS,
-          title: 'Login OK',
-          textBody: `Bem-vindo ${response.data.data.user.name}`,
-          button: 'OK',
+      if (storageUser) {
+        const response = await api.get('/user', {
+          headers: {
+            Authorization: `Bearer ${storageUser}`,
+          },
         });
-
-        navigation.reset({
-          routes: [{name: 'TabNavigator'}],
-        });
+        try {
+          if (response.data) {
+            api.defaults.headers['Authorization'] = `Bearer ${storageUser}`;
+            setUser(response.data.data.user);
+            await AsyncStorage.setItem(
+              '@eventUser',
+              response.data.data.user.name,
+            );
+            navigation.reset({ routes: [{ name: 'TabNavigator' }] });
+          } else {
+            navigation.reset({ routes: [{ name: 'SignIn' }] });
+          }
+        } finally {
+          setUser(null);
+          setLoading(false);
+        }
       } else {
-        throw new Error('Usuário inválido');
+        navigation.reset({ routes: [{ name: 'SignIn' }] });
+        setUser(null);
       }
     } catch (error) {
-      console.log('ERRO loadStorage:', error);
-
-      Dialog.show({
-        type: ALERT_TYPE.DANGER,
-        title: 'Erro ao validar login',
-        textBody: error.message,
-        button: 'Fechar',
-      });
-
-      await AsyncStorage.removeItem('@eventToken');
+      await AsyncStorage.setItem('@eventToken', '');
+      console.error('Erro ao carregar o armazenamento:', error);
+      navigation.reset({ routes: [{ name: 'SignIn' }] });
       setUser(null);
-      navigation.reset({routes: [{name: 'SignIn'}]});
     } finally {
       setLoading(false);
     }
@@ -88,72 +60,27 @@ export default ({children}) => {
 
   async function signIn(email, password) {
     setLoadingAuth(true);
-
-    Dialog.show({
-      type: ALERT_TYPE.INFO,
-      title: 'Debug',
-      textBody: 'Iniciando login...',
-      button: 'OK',
-    });
-
     try {
-      Dialog.show({
-        type: ALERT_TYPE.INFO,
-        title: 'Debug',
-        textBody: `Chamando API /login\nEmail: ${email}`,
-        button: 'OK',
-      });
-
       const response = await api.post('/login', {
-        email,
-        password,
+        email: email,
+        password: password,
       });
 
-      console.log('RESPOSTA LOGIN:', response?.data);
+      const accessToken = response?.data?.data?.access_token || '';
 
-      const accessToken = response?.data?.data?.access_token;
+      // Salva o token no AsyncStorage
+      await AsyncStorage.setItem('@atendeToken', accessToken);
 
-      if (!accessToken) {
-        Dialog.show({
-          type: ALERT_TYPE.DANGER,
-          title: 'Erro',
-          textBody: 'Login retornou sem token',
-          button: 'Fechar',
-        });
-        return;
-      }
-
-      Dialog.show({
-        type: ALERT_TYPE.SUCCESS,
-        title: 'Debug',
-        textBody: `Token recebido:\n${accessToken.substring(0, 20)}...`,
-        button: 'OK',
-      });
-
-      // 🔥 USANDO A MESMA CHAVE
-      await AsyncStorage.setItem('@eventToken', accessToken);
-
-      Dialog.show({
-        type: ALERT_TYPE.SUCCESS,
-        title: 'Debug',
-        textBody: 'Token salvo no AsyncStorage',
-        button: 'OK',
-      });
-
-      await loadStorage();
+      // Chama a função loadStorage para atualizar o estado com o novo token
+      await loadStorage(); // Use await para garantir que loadStorage seja concluída antes de prosseguir
     } catch (err) {
-      console.log('ERRO LOGIN:', err);
-
       Dialog.show({
         type: ALERT_TYPE.DANGER,
-        title: 'Erro no login',
-        textBody: err?.response
-          ? `Status: ${err.response.status}\n${JSON.stringify(
-              err.response.data,
-            )}`
-          : err.message,
+        title: 'Erro',
+        textBody: 'Credenciais inválidas',
         button: 'Fechar',
       });
+      console.log('ERRO AO LOGAR ', err);
     } finally {
       setLoadingAuth(false);
     }
@@ -178,7 +105,8 @@ export default ({children}) => {
         loading,
         logoff,
         loadStorage,
-      }}>
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

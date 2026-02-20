@@ -1,58 +1,76 @@
-import React, {createContext, useState, useEffect, useReducer} from 'react';
-import {useNavigation} from '@react-navigation/native';
-import {Alert} from 'react-native';
-import {initialState, UserReducer} from '../reducers/UserReducer';
+import React, { createContext, useState, useEffect, useReducer } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { Alert } from 'react-native';
+import { initialState, UserReducer } from '../reducers/UserReducer';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
+import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
+import axios from 'axios';
 
 export const AuthContext = createContext();
 
-export default ({children}) => {
+export default ({ children }) => {
   const navigation = useNavigation();
   const [state, dispatch] = useReducer(UserReducer, initialState);
   const [loadingAuth, setLoadingAuth] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Define a função loadStorage fora do useEffect para que possa ser chamada de qualquer lugar dentro do componente
   async function loadStorage() {
     try {
       const storageUser = await AsyncStorage.getItem('@eventToken');
       if (storageUser) {
         const response = await api.get('/user', {
-          headers: {Authorization: `Bearer ${storageUser}`},
+          headers: {
+            Authorization: `Bearer ${storageUser}`,
+          },
         });
-        if (response.data) {
-          api.defaults.headers['Authorization'] = `Bearer ${storageUser}`;
-          setUser(response.data);
-          navigation.reset({routes: [{name: 'TabNavigator'}]});
-        } else {
-          navigation.reset({routes: [{name: 'SignIn'}]});
+        try {
+          if (response.data) {
+            api.defaults.headers['Authorization'] = `Bearer ${storageUser}`;
+            setUser(response.data);
+            await AsyncStorage.setItem('@eventUser', response.data.name);
+            navigation.reset({ routes: [{ name: 'TabNavigator' }] });
+          } else {
+            navigation.reset({ routes: [{ name: 'SignIn' }] });
+          }
+        } finally {
+          setUser(null);
+          setLoading(false);
         }
       } else {
-        navigation.reset({routes: [{name: 'SignIn'}]});
+        navigation.reset({ routes: [{ name: 'SignIn' }] });
+        setUser(null);
       }
     } catch (error) {
-      navigation.reset({routes: [{name: 'SignIn'}]});
+      await AsyncStorage.setItem('@eventToken', '');
+      console.error('Erro ao carregar o armazenamento:', error);
+      navigation.reset({ routes: [{ name: 'SignIn' }] });
+      setUser(null);
     } finally {
       setLoading(false);
     }
   }
+  useEffect(() => {
+    //loadStorage();
+  }, []);
 
+  // https://sgee-atende.senarmt.org.br/api/v1/auth/evento-atendimento/validar-token
+  // https://api.appateg.senarmt.org.br/api/doubts/1
+  // https://eventos.senarmt.org.br/api/auth/recuperar-senha
   async function signIn(email, password) {
     setLoadingAuth(true);
 
-    Dialog.show({
-      type: ALERT_TYPE.INFO,
-      title: 'DEBUG BASEURL',
-      textBody:
-        `baseURL:\n${api.defaults.baseURL}\n\n` +
-        `URL FINAL:\n${(api.defaults.baseURL || '') + '/auth/login'}`,
-      button: 'OK',
-    });
-
-    // Pegamos a URL base para saber exatamente para onde o APK está enviando
-    const urlCompleta = (api.defaults.baseURL || '') + '/auth/login';
+    // axios.get('https://eventos.senarmt.org.br/api/auth/recuperar-senha')
+    // .then(response => {
+    //     setLoadingAuth(false);
+    //     // console.log('TUDO CERTO,', response);
+    // })
+    // .catch(error => {
+    //     setLoadingAuth(false);
+    //     console.log('Erro no Axios:', error);
+    // });
 
     try {
       const response = await api.post('/auth/login', {
@@ -60,50 +78,37 @@ export default ({children}) => {
         password: password,
       });
 
-      // Verificação de erro dentro do sucesso (caso a API retorne 200 mas com flag de erro)
-      if (response?.data?.error || response?.data?.success === false) {
+      if (response?.data.register == 'update') {
+        return Alert.alert('Aviso', response?.data.message, [
+          { text: 'Ok', onPress: () => newRegister() },
+          { text: 'Cancelar', onPress: null, styled: 'cancel' },
+        ]);
+      }
+
+      if (response?.data.error) {
         return Dialog.show({
           type: ALERT_TYPE.DANGER,
-          title: 'Erro de Negócio',
-          textBody: `Mensagem: ${response.data.message}\n\nURL: ${urlCompleta}`,
+          title: 'Erro',
+          textBody: response?.data.message,
           button: 'Fechar',
         });
       }
 
       const accessToken = response?.data.token || '';
+
+      // Salva o token no AsyncStorage
       await AsyncStorage.setItem('@eventToken', accessToken);
+
+      // Chama a função loadStorage para atualizar o estado com o novo token
       await loadStorage();
     } catch (err) {
-      let mensagemDebug = '';
-
-      if (err.response) {
-        // O servidor respondeu com erro (Ex: 401, 404, 500)
-        mensagemDebug =
-          `STATUS: ${err.response.status}\n\n` +
-          `RESPOSTA: ${JSON.stringify(err.response.data)}\n\n` +
-          `URL: ${urlCompleta}`;
-      } else if (err.request) {
-        // A requisição foi feita mas o servidor não respondeu (Rede/DNS/Timeout)
-        mensagemDebug =
-          `ERRO DE REDE: Sem resposta do servidor.\n\n` +
-          `URL TENTADA: ${urlCompleta}\n\n` +
-          `DETALHE: ${err.message}`;
-      } else {
-        // Erro ao configurar a requisição
-        mensagemDebug = `ERRO INTERNO: ${err.message}`;
-      }
-
       Dialog.show({
         type: ALERT_TYPE.DANGER,
-        title: 'DEBUG LOGIN (APK)',
-        textBody:
-          `❌ MOTIVO DO ERRO:\n${motivo}\n\n` +
-          `🌐 BASE URL:\n${api.defaults.baseURL}\n\n` +
-          `➡️ ROTA COMPLETA:\n${urlCompleta}`,
+        title: 'Erro',
+        textBody: 'Credenciais inválidas',
         button: 'Fechar',
       });
-
-      console.log('ERRO AO LOGAR:', err);
+      console.log('ERRO AO LOGAR ', err);
     } finally {
       setLoadingAuth(false);
     }
@@ -111,8 +116,13 @@ export default ({children}) => {
 
   async function logoff() {
     setUser(null);
-    await AsyncStorage.setItem('@eventToken', '');
-    navigation.reset({routes: [{name: 'SignIn'}]});
+    const accessToken = '';
+    await AsyncStorage.setItem('@eventToken', accessToken);
+    await loadStorage();
+  }
+
+  async function newRegister() {
+    navigation.navigate('ResetPassword');
   }
 
   return (
@@ -127,7 +137,8 @@ export default ({children}) => {
         loading,
         logoff,
         loadStorage,
-      }}>
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
