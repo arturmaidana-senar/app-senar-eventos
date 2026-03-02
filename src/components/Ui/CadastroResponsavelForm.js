@@ -41,16 +41,22 @@ export default function CadastroResponsavelForm({
   const [termosLidos, setTermosLidos] = useState(false);
   const [modalCriancaVisible, setModalCriancaVisible] = useState(false);
   const [modalParentescoVisible, setModalParentescoVisible] = useState(false);
+  const [modalSexoVisible, setModalSexoVisible] = useState(false);
   const [modalAssinaturaVisible, setModalAssinaturaVisible] = useState(false);
   const [assinaturaBase64, setAssinaturaBase64] = useState(null);
   const [termoTexto, setTermoTexto] = useState('');
   const [renderCanvas, setRenderCanvas] = useState(false);
+
+  const [sexoTarget, setSexoTarget] = useState('');
+  const sexoOptions = ['Masculino', 'Feminino', 'Outro'];
 
   const [responsavel, setResponsavel] = useState({
     nome: '',
     cpf: '',
     telefone: '',
     data_nascimento: '',
+    sexo: '',
+    isParticipante: false,
   });
 
   const [criancas, setCriancas] = useState([]);
@@ -60,17 +66,11 @@ export default function CadastroResponsavelForm({
     dataNascimento: '',
     idadeCalculada: '',
     parentesco: '',
+    sexo: '',
   });
 
   const [parentescoOptions, setParentescoOptions] = useState([]);
   const [loadingParentesco, setLoadingParentesco] = useState(false);
-
-  useEffect(() => {
-    console.log('--- DEBUG ID DO EVENTO ---');
-    console.log('Via Route Params:', params.eventId);
-    console.log('Via Props:', id_evento);
-    console.log('ID FINAL UTILIZADO:', currentEventId);
-  }, [currentEventId]);
 
   useEffect(() => {
     const fetchParentescos = async () => {
@@ -102,14 +102,15 @@ export default function CadastroResponsavelForm({
 
   useEffect(() => {
     if (initialData) {
-      setResponsavel({
+      setResponsavel(prev => ({
+        ...prev,
         nome: initialData.name || '',
         cpf: formatCPF(initialData.cpf || ''),
         telefone: maskTelefone(initialData.phone || initialData.whatsapp || ''),
         data_nascimento: initialData.birth_date
           ? formatDateToBr(initialData.birth_date)
           : '',
-      });
+      }));
     }
 
     Orientation.lockToPortrait();
@@ -234,11 +235,7 @@ export default function CadastroResponsavelForm({
         return;
       }
 
-      console.log(`Buscando termo para evento ID: ${currentEventId}`);
       const response = await api.get(`/events/${currentEventId}/term`);
-
-      console.log('Dados recebidos:', response.data);
-
       let textoHtml = '';
 
       if (response.data?.text && typeof response.data.text === 'string') {
@@ -256,10 +253,6 @@ export default function CadastroResponsavelForm({
       ) {
         textoHtml = response.data.content;
       } else {
-        console.warn(
-          'Estrutura não reconhecida. Tentando converter JSON:',
-          response.data,
-        );
         textoHtml = '<p>Erro: O formato do termo recebido é inválido.</p>';
       }
 
@@ -292,7 +285,6 @@ export default function CadastroResponsavelForm({
 
   const handleTermosContentSizeChange = (contentWidth, contentHeight) => {
     const screenHeight = Dimensions.get('window').height;
-    // Se o conteúdo do termo for menor que a área visível (ex: Tablet), libera o botão
     if (contentHeight > 0 && contentHeight < screenHeight * 0.6) {
       setTermosLidos(true);
     }
@@ -341,16 +333,26 @@ export default function CadastroResponsavelForm({
     if (signatureRef.current) signatureRef.current.clearSignature();
   };
 
+  const selecionarSexo = item => {
+    if (sexoTarget === 'responsavel') {
+      setResponsavel({ ...responsavel, sexo: item });
+    } else {
+      setNovaCrianca({ ...novaCrianca, sexo: item });
+    }
+    setModalSexoVisible(false);
+  };
+
   const adicionarCrianca = () => {
     if (
       !novaCrianca.nome ||
       !novaCrianca.parentesco ||
+      !novaCrianca.sexo ||
       novaCrianca.dataNascimento.length !== 10
     ) {
       return Dialog.show({
         type: ALERT_TYPE.WARNING,
         title: 'Atenção',
-        textBody: 'Preencha Nome, Data e Parentesco.',
+        textBody: 'Preencha Nome, Data, Parentesco e Sexo.',
         button: 'Ok',
       });
     }
@@ -393,6 +395,7 @@ export default function CadastroResponsavelForm({
       dataNascimento: '',
       idadeCalculada: '',
       parentesco: '',
+      sexo: '',
     });
     setModalCriancaVisible(false);
   };
@@ -410,17 +413,18 @@ export default function CadastroResponsavelForm({
   };
 
   const handleSubmit = async () => {
-    if (!responsavel.nome || !responsavel.cpf || !responsavel.telefone) {
-      Alert.alert('Erro', 'Preencha os dados do responsável.');
+    if (
+      !responsavel.nome ||
+      !responsavel.cpf ||
+      !responsavel.telefone ||
+      !responsavel.sexo
+    ) {
+      Alert.alert('Erro', 'Preencha os dados do responsável, incluindo sexo.');
       return;
     }
 
     if (!validarIdadeResponsavel()) return;
 
-    if (criancas.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos uma criança.');
-      return;
-    }
     if (!assinaturaBase64) {
       Alert.alert('Erro', 'A assinatura é obrigatória.');
       return;
@@ -463,12 +467,21 @@ export default function CadastroResponsavelForm({
 
       const formData = new FormData();
 
+      // Se não houver crianças, o responsável é obrigatoriamente participante
+      const participanteConfirmado =
+        criancas.length === 0 ? true : responsavel.isParticipante;
+
       formData.append('responsavel[nome]', responsavel.nome);
       formData.append('responsavel[cpf]', responsavel.cpf.replace(/\D/g, ''));
       formData.append('responsavel[telefone]', responsavel.telefone);
       formData.append(
         'responsavel[data_nascimento]',
         responsavel.data_nascimento,
+      );
+      formData.append('responsavel[sexo]', responsavel.sexo);
+      formData.append(
+        'responsavel[is_participante]',
+        participanteConfirmado ? '1' : '0',
       );
 
       formData.append('responsavel[assinatura_png]', {
@@ -487,6 +500,7 @@ export default function CadastroResponsavelForm({
           `criancas_vinculadas[${index}][idade]`,
           c.idadeCalculada,
         );
+        formData.append(`criancas_vinculadas[${index}][sexo]`, c.sexo);
 
         if (typeof c.parentesco === 'object') {
           formData.append(
@@ -516,6 +530,24 @@ export default function CadastroResponsavelForm({
       formData.append('termo_aceite[data_aceite]', new Date().toISOString());
       formData.append('termo_aceite[conteudo_html]', termoTexto);
       formData.append('data_hora', new Date().toISOString());
+
+      console.log(
+        '\n================ DADOS ENVIADOS PARA O BACKEND ================',
+      );
+      if (formData._parts) {
+        formData._parts.forEach(([key, value]) => {
+          if (key === 'responsavel[assinatura_png]') {
+            console.log(`${key}: [Arquivo Base64 Omitido no Log]`);
+          } else if (typeof value === 'object') {
+            console.log(`${key}:`, JSON.stringify(value));
+          } else {
+            console.log(`${key}: ${value}`);
+          }
+        });
+      }
+      console.log(
+        '=================================================================\n',
+      );
 
       const response = await api.post(
         `/events/${currentEventId}/term-signed`,
@@ -563,7 +595,9 @@ export default function CadastroResponsavelForm({
       >
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Dados do Responsável</Text>
+            <Text style={styles.cardTitle}>
+              Dados do Responsável / Participante
+            </Text>
           </View>
           <Text style={styles.label}>CPF</Text>
           <TextInput
@@ -588,27 +622,79 @@ export default function CadastroResponsavelForm({
               setResponsavel({ ...responsavel, telefone: maskTelefone(t) })
             }
           />
-          <Text style={styles.label}>Data de Nascimento *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="DD/MM/AAAA"
-            keyboardType="numeric"
-            value={responsavel.data_nascimento}
-            onChangeText={t =>
-              setResponsavel({
-                ...responsavel,
-                data_nascimento: formatarData(t),
-              })
-            }
-            maxLength={10}
-          />
+          <View style={styles.row}>
+            <View style={[styles.col, { marginRight: 10 }]}>
+              <Text style={styles.label}>Data de Nasc. *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="DD/MM/AAAA"
+                keyboardType="numeric"
+                value={responsavel.data_nascimento}
+                onChangeText={t =>
+                  setResponsavel({
+                    ...responsavel,
+                    data_nascimento: formatarData(t),
+                  })
+                }
+                maxLength={10}
+              />
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Sexo *</Text>
+              <TouchableOpacity
+                style={styles.pickerButton}
+                onPress={() => {
+                  setSexoTarget('responsavel');
+                  setModalSexoVisible(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.pickerText,
+                    !responsavel.sexo && styles.placeholderText,
+                  ]}
+                >
+                  {responsavel.sexo || 'Selecione'}
+                </Text>
+                <Text style={styles.pickerIcon}>▼</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {criancas.length > 0 && (
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() =>
+                setResponsavel({
+                  ...responsavel,
+                  isParticipante: !responsavel.isParticipante,
+                })
+              }
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  responsavel.isParticipante && styles.checkboxChecked,
+                ]}
+              >
+                {responsavel.isParticipante && (
+                  <Text style={styles.checkboxCheckmark}>✓</Text>
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                Também serei participante neste evento
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.card}>
           <View
             style={[styles.cardHeader, { justifyContent: 'space-between' }]}
           >
-            <Text style={styles.cardTitle}>Crianças Vinculadas</Text>
+            <Text style={styles.cardTitle}>
+              Menores sob Responsabilidade (Opcional)
+            </Text>
             <TouchableOpacity onPress={() => setModalCriancaVisible(true)}>
               <Text style={styles.addButtonText}>+ Adicionar</Text>
             </TouchableOpacity>
@@ -629,7 +715,8 @@ export default function CadastroResponsavelForm({
                     <Text style={styles.childInfoText}>CPF: {child.cpf}</Text>
                   ) : null}
                   <Text style={styles.childInfoText}>
-                    Nasc: {child.dataNascimento} • {child.idadeCalculada} anos
+                    Nasc: {child.dataNascimento} • {child.idadeCalculada} anos •{' '}
+                    {child.sexo}
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => removerCrianca(child.id)}>
@@ -643,7 +730,9 @@ export default function CadastroResponsavelForm({
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Assinatura do Responsável *</Text>
           <Text style={styles.legalText}>
-            Ao assinar, reitero minha concordância com os termos apresentados.
+            {criancas.length === 0
+              ? 'Ao assinar, concordo com os termos de participação e autorizo o uso dos meus direitos para os fins deste evento.'
+              : 'Ao assinar, reitero minha concordância com os termos apresentados para mim e para os menores sob minha responsabilidade.'}
           </Text>
           <TouchableOpacity
             style={[
@@ -696,18 +785,14 @@ export default function CadastroResponsavelForm({
         <View style={{ height: 50 }} />
       </ScrollView>
 
+      {/* MODAL DE TERMOS */}
       <Modal
         visible={modalTermosVisible}
         animationType="slide"
         transparent={false}
       >
         <SafeAreaView style={styles.termosContainer}>
-          <View
-            style={[
-              styles.termosHeader,
-              { flexDirection: 'row', justifyContent: 'space-between' },
-            ]}
-          >
+          <View style={styles.termosHeader}>
             <View style={{ width: 30 }} />
             <View style={{ alignItems: 'center' }}>
               <Text style={styles.termosTitle}>Termos e Autorização</Text>
@@ -731,7 +816,6 @@ export default function CadastroResponsavelForm({
             <TermosConsentimento
               content={termoTexto || '<p>Carregando termo...</p>'}
             />
-
             <View style={{ height: 50 }} />
           </ScrollView>
           <View style={styles.termosFooter}>
@@ -753,6 +837,7 @@ export default function CadastroResponsavelForm({
         </SafeAreaView>
       </Modal>
 
+      {/* MODAL ADICIONAR CRIANÇA */}
       <Modal visible={modalCriancaVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -796,24 +881,47 @@ export default function CadastroResponsavelForm({
                 </View>
               </View>
             </View>
-            <Text style={styles.label}>Parentesco (Vínculo) *</Text>
-            <TouchableOpacity
-              style={styles.pickerButton}
-              onPress={() => setModalParentescoVisible(true)}
-            >
-              <Text
-                style={[
-                  styles.pickerText,
-                  !novaCrianca.parentesco && styles.placeholderText,
-                ]}
-              >
-                {typeof novaCrianca.parentesco === 'object' &&
-                novaCrianca.parentesco?.name
-                  ? novaCrianca.parentesco.name
-                  : novaCrianca.parentesco || 'Selecione o vínculo'}{' '}
-              </Text>
-              <Text style={styles.pickerIcon}>▼</Text>
-            </TouchableOpacity>
+            <View style={styles.row}>
+              <View style={[styles.col, { marginRight: 10 }]}>
+                <Text style={styles.label}>Parentesco *</Text>
+                <TouchableOpacity
+                  style={styles.pickerButton}
+                  onPress={() => setModalParentescoVisible(true)}
+                >
+                  <Text
+                    style={[
+                      styles.pickerText,
+                      !novaCrianca.parentesco && styles.placeholderText,
+                    ]}
+                  >
+                    {typeof novaCrianca.parentesco === 'object'
+                      ? novaCrianca.parentesco?.name
+                      : novaCrianca.parentesco || 'Selecione'}
+                  </Text>
+                  <Text style={styles.pickerIcon}>▼</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.col}>
+                <Text style={styles.label}>Sexo *</Text>
+                <TouchableOpacity
+                  style={styles.pickerButton}
+                  onPress={() => {
+                    setSexoTarget('crianca');
+                    setModalSexoVisible(true);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerText,
+                      !novaCrianca.sexo && styles.placeholderText,
+                    ]}
+                  >
+                    {novaCrianca.sexo || 'Selecione'}
+                  </Text>
+                  <Text style={styles.pickerIcon}>▼</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 onPress={() => setModalCriancaVisible(false)}
@@ -834,11 +942,38 @@ export default function CadastroResponsavelForm({
         </View>
       </Modal>
 
+      {/* MODAL SEXO */}
+      <Modal visible={modalSexoVisible} transparent animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.cardTitleModal}>Selecione o Sexo</Text>
+            <FlatList
+              data={sexoOptions}
+              keyExtractor={item => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.optionItem}
+                  onPress={() => selecionarSexo(item)}
+                >
+                  <Text style={styles.optionText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              onPress={() => setModalSexoVisible(false)}
+              style={styles.btnCloseFull}
+            >
+              <Text style={styles.btnCloseText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* MODAL PARENTESCO */}
       <Modal visible={modalParentescoVisible} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { maxHeight: 400 }]}>
             <Text style={styles.cardTitleModal}>Selecione o Vínculo</Text>
-
             {loadingParentesco ? (
               <ActivityIndicator
                 color="#3E7D56"
@@ -859,7 +994,6 @@ export default function CadastroResponsavelForm({
                 )}
               />
             )}
-
             <TouchableOpacity
               onPress={() => setModalParentescoVisible(false)}
               style={styles.btnCloseFull}
@@ -870,6 +1004,7 @@ export default function CadastroResponsavelForm({
         </View>
       </Modal>
 
+      {/* MODAL ASSINATURA */}
       <Modal
         visible={modalAssinaturaVisible}
         transparent={false}
@@ -892,24 +1027,7 @@ export default function CadastroResponsavelForm({
                 ref={signatureRef}
                 onOK={handleSignatureOK}
                 onEmpty={handleSignatureEmpty}
-                webStyle={`
-                  .m-signature-pad--footer {display: none; margin: 0px;}
-                  body, html {
-                    width: 100%;
-                    height: 100%;
-                    margin: 0;
-                    padding: 0;
-                    overflow: hidden;
-                    touch-action: none;
-                  }
-                  .m-signature-pad {
-                    margin: 0;
-                    height: 100%;
-                    width: 100%;
-                    border: none;
-                    box-shadow: none;
-                  }
-                `}
+                webStyle={`.m-signature-pad--footer {display: none; margin: 0px;}`}
                 autoClear={true}
               />
             )}
@@ -937,466 +1055,14 @@ export default function CadastroResponsavelForm({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  cancelButton: {
-    padding: 10,
-    alignItems: 'center',
-    backgroundColor: '#FFEBEE',
-  },
-  cancelButtonText: { color: '#D32F2F', fontWeight: 'bold' },
-  scrollContent: { padding: 16 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 3,
-  },
-  cardHeader: { marginBottom: 16, flexDirection: 'row', alignItems: 'center' },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  input: {
-    backgroundColor: '#F9F9F9',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    marginBottom: 12,
-    color: '#333',
-  },
-  addButtonText: { color: '#3E7D56', fontWeight: 'bold' },
-  emptyText: { fontStyle: 'italic', color: '#aaa', textAlign: 'center' },
-  childItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#EEE',
-  },
-  childName: { fontWeight: 'bold', color: '#444' },
-  childInfoText: { fontSize: 12, color: '#888' },
-  deleteButtonText: { color: '#FF4444', fontSize: 12 },
-  openSignatureButton: {
-    backgroundColor: '#E8F5E9',
-    borderWidth: 2,
-    borderColor: '#3E7D56',
-    borderStyle: 'dashed',
-    borderRadius: 10,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  openSignatureButtonText: { color: '#3E7D56', fontWeight: 'bold' },
-  signaturePreview: {
-    width: '100%',
-    height: 150,
-    resizeMode: 'contain',
-    backgroundColor: '#fff',
-  },
-  signatureCapturedText: { color: '#3E7D56', fontWeight: 'bold', fontSize: 14 },
-  clearLink: {
-    color: '#FF4444',
-    fontSize: 12,
-    textAlign: 'right',
-    textDecorationLine: 'underline',
-  },
-  legalText: { fontSize: 12, color: '#666', marginBottom: 15, lineHeight: 18 },
-  submitButton: {
-    backgroundColor: '#3E7D56',
-    padding: 18,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  submitButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    maxHeight: 400,
-  },
-  cardTitleModal: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#3E7D56',
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 20,
-  },
-  btnCancel: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginRight: 10,
-    backgroundColor: '#EEE',
-    borderRadius: 6,
-  },
-  btnConfirm: {
-    backgroundColor: '#3E7D56',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-  },
-  optionItem: {
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
-  },
-  optionText: { fontSize: 16, color: '#333', textAlign: 'center' },
-  btnCloseFull: {
-    marginTop: 15,
-    padding: 12,
-    backgroundColor: '#EEE',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  btnCloseText: { color: '#555', fontWeight: 'bold' },
-  termosContainer: { flex: 1, backgroundColor: '#fff' },
-  termosHeader: {
-    padding: 20,
-    backgroundColor: '#3E7D56',
-    alignItems: 'center',
-  },
-  termosTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  termosSubtitle: { color: '#E0EFE5', fontSize: 14, marginTop: 5 },
-  termosScroll: { flex: 1, padding: 20 },
-  termosContent: { paddingBottom: 40 },
-  termosFooter: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#f9f9f9',
-  },
-  btnAceitarTermos: {
-    padding: 18,
-    borderRadius: 10,
-    backgroundColor: '#3E7D56',
-    alignItems: 'center',
-  },
-  btnAceitarDisabled: { backgroundColor: '#ccc' },
-  btnAceitarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  landscapeModalContainer: { flex: 1, backgroundColor: '#f0f0f0' },
-  landscapeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: '#3E7D56',
-    height: 50,
-  },
-  landscapeTitle: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  landscapeCancelBtn: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  landscapeCancelText: { color: '#FFF', fontSize: 12 },
-  signatureCanvasArea: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    margin: 10,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  landscapeFooter: {
-    height: 70,
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-  },
-  btnFooterClear: {
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: '#FFEBEE',
-    width: '20%',
-    alignItems: 'center',
-  },
-  btnFooterConfirm: {
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: '#3E7D56',
-    width: '75%',
-    alignItems: 'center',
-  },
-  btnFooterTextRed: { color: '#D32F2F', fontWeight: 'bold' },
-  btnFooterTextWhite: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  col: { flex: 1 },
-  pickerButton: {
-    backgroundColor: '#F9F9F9',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pickerText: { fontSize: 15, color: '#333' },
-  placeholderText: { color: '#999' },
-  pickerIcon: { color: '#999', fontSize: 12 },
-  childParentesco: { fontWeight: 'normal', color: '#3E7D56', fontSize: 14 },
-  container: { flex: 1 },
-  cancelButton: {
-    padding: 10,
-    alignItems: 'center',
-    backgroundColor: '#FFEBEE',
-  },
-  cancelButtonText: { color: '#D32F2F', fontWeight: 'bold' },
-  scrollContent: { padding: 16 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 3,
-  },
-  cardHeader: { marginBottom: 16, flexDirection: 'row', alignItems: 'center' },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-    marginBottom: 6,
-    marginTop: 4,
-  },
-  input: {
-    backgroundColor: '#F9F9F9',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    marginBottom: 12,
-    color: '#333',
-  },
-  addButtonText: { color: '#3E7D56', fontWeight: 'bold' },
-  emptyText: { fontStyle: 'italic', color: '#aaa', textAlign: 'center' },
-  childItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#EEE',
-  },
-  childName: { fontWeight: 'bold', color: '#444' },
-  childInfoText: { fontSize: 12, color: '#888' },
-  deleteButtonText: { color: '#FF4444', fontSize: 12 },
-  openSignatureButton: {
-    backgroundColor: '#E8F5E9',
-    borderWidth: 2,
-    borderColor: '#3E7D56',
-    borderStyle: 'dashed',
-    borderRadius: 10,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  openSignatureButtonText: { color: '#3E7D56', fontWeight: 'bold' },
-  signaturePreview: {
-    width: '100%',
-    height: 150,
-    resizeMode: 'contain',
-    backgroundColor: '#fff',
-  },
-  signatureCapturedText: { color: '#3E7D56', fontWeight: 'bold', fontSize: 14 },
-  submitButton: {
-    backgroundColor: '#3E7D56',
-    padding: 18,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  submitButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    maxHeight: 400,
-  },
-  cardTitleModal: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#3E7D56',
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 20,
-  },
-  btnCancel: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginRight: 10,
-    backgroundColor: '#EEE',
-    borderRadius: 6,
-  },
-  btnConfirm: {
-    backgroundColor: '#3E7D56',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-  },
-  optionItem: {
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
-  },
-  optionText: { fontSize: 16, color: '#333', textAlign: 'center' },
-  btnCloseFull: {
-    marginTop: 15,
-    padding: 12,
-    backgroundColor: '#EEE',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  termosContainer: { flex: 1, backgroundColor: '#fff' },
-  termosHeader: {
-    padding: 20,
-    backgroundColor: '#3E7D56',
-    alignItems: 'center',
-  },
-  termosTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  termosScroll: { flex: 1, padding: 20 },
-  termosContent: { paddingBottom: 40 },
-  termosFooter: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#f9f9f9',
-  },
-  btnAceitarTermos: {
-    padding: 18,
-    borderRadius: 10,
-    backgroundColor: '#3E7D56',
-    alignItems: 'center',
-  },
-  btnAceitarDisabled: { backgroundColor: '#ccc' },
-  btnAceitarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  landscapeModalContainer: { flex: 1, backgroundColor: '#f0f0f0' },
-  landscapeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: '#3E7D56',
-    height: 50,
-  },
-  landscapeTitle: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  landscapeCancelBtn: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  landscapeCancelText: { color: '#FFF', fontSize: 12 },
-  signatureCanvasArea: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    margin: 10,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  landscapeFooter: {
-    height: 70,
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-  },
-  btnFooterClear: {
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: '#FFEBEE',
-    width: '20%',
-    alignItems: 'center',
-  },
-  btnFooterConfirm: {
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: '#3E7D56',
-    width: '75%',
-    alignItems: 'center',
-  },
-  btnFooterTextRed: { color: '#D32F2F', fontWeight: 'bold' },
-  btnFooterTextWhite: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  col: { flex: 1 },
-  pickerButton: {
-    backgroundColor: '#F9F9F9',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pickerText: { fontSize: 15, color: '#333' },
-  placeholderText: { color: '#999' },
-  legalText: { fontSize: 12, color: '#666', marginBottom: 15, lineHeight: 18 },
   container: { flex: 1, backgroundColor: '#ffffff' },
-  header: {
-    backgroundColor: '#ffffff',
-    padding: 20,
-    paddingTop: Platform.OS === 'android' ? 40 : 20,
-    flexDirection: 'row',
+  cancelButton: {
+    padding: 10,
     alignItems: 'center',
+    backgroundColor: '#FFEBEE',
   },
-  headerBackButtonText: { color: '#000000', fontWeight: 'bold' },
-  headerTitle: {
-    color: '#000000',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginLeft: 15,
-  },
-  headerSubtitle: { color: '#000000', fontSize: 12, marginLeft: 15 },
+  cancelButtonText: { color: '#D32F2F', fontWeight: 'bold' },
   scrollContent: { padding: 16 },
-
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -1435,11 +1101,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    height: 48,
   },
   pickerText: { fontSize: 15, color: '#333' },
   placeholderText: { color: '#999' },
   pickerIcon: { color: '#999', fontSize: 12 },
-
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderWidth: 2,
+    borderColor: '#3E7D56',
+    borderRadius: 4,
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: { backgroundColor: '#3E7D56' },
+  checkboxCheckmark: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
+  checkboxLabel: { fontSize: 14, color: '#555', flex: 1 },
   childItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1462,7 +1147,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: 10,
   },
-
   submitButton: {
     backgroundColor: '#3E7D56',
     padding: 18,
@@ -1471,7 +1155,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
-  submitButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 13 },
+  submitButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   openSignatureButton: {
     backgroundColor: '#E8F5E9',
     borderWidth: 2,
@@ -1488,17 +1172,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-
-  // ESTILO NOVO PARA O PREVIEW
   signaturePreview: {
     width: '100%',
     height: 150,
     resizeMode: 'contain',
     marginBottom: 5,
-    backgroundColor: '#fff', // Fundo branco para destacar a assinatura
+    backgroundColor: '#fff',
   },
   signatureCapturedText: { color: '#3E7D56', fontWeight: 'bold', fontSize: 14 },
-
   clearLink: {
     color: '#FF4444',
     fontSize: 12,
@@ -1506,7 +1187,6 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   legalText: { fontSize: 12, color: '#666', marginBottom: 15, lineHeight: 18 },
-
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -1559,23 +1239,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnCloseText: { color: '#555', fontWeight: 'bold' },
-
   termosContainer: { flex: 1, backgroundColor: '#fff' },
   termosHeader: {
     padding: 20,
     backgroundColor: '#3E7D56',
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   termosTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   termosSubtitle: { color: '#E0EFE5', fontSize: 14, marginTop: 5 },
   termosScroll: { flex: 1, padding: 20 },
   termosContent: { paddingBottom: 40 },
-  termosText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#333',
-    textAlign: 'justify',
-  },
   termosFooter: {
     padding: 20,
     borderTopWidth: 1,
@@ -1590,7 +1265,6 @@ const styles = StyleSheet.create({
   },
   btnAceitarDisabled: { backgroundColor: '#ccc' },
   btnAceitarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-
   landscapeModalContainer: { flex: 1, backgroundColor: '#f0f0f0' },
   landscapeHeader: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,25 +12,25 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import {useRoute, useNavigation, useTheme} from '@react-navigation/native';
-import {ALERT_TYPE, Dialog} from 'react-native-alert-notification';
+import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
+import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
 // Importa os serviços
 import apiService from '../../services/api'; // Rota customizada
 import apiEndpoint from '../../services/endpont'; // Detalhes do evento
 
-import {formatDateEvent} from '../../utils/dateFormat';
-import {COLORS} from '../../constants/theme';
-import {setHeaderOptions} from '../../components/HeaderTitle';
+import { formatDateEvent } from '../../utils/dateFormat';
+import { COLORS } from '../../constants/theme';
+import { setHeaderOptions } from '../../components/HeaderTitle';
 
 // Importa o Componente do Formulário
 import CadastroResponsavelForm from '../../components/Ui/CadastroResponsavelForm';
 
 export default function CredentialScreen() {
-  const {colors} = useTheme();
+  const { colors } = useTheme();
   const route = useRoute();
   const navigation = useNavigation();
-  const {eventId} = route.params;
+  const { eventId } = route.params;
 
   const [event, setEvent] = useState(null);
 
@@ -46,8 +46,8 @@ export default function CredentialScreen() {
 
   useEffect(() => {
     setHeaderOptions(navigation, {
-      headerTitle: 'Credenciamento de Menor',
-      headerTitleStyle: {fontFamily: 'Arial', fontSize: 18, color: '#333333'},
+      headerTitle: 'Credenciamento de Participante',
+      headerTitleStyle: { fontFamily: 'Arial', fontSize: 18, color: '#333333' },
       headerTintColor: '#333333',
     });
 
@@ -176,9 +176,10 @@ export default function CredentialScreen() {
     <KeyboardAvoidingView
       style={[
         styles.container,
-        {backgroundColor: colors.background || '#F2F4F8'},
+        { backgroundColor: colors.background || '#F2F4F8' },
       ]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {showForm ? (
         <CadastroResponsavelForm
           id_evento={eventId}
@@ -189,8 +190,8 @@ export default function CredentialScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
           {event ? (
-            <View style={[styles.eventCard, {backgroundColor: '#fff'}]}>
-              <Text style={[styles.eventTitle, {color: '#333'}]}>
+            <View style={[styles.eventCard, { backgroundColor: '#fff' }]}>
+              <Text style={[styles.eventTitle, { color: '#333' }]}>
                 {event.name}
               </Text>
               <View
@@ -198,10 +199,12 @@ export default function CredentialScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   marginTop: 8,
-                }}>
+                }}
+              >
                 <Icon name="event" size={16} color="#666" />
                 <Text
-                  style={[styles.eventDate, {color: '#666', marginLeft: 6}]}>
+                  style={[styles.eventDate, { color: '#666', marginLeft: 6 }]}
+                >
                   {formatDateEvent(event.started_at)} —{' '}
                   {formatDateEvent(event.ended_at)}
                 </Text>
@@ -209,13 +212,15 @@ export default function CredentialScreen() {
             </View>
           ) : (
             <ActivityIndicator
-              style={{marginVertical: 20}}
+              style={{ marginVertical: 20 }}
               color={COLORS.primary}
             />
           )}
 
           <View style={styles.searchContainer}>
-            <Text style={styles.searchLabel}>Buscar Responsável</Text>
+            <Text style={styles.searchLabel}>
+              Dados do participante/Responsável
+            </Text>
 
             <View style={styles.inputWrapper}>
               <TextInput
@@ -230,7 +235,8 @@ export default function CredentialScreen() {
               <TouchableOpacity
                 onPress={handleSearch}
                 style={styles.searchButton}
-                disabled={loadingSearch}>
+                disabled={loadingSearch}
+              >
                 {loadingSearch ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
@@ -244,7 +250,7 @@ export default function CredentialScreen() {
                 name="info-outline"
                 size={22}
                 color="#0288D1"
-                style={{marginRight: 10}}
+                style={{ marginRight: 10 }}
               />
               <Text style={styles.infoText}>
                 Informe o CPF. Se o responsável já tiver cadastro, os dados
@@ -259,8 +265,8 @@ export default function CredentialScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1},
-  scroll: {padding: 16},
+  container: { flex: 1 },
+  scroll: { padding: 16 },
 
   eventCard: {
     padding: 20,
@@ -273,8 +279,8 @@ const styles = StyleSheet.create({
     borderLeftWidth: 5,
     borderLeftColor: COLORS.primary,
   },
-  eventTitle: {fontSize: 18, fontWeight: 'bold'},
-  eventDate: {fontSize: 14},
+  eventTitle: { fontSize: 18, fontWeight: 'bold' },
+  eventDate: { fontSize: 14 },
 
   searchContainer: {
     backgroundColor: '#fff',

@@ -9,6 +9,8 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
 } from 'react-native';
+import { PermissionsAndroid } from 'react-native';
+
 import {
   useRoute,
   useNavigation,
@@ -48,6 +50,7 @@ export default function Service() {
   const [isCredential, setIsCredential] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const modalTranslateY = useRef(new Animated.Value(300)).current;
+  const isScanning = useRef(false);
 
   const [hasTerm, setHasTerm] = useState(false);
 
@@ -110,6 +113,14 @@ export default function Service() {
     setLoading(false);
   }
 
+  async function requestCameraPermission() {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  }
+
   const handleListCheckin = async () => {
     try {
       const response = await api.getListEventCheckin(eventId);
@@ -121,28 +132,30 @@ export default function Service() {
   };
 
   const handleQRCodeRead = async data => {
+    if (isScanning.current || !data) return;
+    isScanning.current = true;
     setScannerVisible(false);
-    if (data) {
-      setLoading(true);
-      try {
-        const response = await api.postCheckinEvent({ token: data, eventId });
-        await handleListCheckin();
-        Dialog.show({
-          type: response.error ? ALERT_TYPE.DANGER : ALERT_TYPE.SUCCESS,
-          title: response.error ? 'Error' : 'Check-in',
-          textBody: response.error ? response.message : response.name,
-          button: 'Fechar',
-        });
-      } catch {
-        Dialog.show({
-          type: ALERT_TYPE.DANGER,
-          title: 'Error',
-          textBody: 'Houve uma falha tente novamente.',
-          button: 'Fechar',
-        });
-      } finally {
-        setLoading(false);
-      }
+
+    setLoading(true);
+    try {
+      const response = await api.postCheckinEvent({ token: data, eventId });
+      await handleListCheckin();
+      Dialog.show({
+        type: response.error ? ALERT_TYPE.DANGER : ALERT_TYPE.SUCCESS,
+        title: response.error ? 'Error' : 'Check-in',
+        textBody: response.error ? response.message : response.name,
+        button: 'Fechar',
+      });
+    } catch {
+      Dialog.show({
+        type: ALERT_TYPE.DANGER,
+        title: 'Error',
+        textBody: 'Houve uma falha tente novamente.',
+        button: 'Fechar',
+      });
+    } finally {
+      isScanning.current = false;
+      setLoading(false);
     }
   };
 
@@ -250,8 +263,8 @@ export default function Service() {
           <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
             {isCredential && (
               <ActionButton
-                title="Credenciamento Participante"
-                subtitle="Registrar entrada de participantes"
+                title="Registrar Presença"
+                subtitle="Registrar a presença que estão na pré lista do evento."
                 iconName="person-add-alt-1"
                 iconColor="#FFF"
                 iconBgColor="#3E7B58"
@@ -262,7 +275,7 @@ export default function Service() {
             {showCheckInButton && isCheckin && (
               <ActionButton
                 title="Check-In"
-                subtitle="Leitura de QR Code"
+                subtitle="Registrar a presença de participantes que estão na pré lista do evento via QRCode."
                 iconName="qr-code-scanner"
                 iconColor="#3E7B58"
                 iconBgColor="#E8F5E9"
@@ -272,8 +285,8 @@ export default function Service() {
 
             {hasTerm && (
               <ActionButton
-                title="Credenciamento de Menor"
-                subtitle="Gerar Termo de Autorização para Menores de Idade"
+                title="Credenciar participante"
+                subtitle="Credenciar participantes para participar do evento."
                 iconName="child-care"
                 iconColor="#3E7B58"
                 iconBgColor="#E8F5E9"
@@ -320,9 +333,14 @@ export default function Service() {
       )}
 
       {scannerVisible && (
-        <View style={StyleSheet.absoluteFill}>
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { zIndex: 999, backgroundColor: '#000' },
+          ]}
+        >
           <Camera
-            style={StyleSheet.absoluteFill}
+            style={{ flex: 1 }}
             scanBarcode={true}
             onReadCode={event =>
               handleQRCodeRead(event.nativeEvent.codeStringValue)
