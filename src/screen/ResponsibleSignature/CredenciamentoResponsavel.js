@@ -24,7 +24,7 @@ import { COLORS } from '../../constants/theme';
 import { setHeaderOptions } from '../../components/HeaderTitle';
 
 // Importa o Componente do Formulário
-import CadastroResponsavelForm from '../../components/Ui/CadastroResponsavelForm';
+import CadastroResponsavelForm from '../../components/Ui/CadastroResponsavelForm'; // (Já importado/unificado acima)
 
 export default function CredentialScreen() {
   const { colors } = useTheme();
@@ -94,33 +94,33 @@ export default function CredentialScreen() {
 
       const rootBody = response.data;
       const personData = rootBody.data || rootBody;
+      const genders = rootBody.genders || []; // Pega a lista de gêneros da API
 
       if (personData) {
-        // Mapeamento provisório (ajuste conforme o log que aparecer)
         setInitialData({
           name: personData.name,
           cpf: personData.cpf || cpfClean,
-          // Tenta pegar whatsapp, se não tiver pega phone, celular, etc.
           phone:
             personData.whatsapp ||
             personData.phone ||
             personData.cellphone ||
             '',
-          // Tenta pegar birth_date, nascimento, dt_nascimento, etc.
           birth_date:
             personData.birth_date ||
             personData.nascimento ||
             personData.data_nascimento ||
             personData.dataNascimento,
+          gender_id: personData.gender_id,
+          genders: genders, // Passa os gêneros para o form
         });
 
-        Dialog.show({
-          type: ALERT_TYPE.SUCCESS,
-          title: 'Cadastro Encontrado',
-          textBody: `Responsável: ${personData.name}`,
-          button: 'Ok',
-          autoClose: 1500,
-        });
+        // Dialog.show({
+        //   type: ALERT_TYPE.SUCCESS,
+        //   title: 'Cadastro Encontrado',
+        //   textBody: `Responsável: ${personData.name}`,
+        //   button: 'Ok',
+        //   autoClose: 1500,
+        // });
 
         setShowForm(true);
       } else {
@@ -129,7 +129,6 @@ export default function CredentialScreen() {
     } catch (err) {
       console.log('Erro na busca:', err);
 
-      // Se for 404, abre formulário vazio (apenas com CPF)
       if (err.response && err.response.status === 404) {
         Dialog.show({
           type: ALERT_TYPE.INFO,
@@ -139,11 +138,15 @@ export default function CredentialScreen() {
           autoClose: 2000,
         });
 
+        // Mesmo se não achar a pessoa, pode ser que a API não retorne genders no 404
+        // Nesse caso o form tentará buscar os gêneros se a prop genders vier vazia, mas
+        // já ajustamos o form para receber `genders` como prop.
         setInitialData({
           cpf: cpfClean,
           name: '',
           phone: '',
           birth_date: '',
+          genders: err.response?.data?.genders || [],
         });
 
         setShowForm(true);

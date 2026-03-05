@@ -275,7 +275,7 @@ export default function Service() {
               <ActionButton
                 title="Registrar Presença"
                 subtitle="Registrar a presença que estão na pré lista do evento."
-                iconName="person-add"
+                iconName="list-alt"
                 iconColor="#3E7B58"
                 iconBgColor="#E8F5E9"
                 onPress={() => navigation.navigate('Credential', { eventId })}

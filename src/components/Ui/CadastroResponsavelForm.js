@@ -42,31 +42,16 @@ export default function CadastroResponsavelForm({
   const [loadingInitialTerm, setLoadingInitialTerm] = useState(true);
 
   const [modalTermosVisible, setModalTermosVisible] = useState(false);
-  const [termosLidos, setTermosLidos] = useState(false);
   const [modalCriancaVisible, setModalCriancaVisible] = useState(false);
-  const [modalParentescoVisible, setModalParentescoVisible] = useState(false);
-  const [modalSexoVisible, setModalSexoVisible] = useState(false);
   const [modalAssinaturaVisible, setModalAssinaturaVisible] = useState(false);
   const [assinaturaBase64, setAssinaturaBase64] = useState(null);
   const [termoTexto, setTermoTexto] = useState('');
   const [renderCanvas, setRenderCanvas] = useState(false);
 
-  const [sexoTarget, setSexoTarget] = useState('');
-  const sexoOptions = ['Masculino', 'Feminino', 'Outro'];
+  const [dropdownAberto, setDropdownAberto] = useState('');
+  const [editingChildId, setEditingChildId] = useState(null);
 
-  const mapGenderToId = sexo => {
-    if (sexo === 'Masculino') return '1';
-    if (sexo === 'Feminino') return '2';
-    if (sexo === 'Outro') return '3';
-    return '';
-  };
-
-  const mapIdToGender = id => {
-    if (String(id) === '1') return 'Masculino';
-    if (String(id) === '2') return 'Feminino';
-    if (String(id) === '3') return 'Outro';
-    return '';
-  };
+  const sexoOptions = initialData?.genders || [];
 
   const [participante, setParticipante] = useState({
     nome: '',
@@ -74,6 +59,7 @@ export default function CadastroResponsavelForm({
     telefone: '',
     data_nascimento: '',
     sexo: '',
+    sexoNome: '',
     isParticipante: false,
   });
 
@@ -85,6 +71,7 @@ export default function CadastroResponsavelForm({
     idadeCalculada: '',
     parentesco: '',
     sexo: '',
+    sexoNome: '',
   });
 
   const [parentescoOptions, setParentescoOptions] = useState([]);
@@ -150,6 +137,13 @@ export default function CadastroResponsavelForm({
 
   useEffect(() => {
     if (initialData) {
+      const initialGenderId = initialData.gender_id
+        ? String(initialData.gender_id)
+        : '';
+      const initialGender = sexoOptions.find(
+        s => String(s.id) === initialGenderId,
+      );
+
       setParticipante(prev => ({
         ...prev,
         nome: initialData.name || '',
@@ -158,7 +152,8 @@ export default function CadastroResponsavelForm({
         data_nascimento: initialData.birth_date
           ? formatDateToBr(initialData.birth_date)
           : '',
-        sexo: mapIdToGender(initialData.gender_id) || '',
+        sexo: initialGenderId,
+        sexoNome: initialGender ? initialGender.name : '',
       }));
     }
 
@@ -166,7 +161,7 @@ export default function CadastroResponsavelForm({
     return () => {
       Orientation.unlockAllOrientations();
     };
-  }, [initialData]);
+  }, [initialData, sexoOptions]);
 
   const formatCPF = v =>
     v
@@ -336,16 +331,29 @@ export default function CadastroResponsavelForm({
     if (signatureRef.current) signatureRef.current.clearSignature();
   };
 
-  const selecionarSexo = item => {
-    if (sexoTarget === 'participante') {
-      setParticipante({ ...participante, sexo: item });
-    } else {
-      setNovaCrianca({ ...novaCrianca, sexo: item });
-    }
-    setModalSexoVisible(false);
+  const abrirModalNovaCrianca = () => {
+    setEditingChildId(null);
+    setDropdownAberto('');
+    setNovaCrianca({
+      nome: '',
+      cpf: '',
+      dataNascimento: '',
+      idadeCalculada: '',
+      parentesco: '',
+      sexo: '',
+      sexoNome: '',
+    });
+    setModalCriancaVisible(true);
   };
 
-  const adicionarCrianca = () => {
+  const editarCrianca = child => {
+    setEditingChildId(child.id);
+    setDropdownAberto('');
+    setNovaCrianca({ ...child });
+    setModalCriancaVisible(true);
+  };
+
+  const salvarCrianca = () => {
     if (
       !novaCrianca.nome ||
       !novaCrianca.parentesco ||
@@ -391,7 +399,17 @@ export default function CadastroResponsavelForm({
       });
     }
 
-    setCriancas([...criancas, { ...novaCrianca, id: Date.now() }]);
+    if (editingChildId) {
+      setCriancas(
+        criancas.map(c =>
+          c.id === editingChildId ? { ...novaCrianca, id: editingChildId } : c,
+        ),
+      );
+      setEditingChildId(null);
+    } else {
+      setCriancas([...criancas, { ...novaCrianca, id: Date.now() }]);
+    }
+
     setNovaCrianca({
       nome: '',
       cpf: '',
@@ -399,20 +417,28 @@ export default function CadastroResponsavelForm({
       idadeCalculada: '',
       parentesco: '',
       sexo: '',
+      sexoNome: '',
     });
     setModalCriancaVisible(false);
   };
 
-  const removerCrianca = id => {
-    setCriancas(criancas.filter(c => c.id !== id));
+  const cancelarModalCrianca = () => {
+    setModalCriancaVisible(false);
+    setEditingChildId(null);
+    setDropdownAberto('');
+    setNovaCrianca({
+      nome: '',
+      cpf: '',
+      dataNascimento: '',
+      idadeCalculada: '',
+      parentesco: '',
+      sexo: '',
+      sexoNome: '',
+    });
   };
 
-  const selecionarParentesco = item => {
-    setNovaCrianca({
-      ...novaCrianca,
-      parentesco: item,
-    });
-    setModalParentescoVisible(false);
+  const removerCrianca = id => {
+    setCriancas(criancas.filter(c => c.id !== id));
   };
 
   const handleSubmit = async () => {
@@ -480,10 +506,7 @@ export default function CadastroResponsavelForm({
         'participante[birth_date]',
         formatForBackend(participante.data_nascimento),
       );
-      formData.append(
-        'participante[gender_id]',
-        mapGenderToId(participante.sexo),
-      );
+      formData.append('participante[gender_id]', participante.sexo);
       formData.append(
         'participante[is_participante]',
         participanteConfirmado ? '1' : '0',
@@ -510,10 +533,7 @@ export default function CadastroResponsavelForm({
           `criancas_vinculadas[${index}][idade]`,
           c.idadeCalculada,
         );
-        formData.append(
-          `criancas_vinculadas[${index}][gender_id]`,
-          mapGenderToId(c.sexo),
-        );
+        formData.append(`criancas_vinculadas[${index}][gender_id]`, c.sexo);
 
         if (typeof c.parentesco === 'object') {
           formData.append(
@@ -649,10 +669,13 @@ export default function CadastroResponsavelForm({
               <Text style={styles.label}>Sexo *</Text>
               <TouchableOpacity
                 style={styles.pickerButton}
-                onPress={() => {
-                  setSexoTarget('participante');
-                  setModalSexoVisible(true);
-                }}
+                onPress={() =>
+                  setDropdownAberto(
+                    dropdownAberto === 'participante_sexo'
+                      ? ''
+                      : 'participante_sexo',
+                  )
+                }
               >
                 <Text
                   style={[
@@ -660,10 +683,32 @@ export default function CadastroResponsavelForm({
                     !participante.sexo && styles.placeholderText,
                   ]}
                 >
-                  {participante.sexo || 'Selecione'}
+                  {participante.sexoNome || 'Selecione'}
                 </Text>
-                <Text style={styles.pickerIcon}>▼</Text>
+                <Text style={styles.pickerIcon}>
+                  {dropdownAberto === 'participante_sexo' ? '▲' : '▼'}
+                </Text>
               </TouchableOpacity>
+              {dropdownAberto === 'participante_sexo' && (
+                <View style={styles.dropdownList}>
+                  {sexoOptions.map(item => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setParticipante({
+                          ...participante,
+                          sexo: item.id,
+                          sexoNome: item.name,
+                        });
+                        setDropdownAberto('');
+                      }}
+                    >
+                      <Text style={styles.dropdownItemText}>{item.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           </View>
 
@@ -702,7 +747,7 @@ export default function CadastroResponsavelForm({
               <Text style={styles.cardTitle}>
                 Menores sob Responsabilidade (Opcional)
               </Text>
-              <TouchableOpacity onPress={() => setModalCriancaVisible(true)}>
+              <TouchableOpacity onPress={abrirModalNovaCrianca}>
                 <Text style={styles.addButtonText}>+ Adicionar</Text>
               </TouchableOpacity>
             </View>
@@ -723,12 +768,17 @@ export default function CadastroResponsavelForm({
                     ) : null}
                     <Text style={styles.childInfoText}>
                       Nasc: {child.dataNascimento} • {child.idadeCalculada} anos
-                      • {child.sexo}
+                      • {child.sexoNome}
                     </Text>
                   </View>
-                  <TouchableOpacity onPress={() => removerCrianca(child.id)}>
-                    <Text style={styles.deleteButtonText}>[Remover]</Text>
-                  </TouchableOpacity>
+                  <View style={styles.childActions}>
+                    <TouchableOpacity onPress={() => editarCrianca(child)}>
+                      <Text style={styles.editButtonText}>[Editar]</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => removerCrianca(child.id)}>
+                      <Text style={styles.deleteButtonText}>[Remover]</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))
             )}
@@ -831,170 +881,181 @@ export default function CadastroResponsavelForm({
         </SafeAreaView>
       </Modal>
 
-      {/* MODAL ADICIONAR CRIANÇA */}
+      {/* MODAL ADICIONAR/EDITAR CRIANÇA COM NOVO LAYOUT E INLINE DROPDOWNS */}
       <Modal visible={modalCriancaVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.cardTitleModal}>Adicionar Criança</Text>
-            <Text style={styles.label}>Nome da Criança *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Digite o nome"
-              value={novaCrianca.nome}
-              onChangeText={t => setNovaCrianca({ ...novaCrianca, nome: t })}
-            />
-            <Text style={styles.label}>CPF da Criança (Opcional)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="000.000.000-00"
-              keyboardType="numeric"
-              maxLength={14}
-              value={novaCrianca.cpf}
-              onChangeText={t =>
-                setNovaCrianca({ ...novaCrianca, cpf: formatCPF(t) })
-              }
-            />
-            <View style={styles.row}>
-              <View style={[styles.col, { marginRight: 10 }]}>
-                <Text style={styles.label}>Data Nasc. *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="DD/MM/AAAA"
-                  keyboardType="numeric"
-                  value={novaCrianca.dataNascimento}
-                  onChangeText={handleDataNascimentoChange}
-                  maxLength={10}
-                />
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.modalContentNovo}>
+              <View style={styles.modalHeaderNovo}>
+                <Text style={styles.modalTitleNovo}>
+                  {editingChildId ? 'Editar Mapeamento' : 'Novo Mapeamento'}
+                </Text>
+                <TouchableOpacity
+                  onPress={cancelarModalCrianca}
+                  style={styles.closeButtonNovo}
+                >
+                  <Text style={styles.closeButtonTextNovo}>✕</Text>
+                </TouchableOpacity>
               </View>
-              <View style={styles.col}>
-                <Text style={styles.label}>Idade</Text>
-                <View style={[styles.input, { backgroundColor: '#EEE' }]}>
-                  <Text style={{ color: '#555' }}>
-                    {novaCrianca.idadeCalculada || '-'}
-                  </Text>
+
+              <Text style={styles.labelNovo}>Nome da Criança</Text>
+              <TextInput
+                style={styles.inputNovo}
+                placeholder="Digite o nome da criança"
+                placeholderTextColor="#999"
+                value={novaCrianca.nome}
+                onChangeText={t => setNovaCrianca({ ...novaCrianca, nome: t })}
+              />
+
+              <Text style={styles.labelNovo}>CPF da Criança (Opcional)</Text>
+              <TextInput
+                style={styles.inputNovo}
+                placeholder="000.000.000-60"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                maxLength={14}
+                value={novaCrianca.cpf}
+                onChangeText={t =>
+                  setNovaCrianca({ ...novaCrianca, cpf: formatCPF(t) })
+                }
+              />
+
+              <View style={styles.rowNovo}>
+                <View style={[styles.colNovo, { flex: 2.5, marginRight: 12 }]}>
+                  <Text style={styles.labelNovo}>Data de Nascimento</Text>
+                  <TextInput
+                    style={styles.inputNovo}
+                    placeholder="00/00/0000"
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                    value={novaCrianca.dataNascimento}
+                    onChangeText={handleDataNascimentoChange}
+                    maxLength={10}
+                  />
+                </View>
+                <View style={[styles.colNovo, { flex: 1 }]}>
+                  <Text style={styles.labelNovo}>Idade</Text>
+                  <View
+                    style={[
+                      styles.inputNovo,
+                      { backgroundColor: '#F8F9FA', alignItems: 'center' },
+                    ]}
+                  >
+                    <Text style={{ color: '#555' }}>
+                      {novaCrianca.idadeCalculada || '-'}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-            <View style={styles.row}>
-              <View style={[styles.col, { marginRight: 10 }]}>
-                <Text style={styles.label}>Parentesco *</Text>
-                <TouchableOpacity
-                  style={styles.pickerButton}
-                  onPress={() => setModalParentescoVisible(true)}
-                >
-                  <Text
-                    style={[
-                      styles.pickerText,
-                      !novaCrianca.parentesco && styles.placeholderText,
-                    ]}
-                  >
-                    {typeof novaCrianca.parentesco === 'object'
-                      ? novaCrianca.parentesco?.name
-                      : novaCrianca.parentesco || 'Selecione'}
-                  </Text>
-                  <Text style={styles.pickerIcon}>▼</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.col}>
-                <Text style={styles.label}>Sexo *</Text>
-                <TouchableOpacity
-                  style={styles.pickerButton}
-                  onPress={() => {
-                    setSexoTarget('crianca');
-                    setModalSexoVisible(true);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.pickerText,
-                      !novaCrianca.sexo && styles.placeholderText,
-                    ]}
-                  >
-                    {novaCrianca.sexo || 'Selecione'}
-                  </Text>
-                  <Text style={styles.pickerIcon}>▼</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <View style={styles.modalButtons}>
+
+              <Text style={styles.labelNovo}>Parentesco</Text>
               <TouchableOpacity
-                onPress={() => setModalCriancaVisible(false)}
-                style={styles.btnCancel}
+                style={styles.inputNovoPicker}
+                onPress={() =>
+                  setDropdownAberto(
+                    dropdownAberto === 'crianca_parentesco'
+                      ? ''
+                      : 'crianca_parentesco',
+                  )
+                }
               >
-                <Text>Cancelar</Text>
+                <Text
+                  style={[
+                    styles.pickerTextNovo,
+                    !novaCrianca.parentesco && styles.placeholderText,
+                  ]}
+                >
+                  {typeof novaCrianca.parentesco === 'object'
+                    ? novaCrianca.parentesco?.name
+                    : novaCrianca.parentesco || 'Selecione'}
+                </Text>
+                <Text style={styles.pickerIconNovo}>
+                  {dropdownAberto === 'crianca_parentesco' ? '▲' : '▼'}
+                </Text>
               </TouchableOpacity>
+              {dropdownAberto === 'crianca_parentesco' && (
+                <View style={styles.dropdownListNovo}>
+                  {loadingParentesco ? (
+                    <ActivityIndicator
+                      style={{ padding: 10 }}
+                      color="#3E7D56"
+                    />
+                  ) : (
+                    parentescoOptions.map(item => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.dropdownItemNovo}
+                        onPress={() => {
+                          setNovaCrianca({ ...novaCrianca, parentesco: item });
+                          setDropdownAberto('');
+                        }}
+                      >
+                        <Text style={styles.dropdownItemTextNovo}>
+                          {item.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  )}
+                </View>
+              )}
+
+              <Text style={styles.labelNovo}>Sexo</Text>
               <TouchableOpacity
-                onPress={adicionarCrianca}
-                style={styles.btnConfirm}
+                style={styles.inputNovoPicker}
+                onPress={() =>
+                  setDropdownAberto(
+                    dropdownAberto === 'crianca_sexo' ? '' : 'crianca_sexo',
+                  )
+                }
               >
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>
-                  Salvar Criança
+                <Text
+                  style={[
+                    styles.pickerTextNovo,
+                    !novaCrianca.sexo && styles.placeholderText,
+                  ]}
+                >
+                  {novaCrianca.sexoNome || 'Selecione'}
+                </Text>
+                <Text style={styles.pickerIconNovo}>
+                  {dropdownAberto === 'crianca_sexo' ? '▲' : '▼'}
+                </Text>
+              </TouchableOpacity>
+              {dropdownAberto === 'crianca_sexo' && (
+                <View style={styles.dropdownListNovo}>
+                  {sexoOptions.map(item => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.dropdownItemNovo}
+                      onPress={() => {
+                        setNovaCrianca({
+                          ...novaCrianca,
+                          sexo: item.id,
+                          sexoNome: item.name,
+                        });
+                        setDropdownAberto('');
+                      }}
+                    >
+                      <Text style={styles.dropdownItemTextNovo}>
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              <TouchableOpacity
+                onPress={salvarCrianca}
+                style={styles.btnConfirmNovo}
+              >
+                <Text style={styles.btnConfirmTextNovo}>
+                  {editingChildId ? 'Salvar Alterações' : 'Salvar Criança'}
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* MODAL SEXO */}
-      <Modal visible={modalSexoVisible} transparent animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.cardTitleModal}>Selecione o Sexo</Text>
-            <FlatList
-              data={sexoOptions}
-              keyExtractor={item => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.optionItem}
-                  onPress={() => selecionarSexo(item)}
-                >
-                  <Text style={styles.optionText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              onPress={() => setModalSexoVisible(false)}
-              style={styles.btnCloseFull}
-            >
-              <Text style={styles.btnCloseText}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* MODAL PARENTESCO */}
-      <Modal visible={modalParentescoVisible} transparent animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { maxHeight: 400 }]}>
-            <Text style={styles.cardTitleModal}>Selecione o Vínculo</Text>
-            {loadingParentesco ? (
-              <ActivityIndicator
-                color="#3E7D56"
-                size="large"
-                style={{ margin: 20 }}
-              />
-            ) : (
-              <FlatList
-                data={parentescoOptions}
-                keyExtractor={item => String(item.id)}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.optionItem}
-                    onPress={() => selecionarParentesco(item)}
-                  >
-                    <Text style={styles.optionText}>{item.name}</Text>
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-            <TouchableOpacity
-              onPress={() => setModalParentescoVisible(false)}
-              style={styles.btnCloseFull}
-            >
-              <Text style={styles.btnCloseText}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -1133,6 +1194,8 @@ const styles = StyleSheet.create({
   childName: { fontWeight: 'bold', color: '#444', fontSize: 15 },
   childParentesco: { fontWeight: 'normal', color: '#3E7D56', fontSize: 14 },
   childInfoText: { fontSize: 13, color: '#888', marginTop: 2 },
+  childActions: { flexDirection: 'row', alignItems: 'center' },
+  editButtonText: { color: '#0288D1', fontSize: 12, marginRight: 15 },
   deleteButtonText: { color: '#FF4444', fontSize: 12 },
   addButtonText: { color: '#3E7D56', fontWeight: 'bold', fontSize: 14 },
   emptyText: {
@@ -1187,52 +1250,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 25,
-    borderRadius: 16,
-    elevation: 10,
-    width: '100%',
-  },
-  cardTitleModal: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#3E7D56',
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 20,
-  },
-  btnCancel: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginRight: 10,
-    backgroundColor: '#EEE',
-    borderRadius: 6,
-  },
-  btnConfirm: {
-    backgroundColor: '#3E7D56',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-  },
-  optionItem: {
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
-  },
-  optionText: { fontSize: 16, color: '#333', textAlign: 'center' },
-  btnCloseFull: {
-    marginTop: 15,
-    padding: 12,
-    backgroundColor: '#EEE',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  btnCloseText: { color: '#555', fontWeight: 'bold' },
   termosContainer: { flex: 1, backgroundColor: '#fff' },
   termosHeader: {
     padding: 20,
@@ -1308,4 +1325,130 @@ const styles = StyleSheet.create({
   },
   btnFooterTextRed: { color: '#D32F2F', fontWeight: 'bold' },
   btnFooterTextWhite: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+
+  /* --- NOVOS ESTILOS PARA O MODAL (MATCH VISUAL) --- */
+  modalContentNovo: {
+    backgroundColor: '#fff',
+    padding: 24,
+    borderRadius: 20,
+    elevation: 10,
+    width: '100%',
+  },
+  modalHeaderNovo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitleNovo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111',
+  },
+  closeButtonNovo: {
+    backgroundColor: '#F5F5F5',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonTextNovo: {
+    color: '#888',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  labelNovo: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+    marginBottom: 8,
+  },
+  inputNovo: {
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 15,
+    marginBottom: 16,
+    color: '#333',
+  },
+  inputNovoPicker: {
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  rowNovo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  colNovo: {
+    flexDirection: 'column',
+  },
+  pickerTextNovo: {
+    fontSize: 15,
+    color: '#333',
+  },
+  pickerIconNovo: {
+    color: '#999',
+    fontSize: 12,
+  },
+  btnConfirmNovo: {
+    backgroundColor: '#357342',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  btnConfirmTextNovo: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
+  /* --- ESTILOS DOS DROPDOWNS INLINE --- */
+  dropdownList: {
+    backgroundColor: '#F9F9F9',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    marginTop: -8,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  dropdownListNovo: {
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderRadius: 10,
+    marginTop: -10,
+    marginBottom: 16,
+    overflow: 'hidden',
+    maxHeight: 180,
+  },
+  dropdownItemNovo: {
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  dropdownItemTextNovo: {
+    fontSize: 15,
+    color: '#333',
+  },
 });
