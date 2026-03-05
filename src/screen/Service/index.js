@@ -46,13 +46,18 @@ export default function Service() {
   const [scannerVisible, setScannerVisible] = useState(false);
   const [showCheckInButton, setShowCheckInButton] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+
   const [isCheckin, setIsCheckin] = useState(false);
   const [isCredential, setIsCredential] = useState(false);
+  const [freeCheckin, setFreeCheckin] = useState(false);
+
+  const [hasTerm, setHasTerm] = useState(false);
+  const [termText, setTermText] = useState(null);
+  const [termMinorText, setTermMinorText] = useState(null);
+
   const [selectedItem, setSelectedItem] = useState(null);
   const modalTranslateY = useRef(new Animated.Value(300)).current;
   const isScanning = useRef(false);
-
-  const [hasTerm, setHasTerm] = useState(false);
 
   useEffect(() => {
     setHeaderOptions(navigation, {
@@ -89,13 +94,12 @@ export default function Service() {
       if (!id) return;
 
       const response = await apiService.get(`/events/${id}/term`);
-
       const data = response.data;
-      if (
-        data &&
-        (data.text || data.term || data.content || typeof data === 'string')
-      ) {
+
+      if (data && (data.term_text || data.term_minor_text)) {
         setHasTerm(true);
+        setTermText(data.term_text || null);
+        setTermMinorText(data.term_minor_text || null);
       } else {
         setHasTerm(false);
       }
@@ -106,18 +110,24 @@ export default function Service() {
   };
 
   async function firstEvent() {
-    const response = await api.getEvent(eventId);
-    setEvent(response.data);
-    setIsCredential(response.isCredential || false);
-    setIsCheckin(response.isCheckin || false);
-    setLoading(false);
+    try {
+      const response = await api.getEvent(eventId);
+      setEvent(response.data);
+
+      setIsCheckin(response.isCheckin || false);
+      setIsCredential(response.isCredential || false);
+      setFreeCheckin(response.freeCheckin || false);
+    } catch (error) {
+      console.log('Erro ao buscar o evento:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function requestCameraPermission() {
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.CAMERA,
     );
-
     return granted === PermissionsAndroid.RESULTS.GRANTED;
   }
 
@@ -261,18 +271,18 @@ export default function Service() {
           <Text style={styles.sectionTitle}>AÇÕES</Text>
 
           <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-            {isCredential && (
+            {isCheckin && (
               <ActionButton
                 title="Registrar Presença"
                 subtitle="Registrar a presença que estão na pré lista do evento."
-                iconName="person-add-alt-1"
-                iconColor="#FFF"
-                iconBgColor="#3E7B58"
+                iconName="person-add"
+                iconColor="#3E7B58"
+                iconBgColor="#E8F5E9"
                 onPress={() => navigation.navigate('Credential', { eventId })}
               />
             )}
 
-            {showCheckInButton && isCheckin && (
+            {showCheckInButton && isCredential && (
               <ActionButton
                 title="Check-In"
                 subtitle="Registrar a presença de participantes que estão na pré lista do evento via QRCode."
@@ -283,15 +293,19 @@ export default function Service() {
               />
             )}
 
-            {hasTerm && (
+            {freeCheckin && (
               <ActionButton
                 title="Credenciar participante"
                 subtitle="Credenciar participantes para participar do evento."
-                iconName="child-care"
+                iconName="person-add-alt-1"
                 iconColor="#3E7B58"
                 iconBgColor="#E8F5E9"
                 onPress={() =>
-                  navigation.navigate('CredencialmentoResponsavel', { eventId })
+                  navigation.navigate('CredencialmentoResponsavel', {
+                    eventId,
+                    termText,
+                    termMinorText,
+                  })
                 }
               />
             )}

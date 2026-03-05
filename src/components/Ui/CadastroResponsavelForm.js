@@ -35,7 +35,11 @@ export default function CadastroResponsavelForm({
   const params = route.params || {};
   const currentEventId = params.eventId || id_evento;
   const [loadingSubmit, setLoadingSubmit] = useState(false);
-  const [loadingTermo, setLoadingTermo] = useState(false);
+
+  const [hasTerm, setHasTerm] = useState(false);
+  const [rawTermText, setRawTermText] = useState('');
+  const [rawTermMinorText, setRawTermMinorText] = useState('');
+  const [loadingInitialTerm, setLoadingInitialTerm] = useState(true);
 
   const [modalTermosVisible, setModalTermosVisible] = useState(false);
   const [termosLidos, setTermosLidos] = useState(false);
@@ -50,7 +54,21 @@ export default function CadastroResponsavelForm({
   const [sexoTarget, setSexoTarget] = useState('');
   const sexoOptions = ['Masculino', 'Feminino', 'Outro'];
 
-  const [responsavel, setResponsavel] = useState({
+  const mapGenderToId = sexo => {
+    if (sexo === 'Masculino') return '1';
+    if (sexo === 'Feminino') return '2';
+    if (sexo === 'Outro') return '3';
+    return '';
+  };
+
+  const mapIdToGender = id => {
+    if (String(id) === '1') return 'Masculino';
+    if (String(id) === '2') return 'Feminino';
+    if (String(id) === '3') return 'Outro';
+    return '';
+  };
+
+  const [participante, setParticipante] = useState({
     nome: '',
     cpf: '',
     telefone: '',
@@ -73,6 +91,29 @@ export default function CadastroResponsavelForm({
   const [loadingParentesco, setLoadingParentesco] = useState(false);
 
   useEffect(() => {
+    const fetchTermStatus = async () => {
+      if (!currentEventId) return;
+      try {
+        const response = await api.get(`/events/${currentEventId}/term`);
+        const data = response.data;
+        if (data && (data.term_text || data.term_minor_text)) {
+          setHasTerm(true);
+          setRawTermText(data.term_text || '');
+          setRawTermMinorText(data.term_minor_text || '');
+        } else {
+          setHasTerm(false);
+        }
+      } catch (error) {
+        console.log('Erro ao buscar termo, assumindo sem termo', error);
+        setHasTerm(false);
+      } finally {
+        setLoadingInitialTerm(false);
+      }
+    };
+    fetchTermStatus();
+  }, [currentEventId]);
+
+  useEffect(() => {
     const fetchParentescos = async () => {
       setLoadingParentesco(true);
       try {
@@ -91,8 +132,9 @@ export default function CadastroResponsavelForm({
 
   const formatDateToBr = dateString => {
     if (!dateString) return '';
+    if (dateString.includes('/')) return dateString;
     try {
-      const [year, month, day] = dateString.split('-');
+      const [year, month, day] = dateString.split('T')[0].split('-');
       if (!year || !month || !day) return dateString;
       return `${day}/${month}/${year}`;
     } catch (e) {
@@ -100,9 +142,15 @@ export default function CadastroResponsavelForm({
     }
   };
 
+  const formatForBackend = dateStr => {
+    if (!dateStr || dateStr.length !== 10) return dateStr;
+    const [d, m, y] = dateStr.split('/');
+    return `${y}-${m}-${d}`;
+  };
+
   useEffect(() => {
     if (initialData) {
-      setResponsavel(prev => ({
+      setParticipante(prev => ({
         ...prev,
         nome: initialData.name || '',
         cpf: formatCPF(initialData.cpf || ''),
@@ -110,6 +158,7 @@ export default function CadastroResponsavelForm({
         data_nascimento: initialData.birth_date
           ? formatDateToBr(initialData.birth_date)
           : '',
+        sexo: mapIdToGender(initialData.gender_id) || '',
       }));
     }
 
@@ -190,104 +239,58 @@ export default function CadastroResponsavelForm({
     });
   };
 
-  const validarIdadeResponsavel = () => {
+  const validarIdadeParticipante = () => {
     if (
-      !responsavel.data_nascimento ||
-      !isValidDate(responsavel.data_nascimento)
+      !participante.data_nascimento ||
+      !isValidDate(participante.data_nascimento)
     ) {
       Alert.alert(
         'Atenção',
-        'Informe uma data de nascimento válida (DD/MM/AAAA) para o responsável.',
+        'Informe uma data de nascimento válida (DD/MM/AAAA) para o participante.',
       );
       return false;
     }
 
-    const idadeResponsavel = parseInt(
-      calcularIdade(responsavel.data_nascimento),
+    const idadeParticipante = parseInt(
+      calcularIdade(participante.data_nascimento),
       10,
     );
 
     if (
-      isNaN(idadeResponsavel) ||
-      idadeResponsavel < 18 ||
-      idadeResponsavel > 90
+      isNaN(idadeParticipante) ||
+      idadeParticipante < 18 ||
+      idadeParticipante > 90
     ) {
       Alert.alert(
         'Ação Bloqueada',
-        'O responsável legal deve ter entre 18 e 90 anos.',
+        'O participante/responsável legal deve ter entre 18 e 90 anos.',
       );
       return false;
     }
     return true;
   };
 
-  const iniciarAssinatura = async () => {
-    if (!validarIdadeResponsavel()) return;
+  const iniciarAssinatura = () => {
+    if (!validarIdadeParticipante()) return;
 
-    setLoadingTermo(true);
-    try {
-      if (!currentEventId) {
-        Alert.alert(
-          'Erro',
-          'ID do evento não identificado. Volte e tente novamente.',
-        );
-        setLoadingTermo(false);
-        return;
-      }
+    let textoHtml = '';
+    const isParticipante = criancas.length === 0 || participante.isParticipante;
+    const hasCriancas = criancas.length > 0;
 
-      const response = await api.get(`/events/${currentEventId}/term`);
-      let textoHtml = '';
-
-      if (response.data?.text && typeof response.data.text === 'string') {
-        textoHtml = response.data.text;
-      } else if (typeof response.data === 'string') {
-        textoHtml = response.data;
-      } else if (
-        response.data?.term &&
-        typeof response.data.term === 'string'
-      ) {
-        textoHtml = response.data.term;
-      } else if (
-        response.data?.content &&
-        typeof response.data.content === 'string'
-      ) {
-        textoHtml = response.data.content;
-      } else {
-        textoHtml = '<p>Erro: O formato do termo recebido é inválido.</p>';
-      }
-
-      setTermoTexto(textoHtml);
-      setModalTermosVisible(true);
-    } catch (error) {
-      console.error('Erro ao buscar termo:', error);
-      Dialog.show({
-        type: ALERT_TYPE.DANGER,
-        title: 'Erro',
-        textBody: 'Não foi possível carregar o termo. Tente novamente.',
-        button: 'Ok',
-      });
-    } finally {
-      setLoadingTermo(false);
+    if (!hasCriancas) {
+      textoHtml = rawTermText;
+    } else if (hasCriancas && isParticipante) {
+      textoHtml = rawTermText + '<br><br>' + rawTermMinorText;
+    } else if (hasCriancas && !isParticipante) {
+      textoHtml = rawTermMinorText;
     }
-  };
 
-  const handleScrollTermos = ({ nativeEvent }) => {
-    if (termosLidos) return;
-    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-    const paddingToBottom = 20;
-    if (
-      layoutMeasurement.height + contentOffset.y >=
-      contentSize.height - paddingToBottom
-    ) {
-      setTermosLidos(true);
+    if (!textoHtml) {
+      textoHtml = '<p>Erro: Termo não configurado para este evento.</p>';
     }
-  };
 
-  const handleTermosContentSizeChange = (contentWidth, contentHeight) => {
-    const screenHeight = Dimensions.get('window').height;
-    if (contentHeight > 0 && contentHeight < screenHeight * 0.6) {
-      setTermosLidos(true);
-    }
+    setTermoTexto(textoHtml);
+    setModalTermosVisible(true);
   };
 
   const aceitarTermos = () => {
@@ -334,8 +337,8 @@ export default function CadastroResponsavelForm({
   };
 
   const selecionarSexo = item => {
-    if (sexoTarget === 'responsavel') {
-      setResponsavel({ ...responsavel, sexo: item });
+    if (sexoTarget === 'participante') {
+      setParticipante({ ...participante, sexo: item });
     } else {
       setNovaCrianca({ ...novaCrianca, sexo: item });
     }
@@ -414,18 +417,18 @@ export default function CadastroResponsavelForm({
 
   const handleSubmit = async () => {
     if (
-      !responsavel.nome ||
-      !responsavel.cpf ||
-      !responsavel.telefone ||
-      !responsavel.sexo
+      !participante.nome ||
+      !participante.cpf ||
+      !participante.telefone ||
+      !participante.sexo
     ) {
-      Alert.alert('Erro', 'Preencha os dados do responsável, incluindo sexo.');
+      Alert.alert('Erro', 'Preencha os dados do participante, incluindo sexo.');
       return;
     }
 
-    if (!validarIdadeResponsavel()) return;
+    if (!validarIdadeParticipante()) return;
 
-    if (!assinaturaBase64) {
+    if (hasTerm && !assinaturaBase64) {
       Alert.alert('Erro', 'A assinatura é obrigatória.');
       return;
     }
@@ -467,40 +470,50 @@ export default function CadastroResponsavelForm({
 
       const formData = new FormData();
 
-      // Se não houver crianças, o responsável é obrigatoriamente participante
       const participanteConfirmado =
-        criancas.length === 0 ? true : responsavel.isParticipante;
+        criancas.length === 0 ? true : participante.isParticipante;
 
-      formData.append('responsavel[nome]', responsavel.nome);
-      formData.append('responsavel[cpf]', responsavel.cpf.replace(/\D/g, ''));
-      formData.append('responsavel[telefone]', responsavel.telefone);
+      formData.append('participante[nome]', participante.nome);
+      formData.append('participante[cpf]', participante.cpf.replace(/\D/g, ''));
+      formData.append('participante[telefone]', participante.telefone);
       formData.append(
-        'responsavel[data_nascimento]',
-        responsavel.data_nascimento,
+        'participante[birth_date]',
+        formatForBackend(participante.data_nascimento),
       );
-      formData.append('responsavel[sexo]', responsavel.sexo);
       formData.append(
-        'responsavel[is_participante]',
+        'participante[gender_id]',
+        mapGenderToId(participante.sexo),
+      );
+      formData.append(
+        'participante[is_participante]',
         participanteConfirmado ? '1' : '0',
       );
 
-      formData.append('responsavel[assinatura_png]', {
-        uri: assinaturaBase64,
-        type: 'image/png',
-        name: `assinatura.png`,
-      });
+      if (hasTerm && assinaturaBase64) {
+        formData.append('participante[assinatura_png]', {
+          uri: assinaturaBase64,
+          type: 'image/png',
+          name: `assinatura.png`,
+        });
+        formData.append('termo_aceite[lido]', '1');
+        formData.append('termo_aceite[data_aceite]', new Date().toISOString());
+        formData.append('termo_aceite[conteudo_html]', termoTexto);
+      }
 
       criancas.forEach((c, index) => {
         formData.append(`criancas_vinculadas[${index}][nome]`, c.nome);
         formData.append(
-          `criancas_vinculadas[${index}][data_nascimento]`,
-          c.dataNascimento,
+          `criancas_vinculadas[${index}][birth_date]`,
+          formatForBackend(c.dataNascimento),
         );
         formData.append(
           `criancas_vinculadas[${index}][idade]`,
           c.idadeCalculada,
         );
-        formData.append(`criancas_vinculadas[${index}][sexo]`, c.sexo);
+        formData.append(
+          `criancas_vinculadas[${index}][gender_id]`,
+          mapGenderToId(c.sexo),
+        );
 
         if (typeof c.parentesco === 'object') {
           formData.append(
@@ -526,31 +539,10 @@ export default function CadastroResponsavelForm({
         }
       });
 
-      formData.append('termo_aceite[lido]', '1');
-      formData.append('termo_aceite[data_aceite]', new Date().toISOString());
-      formData.append('termo_aceite[conteudo_html]', termoTexto);
       formData.append('data_hora', new Date().toISOString());
 
-      console.log(
-        '\n================ DADOS ENVIADOS PARA O BACKEND ================',
-      );
-      if (formData._parts) {
-        formData._parts.forEach(([key, value]) => {
-          if (key === 'responsavel[assinatura_png]') {
-            console.log(`${key}: [Arquivo Base64 Omitido no Log]`);
-          } else if (typeof value === 'object') {
-            console.log(`${key}:`, JSON.stringify(value));
-          } else {
-            console.log(`${key}: ${value}`);
-          }
-        });
-      }
-      console.log(
-        '=================================================================\n',
-      );
-
       const response = await api.post(
-        `/events/${currentEventId}/term-signed`,
+        `/checkin/${currentEventId}/free-list`,
         formData,
         {
           headers: {
@@ -560,7 +552,6 @@ export default function CadastroResponsavelForm({
         },
       );
 
-      console.log('Sucesso:', response.data);
       Alert.alert('Pronto', 'Cadastro realizado com sucesso!');
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -583,6 +574,21 @@ export default function CadastroResponsavelForm({
     }
   };
 
+  if (loadingInitialTerm) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#3E7D56" />
+      </View>
+    );
+  }
+
+  const hasMinorTerm = !!rawTermMinorText && rawTermMinorText.trim() !== '';
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
@@ -596,30 +602,30 @@ export default function CadastroResponsavelForm({
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>
-              Dados do Responsável / Participante
+              Dados do Participante / Responsável
             </Text>
           </View>
           <Text style={styles.label}>CPF</Text>
           <TextInput
             style={[styles.input, { backgroundColor: '#eee', color: '#555' }]}
-            value={responsavel.cpf}
+            value={participante.cpf}
             editable={false}
           />
           <Text style={styles.label}>Nome Completo *</Text>
           <TextInput
             style={styles.input}
             placeholder="Nome"
-            value={responsavel.nome}
-            onChangeText={t => setResponsavel({ ...responsavel, nome: t })}
+            value={participante.nome}
+            onChangeText={t => setParticipante({ ...participante, nome: t })}
           />
           <Text style={styles.label}>Telefone *</Text>
           <TextInput
             style={styles.input}
             placeholder="(00) 00000-0000"
             keyboardType="phone-pad"
-            value={responsavel.telefone}
+            value={participante.telefone}
             onChangeText={t =>
-              setResponsavel({ ...responsavel, telefone: maskTelefone(t) })
+              setParticipante({ ...participante, telefone: maskTelefone(t) })
             }
           />
           <View style={styles.row}>
@@ -629,10 +635,10 @@ export default function CadastroResponsavelForm({
                 style={styles.input}
                 placeholder="DD/MM/AAAA"
                 keyboardType="numeric"
-                value={responsavel.data_nascimento}
+                value={participante.data_nascimento}
                 onChangeText={t =>
-                  setResponsavel({
-                    ...responsavel,
+                  setParticipante({
+                    ...participante,
                     data_nascimento: formatarData(t),
                   })
                 }
@@ -644,17 +650,17 @@ export default function CadastroResponsavelForm({
               <TouchableOpacity
                 style={styles.pickerButton}
                 onPress={() => {
-                  setSexoTarget('responsavel');
+                  setSexoTarget('participante');
                   setModalSexoVisible(true);
                 }}
               >
                 <Text
                   style={[
                     styles.pickerText,
-                    !responsavel.sexo && styles.placeholderText,
+                    !participante.sexo && styles.placeholderText,
                   ]}
                 >
-                  {responsavel.sexo || 'Selecione'}
+                  {participante.sexo || 'Selecione'}
                 </Text>
                 <Text style={styles.pickerIcon}>▼</Text>
               </TouchableOpacity>
@@ -665,19 +671,19 @@ export default function CadastroResponsavelForm({
             <TouchableOpacity
               style={styles.checkboxContainer}
               onPress={() =>
-                setResponsavel({
-                  ...responsavel,
-                  isParticipante: !responsavel.isParticipante,
+                setParticipante({
+                  ...participante,
+                  isParticipante: !participante.isParticipante,
                 })
               }
             >
               <View
                 style={[
                   styles.checkbox,
-                  responsavel.isParticipante && styles.checkboxChecked,
+                  participante.isParticipante && styles.checkboxChecked,
                 ]}
               >
-                {responsavel.isParticipante && (
+                {participante.isParticipante && (
                   <Text style={styles.checkboxCheckmark}>✓</Text>
                 )}
               </View>
@@ -688,88 +694,89 @@ export default function CadastroResponsavelForm({
           )}
         </View>
 
-        <View style={styles.card}>
-          <View
-            style={[styles.cardHeader, { justifyContent: 'space-between' }]}
-          >
-            <Text style={styles.cardTitle}>
-              Menores sob Responsabilidade (Opcional)
-            </Text>
-            <TouchableOpacity onPress={() => setModalCriancaVisible(true)}>
-              <Text style={styles.addButtonText}>+ Adicionar</Text>
-            </TouchableOpacity>
-          </View>
-          {criancas.length === 0 ? (
-            <Text style={styles.emptyText}>Nenhuma criança vinculada.</Text>
-          ) : (
-            criancas.map(child => (
-              <View key={child.id} style={styles.childItem}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.childName}>
-                    {child.nome}{' '}
-                    <Text style={styles.childParentesco}>
-                      ({child.parentesco?.name || child.parentesco})
+        {hasMinorTerm && (
+          <View style={styles.card}>
+            <View
+              style={[styles.cardHeader, { justifyContent: 'space-between' }]}
+            >
+              <Text style={styles.cardTitle}>
+                Menores sob Responsabilidade (Opcional)
+              </Text>
+              <TouchableOpacity onPress={() => setModalCriancaVisible(true)}>
+                <Text style={styles.addButtonText}>+ Adicionar</Text>
+              </TouchableOpacity>
+            </View>
+            {criancas.length === 0 ? (
+              <Text style={styles.emptyText}>Nenhuma criança vinculada.</Text>
+            ) : (
+              criancas.map(child => (
+                <View key={child.id} style={styles.childItem}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.childName}>
+                      {child.nome}{' '}
+                      <Text style={styles.childParentesco}>
+                        ({child.parentesco?.name || child.parentesco})
+                      </Text>
                     </Text>
-                  </Text>
-                  {child.cpf ? (
-                    <Text style={styles.childInfoText}>CPF: {child.cpf}</Text>
-                  ) : null}
-                  <Text style={styles.childInfoText}>
-                    Nasc: {child.dataNascimento} • {child.idadeCalculada} anos •{' '}
-                    {child.sexo}
+                    {child.cpf ? (
+                      <Text style={styles.childInfoText}>CPF: {child.cpf}</Text>
+                    ) : null}
+                    <Text style={styles.childInfoText}>
+                      Nasc: {child.dataNascimento} • {child.idadeCalculada} anos
+                      • {child.sexo}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => removerCrianca(child.id)}>
+                    <Text style={styles.deleteButtonText}>[Remover]</Text>
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
+          </View>
+        )}
+
+        {hasTerm && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Assinatura *</Text>
+            <Text style={styles.legalText}>
+              {criancas.length === 0
+                ? 'Ao assinar, concordo com os termos de participação e autorizo o uso dos meus direitos para os fins deste evento.'
+                : 'Ao assinar, reitero minha concordância com os termos apresentados para mim e para os menores sob minha responsabilidade.'}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.openSignatureButton,
+                assinaturaBase64 && {
+                  height: 'auto',
+                  padding: 10,
+                  borderStyle: 'solid',
+                },
+              ]}
+              onPress={iniciarAssinatura}
+            >
+              {assinaturaBase64 ? (
+                <View style={{ width: '100%', alignItems: 'center' }}>
+                  <Image
+                    source={{ uri: assinaturaBase64 }}
+                    style={styles.signaturePreview}
+                  />
+                  <Text style={styles.signatureCapturedText}>
+                    Toque para assinar novamente
                   </Text>
                 </View>
-                <TouchableOpacity onPress={() => removerCrianca(child.id)}>
-                  <Text style={styles.deleteButtonText}>[Remover]</Text>
-                </TouchableOpacity>
-              </View>
-            ))
-          )}
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Assinatura do Responsável *</Text>
-          <Text style={styles.legalText}>
-            {criancas.length === 0
-              ? 'Ao assinar, concordo com os termos de participação e autorizo o uso dos meus direitos para os fins deste evento.'
-              : 'Ao assinar, reitero minha concordância com os termos apresentados para mim e para os menores sob minha responsabilidade.'}
-          </Text>
-          <TouchableOpacity
-            style={[
-              styles.openSignatureButton,
-              assinaturaBase64 && {
-                height: 'auto',
-                padding: 10,
-                borderStyle: 'solid',
-              },
-            ]}
-            onPress={iniciarAssinatura}
-            disabled={loadingTermo}
-          >
-            {loadingTermo ? (
-              <ActivityIndicator color="#3E7D56" size="small" />
-            ) : assinaturaBase64 ? (
-              <View style={{ width: '100%', alignItems: 'center' }}>
-                <Image
-                  source={{ uri: assinaturaBase64 }}
-                  style={styles.signaturePreview}
-                />
-                <Text style={styles.signatureCapturedText}>
-                  Toque para assinar novamente
+              ) : (
+                <Text style={styles.openSignatureButtonText}>
+                  Ler Termos e Assinar (Tela Cheia)
                 </Text>
-              </View>
-            ) : (
-              <Text style={styles.openSignatureButtonText}>
-                Ler Termos e Assinar (Tela Cheia)
-              </Text>
-            )}
-          </TouchableOpacity>
-          {assinaturaBase64 && !loadingTermo && (
-            <TouchableOpacity onPress={limparAssinaturaAtual}>
-              <Text style={styles.clearLink}>Limpar assinatura atual</Text>
+              )}
             </TouchableOpacity>
-          )}
-        </View>
+            {assinaturaBase64 && (
+              <TouchableOpacity onPress={limparAssinaturaAtual}>
+                <Text style={styles.clearLink}>Limpar assinatura atual</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
         <TouchableOpacity
           style={[styles.submitButton, loadingSubmit && { opacity: 0.5 }]}
@@ -796,9 +803,7 @@ export default function CadastroResponsavelForm({
             <View style={{ width: 30 }} />
             <View style={{ alignItems: 'center' }}>
               <Text style={styles.termosTitle}>Termos e Autorização</Text>
-              <Text style={styles.termosSubtitle}>
-                Leia até o final para prosseguir
-              </Text>
+              <Text style={styles.termosSubtitle}>Leia para prosseguir</Text>
             </View>
             <TouchableOpacity onPress={cancelarTermos} style={{ padding: 5 }}>
               <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
@@ -809,9 +814,6 @@ export default function CadastroResponsavelForm({
           <ScrollView
             style={styles.termosScroll}
             contentContainerStyle={styles.termosContent}
-            onScroll={handleScrollTermos}
-            onContentSizeChange={handleTermosContentSizeChange}
-            scrollEventThrottle={16}
           >
             <TermosConsentimento
               content={termoTexto || '<p>Carregando termo...</p>'}
@@ -820,18 +822,10 @@ export default function CadastroResponsavelForm({
           </ScrollView>
           <View style={styles.termosFooter}>
             <TouchableOpacity
-              style={[
-                styles.btnAceitarTermos,
-                !termosLidos && styles.btnAceitarDisabled,
-              ]}
+              style={styles.btnAceitarTermos}
               onPress={aceitarTermos}
-              disabled={!termosLidos}
             >
-              <Text style={styles.btnAceitarText}>
-                {termosLidos
-                  ? 'LI E CONCORDO - ASSINAR'
-                  : 'Role até o final para habilitar'}
-              </Text>
+              <Text style={styles.btnAceitarText}>LI E CONCORDO - ASSINAR</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -1263,7 +1257,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#3E7D56',
     alignItems: 'center',
   },
-  btnAceitarDisabled: { backgroundColor: '#ccc' },
   btnAceitarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   landscapeModalContainer: { flex: 1, backgroundColor: '#f0f0f0' },
   landscapeHeader: {
