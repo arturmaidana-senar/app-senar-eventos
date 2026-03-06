@@ -1,5 +1,5 @@
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 //component screens
 import SignIn from '../screen/SignIn';
@@ -29,7 +29,8 @@ const StackNavigator = () => {
             elevation: 10,
             shadowOpacity: 0,
           },
-        }}>
+        }}
+      >
         {/* component screens start */}
         <StackComponent.Screen name={'SignIn'} component={SignIn} />
         <StackComponent.Screen name={'Preload'} component={Preload} />
@@ -38,38 +39,38 @@ const StackNavigator = () => {
         <StackComponent.Screen
           name={'CredencialmentoResponsavel'}
           component={CredencialResponsavel}
-          options={{headerShown: true}}
+          options={{ headerShown: true }}
         />
         <StackComponent.Screen
           name={'ResetPassword'}
           component={ResetPassword}
-          options={{headerShown: true}}
+          options={{ headerShown: true }}
         />
         <StackComponent.Screen
           name={'ValidatePin'}
           component={ValidatePin}
-          options={{headerShown: true}}
+          options={{ headerShown: true }}
         />
         <StackComponent.Screen
           name={'NewPassword'}
           component={NewPassword}
-          options={{headerShown: true}}
+          options={{ headerShown: true }}
         />
         <StackComponent.Screen
           name={'Service'}
           component={Service}
-          options={{headerShown: true}}
+          options={{ headerShown: true, unmountOnBlur: true }}
         />
         <StackComponent.Screen
           name={'EventShow'}
           component={EventShow}
-          options={{headerShown: true}}
+          options={{ headerShown: true }}
         />
         <StackComponent.Screen name={'TabNavigator'} component={TabNavigator} />
         <StackComponent.Screen
           name="Credential"
           component={Credential}
-          options={{title: 'Credenciamento', headerShown: true}}
+          options={{ title: 'Credenciamento', headerShown: true }}
         />
         {/* component screens end */}
       </StackComponent.Navigator>

@@ -82,9 +82,20 @@ export default function Service() {
     useCallback(() => {
       setLoading(true);
       setTitleLoading('Atualizando Informações');
-      firstEvent();
-      handleListCheckin();
-      checkEventTerm();
+
+      // Timeout de segurança: garante que o overlay de loading nunca trava a tela
+      const safetyTimer = setTimeout(() => setLoading(false), 8000);
+
+      Promise.allSettled([
+        firstEvent(),
+        handleListCheckin(),
+        checkEventTerm(),
+      ]).finally(() => {
+        clearTimeout(safetyTimer);
+        setLoading(false);
+      });
+
+      return () => clearTimeout(safetyTimer);
     }, [eventId]),
   );
 
@@ -119,8 +130,6 @@ export default function Service() {
       setFreeCheckin(response.freeCheckin || false);
     } catch (error) {
       console.log('Erro ao buscar o evento:', error);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -135,10 +144,7 @@ export default function Service() {
     try {
       const response = await api.getListEventCheckin(eventId);
       setListCheckin(response.data || []);
-    } catch {
-    } finally {
-      setLoading(false);
-    }
+    } catch {}
   };
 
   const handleQRCodeRead = async data => {

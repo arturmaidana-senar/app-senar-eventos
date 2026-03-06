@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
-const LoadingInfo = ({ visible, message = "Carregando Informações..." }) => {
+const LoadingInfo = ({ visible, message = 'Carregando Informações...' }) => {
   if (!visible) return null; // Não renderiza se não estiver visível
 
   return (
-    <View style={styles.overlay}>
+    <View style={styles.overlay} pointerEvents="none">
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#37C064" />
         <Text style={styles.text}>{message}</Text>

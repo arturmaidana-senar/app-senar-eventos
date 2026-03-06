@@ -30,7 +30,7 @@ export default function CredentialScreen() {
   const { colors } = useTheme();
   const route = useRoute();
   const navigation = useNavigation();
-  const { eventId } = route.params;
+  const { eventId, termText, termMinorText } = route.params;
 
   const [event, setEvent] = useState(null);
 
@@ -172,7 +172,6 @@ export default function CredentialScreen() {
     setShowForm(false);
     setCpfInput('');
     setInitialData(null);
-    navigation.goBack();
   };
 
   return (
@@ -182,6 +181,7 @@ export default function CredentialScreen() {
         { backgroundColor: colors.background || '#F2F4F8' },
       ]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      enabled={Platform.OS === 'ios'}
     >
       {showForm ? (
         <CadastroResponsavelForm
@@ -189,6 +189,8 @@ export default function CredentialScreen() {
           initialData={initialData}
           onCancel={handleCancelForm}
           onSuccess={handleSuccessForm}
+          termText={termText}
+          termMinorText={termMinorText}
         />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
