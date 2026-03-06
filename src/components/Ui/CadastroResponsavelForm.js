@@ -123,6 +123,17 @@ export default function CadastroResponsavelForm({
     fetchParentescos();
   }, []);
 
+  const formatDateToBr = dateString => {
+    if (!dateString) return '';
+    try {
+      const [year, month, day] = dateString.split('-');
+      if (!year || !month || !day) return dateString;
+      return `${day}/${month}/${year}`;
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   const formatForBackend = dateStr => {
     if (!dateStr || dateStr.length !== 10) return dateStr;
     const [d, m, y] = dateStr.split('/');
