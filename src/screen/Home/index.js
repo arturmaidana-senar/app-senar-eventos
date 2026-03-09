@@ -1,43 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Row, EventosText } from './styles';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  FlatList,
   RefreshControl,
   StatusBar,
-  Dimensions 
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ActivityIndicator,
 } from 'react-native';
-import { 
-  Container, 
-  HeaderContainer,
-  WelcomeSection,
-  WelcomeText,
-  SubtitleText,
-  SearchContainer,
-  SearchInput,
-  FilterContainer,
-  FilterButton,
-  FilterText,
-  SectionHeader,
-  SectionTitle,
-  ViewAllButton,
-  ViewAllText,
-  EventsContainer,
-  EmptyStateContainer,
-  EmptyStateText,
-  LoadingContainer
-} from './styles_modern';
-
 import Header from '../../components/Header';
 import CardHome from '../../components/CardHome';
 import api from '../../services/endpont';
-
-// Importar permissões
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-const { width } = Dimensions.get('window');
 
 export default function Home() {
   const [events, setEvents] = useState([]);
@@ -45,14 +21,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('todos');
-
-  const filters = [
-    { id: 'todos', label: 'Todos' },
-    { id: 'proximos', label: 'Próximos' },
-    { id: 'em_andamento', label: 'Em Andamento' },
-    { id: 'finalizados', label: 'Finalizados' }
-  ];
 
   async function getEvents() {
     try {
@@ -70,7 +38,9 @@ export default function Home() {
   async function requestPermissions() {
     try {
       const cameraPermission = await request(PERMISSIONS.ANDROID.CAMERA);
-      const locationPermission = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+      const locationPermission = await request(
+        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+      );
       const audioPermission = await request(PERMISSIONS.ANDROID.RECORD_AUDIO);
 
       if (
@@ -79,8 +49,6 @@ export default function Home() {
         audioPermission === RESULTS.GRANTED
       ) {
         console.log('Todas as permissões foram concedidas!');
-      } else {
-        console.log('Alguma permissão foi negada!');
       }
     } catch (error) {
       console.error('Erro ao solicitar permissões: ', error);
@@ -93,140 +61,142 @@ export default function Home() {
     setRefreshing(false);
   };
 
-  const handleSearch = (text) => {
-    setSearchQuery(text);
-    filterEvents(text, selectedFilter);
-  };
-
-  const handleFilterChange = (filterId) => {
-    setSelectedFilter(filterId);
-    filterEvents(searchQuery, filterId);
-  };
-
-  const filterEvents = (query, filter) => {
-    let filtered = events;
-
-    // Filtrar por busca
-    if (query) {
-      filtered = filtered.filter(event => 
-        event.title?.toLowerCase().includes(query.toLowerCase()) ||
-        event.description?.toLowerCase().includes(query.toLowerCase())
-      );
-    }
-
-    // Filtrar por categoria
-    if (filter !== 'todos') {
-      const now = new Date();
-      filtered = filtered.filter(event => {
-        const eventDate = new Date(event.date);
-        switch (filter) {
-          case 'proximos':
-            return eventDate > now;
-          case 'em_andamento':
-            return eventDate.toDateString() === now.toDateString();
-          case 'finalizados':
-            return eventDate < now;
-          default:
-            return true;
-        }
-      });
-    }
-
-    setFilteredEvents(filtered);
-  };
-
   useEffect(() => {
     getEvents();
     requestPermissions();
   }, []);
 
-  const renderEventItem = ({ item }) => (
-    <View style={{ marginBottom: 16 }}>
-      <CardHome item={item} />
-    </View>
-  );
-
-  const renderFilterButton = ({ item }) => (
-    <FilterButton 
-      active={selectedFilter === item.id}
-      onPress={() => handleFilterChange(item.id)}
-    >
-      <FilterText active={selectedFilter === item.id}>
-        {item.label}
-      </FilterText>
-    </FilterButton>
-  );
+  const renderEventItem = ({ item }) => <CardHome item={item} />;
 
   if (loading) {
     return (
-      <Container>
+      <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
         <Header />
-        <LoadingContainer>
-          <Text>Carregando eventos...</Text>
-        </LoadingContainer>
-      </Container>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4A9954" />
+          <Text style={styles.loadingText}>Carregando eventos...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <Container>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      	<HeaderContainer>
-              <Header />
-        </HeaderContainer>
+      <Header />
 
-		<WelcomeSection>
-			<WelcomeText>Bem-vindo de volta!</WelcomeText>
-			<SubtitleText>Descubra os próximos eventos</SubtitleText>
-		</WelcomeSection>
+      <FlatList
+        data={filteredEvents}
+        renderItem={renderEventItem}
+        keyExtractor={item =>
+          item.id ? item.id.toString() : Math.random().toString()
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#4A9954']}
+          />
+        }
+        ListHeaderComponent={
+          <>
+            <View style={styles.banner}>
+              <Text style={styles.bannerTitle}>Bem-vindo de volta!</Text>
+              <Text style={styles.bannerSubtitle}>
+                Descubra os próximos eventos
+              </Text>
+            </View>
 
-      	<FlatList
-			data={filteredEvents}
-			renderItem={renderEventItem}
-			keyExtractor={(item) => item.id.toString()}
-			showsVerticalScrollIndicator={false}
-			refreshControl={
-			<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-			}
-				ListHeaderComponent={(
-				<>
-	
-{/*  
-				<FilterContainer>
-				<FlatList
-					data={filters}
-					renderItem={renderFilterButton}
-					keyExtractor={(item) => item.id}
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					contentContainerStyle={{ paddingHorizontal: 20 }}
-				/>
-				</FilterContainer>
- 
-				<SectionHeader>
-				<SectionTitle>
-					{selectedFilter === 'todos' ? 'Todos os Eventos' :
-					filters.find(f => f.id === selectedFilter)?.label}
-				</SectionTitle>
-				<ViewAllButton onPress={() => {}}>
-					<ViewAllText>Ver todos</ViewAllText>
-				</ViewAllButton>
-				</SectionHeader> */}
-			</>
-        )}
-        ListEmptyComponent={(
-          <EmptyStateContainer>
-            <EmptyStateText>
-              {searchQuery ? 
-                'Nenhum evento encontrado para sua pesquisa' : 
-                'Nenhum evento disponível no momento'
-              }
-            </EmptyStateText>
-          </EmptyStateContainer>
-        )}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Próximos Eventos</Text>
+              <TouchableOpacity activeOpacity={0.7}>
+                <Text style={styles.viewAllText}>Ver todos</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {searchQuery
+                ? 'Nenhum evento encontrado para sua pesquisa'
+                : 'Nenhum evento disponível no momento'}
+            </Text>
+          </View>
+        }
       />
-    </Container>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F7F8FA',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#6A737D',
+    fontSize: 16,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 16,
+  },
+  banner: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  bannerTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  bannerSubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2C3539',
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: '#4A9954',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: '#8A8A8A',
+    fontSize: 15,
+    textAlign: 'center',
+  },
+});

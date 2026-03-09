@@ -919,7 +919,6 @@ export default function CadastroResponsavelForm({
         </SafeAreaView>
       </Modal>
 
-      {/* MODAL ADICIONAR/EDITAR CRIANÇA COM SLIDE ANIMADO E BLUR BACKGROUND */}
       <Modal visible={modalCriancaVisible} transparent animationType="fade">
         <BlurView
           style={StyleSheet.absoluteFill}
@@ -945,7 +944,7 @@ export default function CadastroResponsavelForm({
               <View style={styles.modalContentNovo}>
                 <View style={styles.modalHeaderNovo}>
                   <Text style={styles.modalTitleNovo}>
-                    {editingChildId ? 'Editar Mapeamento' : 'Novo Mapeamento'}
+                    {editingChildId ? 'Editar Criança' : 'Adicionar Criança'}
                   </Text>
                   <TouchableOpacity
                     onPress={cancelarModalCrianca}
@@ -1125,7 +1124,6 @@ export default function CadastroResponsavelForm({
         </Animated.View>
       </Modal>
 
-      {/* MODAL ASSINATURA */}
       <Modal
         visible={modalAssinaturaVisible}
         transparent={false}
@@ -1176,14 +1174,22 @@ export default function CadastroResponsavelForm({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
   cancelButton: {
     padding: 10,
     alignItems: 'center',
     backgroundColor: '#FFEBEE',
   },
-  cancelButtonText: { color: '#D32F2F', fontWeight: 'bold' },
-  scrollContent: { padding: 16 },
+  cancelButtonText: {
+    color: '#D32F2F',
+    fontWeight: 'bold',
+  },
+  scrollContent: {
+    padding: 16,
+  },
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -1191,8 +1197,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     elevation: 3,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
   label: {
     fontSize: 13,
     fontWeight: '600',
@@ -1210,8 +1224,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#333',
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
-  col: { flex: 1 },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  col: {
+    flex: 1,
+  },
   pickerButton: {
     backgroundColor: '#F9F9F9',
     borderWidth: 1,
@@ -1224,9 +1243,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 48,
   },
-  pickerText: { fontSize: 15, color: '#333' },
-  placeholderText: { color: '#999' },
-  pickerIcon: { color: '#999', fontSize: 12 },
+  pickerText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  placeholderText: {
+    color: '#999',
+  },
+  pickerIcon: {
+    color: '#999',
+    fontSize: 12,
+  },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1243,9 +1270,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  checkboxChecked: { backgroundColor: '#3E7D56' },
-  checkboxCheckmark: { color: '#FFF', fontSize: 14, fontWeight: 'bold' },
-  checkboxLabel: { fontSize: 14, color: '#555', flex: 1 },
+  checkboxChecked: {
+    backgroundColor: '#3E7D56',
+  },
+  checkboxCheckmark: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: '#555',
+    flex: 1,
+  },
   childItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1257,13 +1294,39 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EEE',
   },
-  childName: { fontWeight: 'bold', color: '#444', fontSize: 15 },
-  childParentesco: { fontWeight: 'normal', color: '#3E7D56', fontSize: 14 },
-  childInfoText: { fontSize: 13, color: '#888', marginTop: 2 },
-  childActions: { flexDirection: 'row', alignItems: 'center' },
-  editButtonText: { color: '#0288D1', fontSize: 12, marginRight: 15 },
-  deleteButtonText: { color: '#FF4444', fontSize: 12 },
-  addButtonText: { color: '#3E7D56', fontWeight: 'bold', fontSize: 14 },
+  childName: {
+    fontWeight: 'bold',
+    color: '#444',
+    fontSize: 15,
+  },
+  childParentesco: {
+    fontWeight: 'normal',
+    color: '#3E7D56',
+    fontSize: 14,
+  },
+  childInfoText: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 2,
+  },
+  childActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editButtonText: {
+    color: '#0288D1',
+    fontSize: 12,
+    marginRight: 15,
+  },
+  deleteButtonText: {
+    color: '#FF4444',
+    fontSize: 12,
+  },
+  addButtonText: {
+    color: '#3E7D56',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
   emptyText: {
     fontStyle: 'italic',
     color: '#aaa',
@@ -1278,7 +1341,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
-  submitButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  submitButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   openSignatureButton: {
     backgroundColor: '#E8F5E9',
     borderWidth: 2,

@@ -8,8 +8,9 @@ import {
   Animated,
   TouchableWithoutFeedback,
   ScrollView,
+  StatusBar,
+  PermissionsAndroid,
 } from 'react-native';
-import { PermissionsAndroid } from 'react-native';
 
 import {
   useRoute,
@@ -20,11 +21,11 @@ import {
 
 import { Camera } from 'react-native-camera-kit';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Feather from 'react-native-vector-icons/Feather';
 import { setHeaderOptions } from '../../components/HeaderTitle';
 import LoadingInfo from '../../components/LoadingInfo';
-import { GlobalStyleSheet } from '../../constants/StyleSheet';
 import { COLORS, FONTS } from '../../constants/theme';
-
+import CustomTopHeader from '../../components/Ui/CustomTopHeader';
 import api from '../../services/endpont';
 import apiService from '../../services/api';
 
@@ -62,8 +63,22 @@ export default function Service() {
   useEffect(() => {
     setHeaderOptions(navigation, {
       headerTitle: 'Evento',
-      headerTitleStyle: { fontFamily: 'Arial', fontSize: 18, color: '#333333' },
-      headerTintColor: '#333333',
+      headerTitleAlign: 'center',
+      headerTitleStyle: { fontSize: 16, fontWeight: '600', color: '#1A1A1A' },
+      headerStyle: {
+        backgroundColor: '#F5F6F8',
+        elevation: 0,
+        shadowOpacity: 0,
+      },
+      headerLeft: () => (
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Feather name="arrow-left" size={20} color="#1A1A1A" />
+        </TouchableOpacity>
+      ),
     });
     firstEvent();
     handleListCheckin();
@@ -83,7 +98,6 @@ export default function Service() {
       setLoading(true);
       setTitleLoading('Atualizando Informações');
 
-      // Timeout de segurança: garante que o overlay de loading nunca trava a tela
       const safetyTimer = setTimeout(() => setLoading(false), 8000);
 
       Promise.allSettled([
@@ -131,13 +145,6 @@ export default function Service() {
     } catch (error) {
       console.log('Erro ao buscar o evento:', error);
     }
-  }
-
-  async function requestCameraPermission() {
-    const granted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.CAMERA,
-    );
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
   }
 
   const handleListCheckin = async () => {
@@ -225,6 +232,30 @@ export default function Service() {
     return rows;
   };
 
+  const getInitials = name => {
+    if (!name) return 'US';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const getRelativeTime = dateString => {
+    if (!dateString) return '';
+    const past = new Date(dateString.replace(' ', 'T'));
+    const now = new Date();
+    const diffMs = now - past;
+    const diffMins = Math.round(diffMs / 60000);
+
+    if (diffMins < 1) return 'agora mesmo';
+    if (diffMins < 60) return `há ${diffMins} min`;
+    const diffHrs = Math.round(diffMins / 60);
+    if (diffHrs < 24) return `há ${diffHrs} hora${diffHrs > 1 ? 's' : ''}`;
+    const diffDays = Math.round(diffHrs / 24);
+    return `há ${diffDays} dia${diffDays > 1 ? 's' : ''}`;
+  };
+
   const ActionButton = ({
     title,
     subtitle,
@@ -236,120 +267,149 @@ export default function Service() {
     <TouchableOpacity
       style={styles.actionCard}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
       <View
         style={[styles.actionIconContainer, { backgroundColor: iconBgColor }]}
       >
-        <Icon name={iconName} size={28} color={iconColor} />
+        <Icon name={iconName} size={22} color={iconColor} />
       </View>
       <View style={styles.actionTextContainer}>
         <Text style={styles.actionTitle}>{title}</Text>
         <Text style={styles.actionSubtitle}>{subtitle}</Text>
       </View>
+      <Feather name="chevron-right" size={20} color="#C4C4C4" />
     </TouchableOpacity>
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F2F4F8' }}>
+    <View style={styles.container}>
+      <CustomTopHeader
+        navigation={navigation}
+        title="Evento" // Defina o título aqui
+      />
+
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F6F8" />
       <LoadingInfo visible={loading} message={titleLoading} />
+
       {!scannerVisible && (
-        <View style={[GlobalStyleSheet.container, { flex: 1 }]}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={styles.eventCard}>
-            <Text style={styles.eventName}>{event.name}</Text>
+            <View style={styles.eventCardAccent} />
+            <Text style={styles.eventName}>
+              {event.name || 'Carregando evento...'}
+            </Text>
 
             <View style={styles.infoRow}>
-              <Icon name="calendar-today" size={16} color="#757575" />
+              <Feather
+                name="calendar"
+                size={14}
+                color="#8A8A8A"
+                style={styles.infoIcon}
+              />
               <Text style={styles.infoText}>
-                {formatDateEvent(event.started_at)} –{' '}
-                {formatDateEvent(event.ended_at)}
+                {event.started_at ? formatDateEvent(event.started_at) : '--'} —{' '}
+                {event.ended_at ? formatDateEvent(event.ended_at) : '--'}
               </Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Icon name="people-outline" size={18} color="#757575" />
+              <Feather
+                name="users"
+                size={14}
+                color="#8A8A8A"
+                style={styles.infoIcon}
+              />
               <Text style={styles.infoText}>
                 {listCheckin.length} check-ins realizados
               </Text>
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>AÇÕES</Text>
+          <Text style={styles.sectionTitle}>Ações</Text>
 
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-            {isCheckin && (
-              <ActionButton
-                title="Registrar Presença"
-                subtitle="Registrar a presença que estão na pré lista do evento."
-                iconName="list-alt"
-                iconColor="#3E7B58"
-                iconBgColor="#E8F5E9"
-                onPress={() => navigation.navigate('Credential', { eventId })}
-              />
-            )}
+          {isCheckin && (
+            <ActionButton
+              title="Registrar Presença"
+              subtitle="Registrar a presença que estão na pré lista do evento."
+              iconName="assignment"
+              iconColor="#4A9954"
+              iconBgColor="#E8F5E9"
+              onPress={() => navigation.navigate('Credential', { eventId })}
+            />
+          )}
 
-            {showCheckInButton && isCredential && (
-              <ActionButton
-                title="Check-In"
-                subtitle="Registrar a presença de participantes que estão na pré lista do evento via QRCode."
-                iconName="qr-code-scanner"
-                iconColor="#3E7B58"
-                iconBgColor="#E8F5E9"
-                onPress={toggleScanner}
-              />
-            )}
+          {showCheckInButton && isCredential && (
+            <ActionButton
+              title="Check-In"
+              subtitle="Registrar a presença de participantes que estão na pré lista do evento via QRCode."
+              iconName="qr-code-scanner"
+              iconColor="#4A9954"
+              iconBgColor="#E8F5E9"
+              onPress={toggleScanner}
+            />
+          )}
 
-            {freeCheckin && (
-              <ActionButton
-                title="Credenciar participante"
-                subtitle="Credenciar participantes para participar do evento."
-                iconName="person-add-alt-1"
-                iconColor="#3E7B58"
-                iconBgColor="#E8F5E9"
-                onPress={() =>
-                  navigation.navigate('CredencialmentoResponsavel', {
-                    eventId,
-                    termText,
-                    termMinorText,
-                  })
-                }
-              />
-            )}
+          {freeCheckin && (
+            <ActionButton
+              title="Credenciar participante"
+              subtitle="Credenciar participantes para participar do evento."
+              iconName="person-add-alt"
+              iconColor="#4A9954"
+              iconBgColor="#E8F5E9"
+              onPress={() =>
+                navigation.navigate('CredencialmentoResponsavel', {
+                  eventId,
+                  termText,
+                  termMinorText,
+                })
+              }
+            />
+          )}
 
-            <Text
-              style={[
-                FONTS.font,
-                {
-                  marginTop: 20,
-                  marginBottom: 10,
-                  fontSize: 12,
-                  color: colors.text,
-                  fontWeight: 'bold',
-                },
-              ]}
-            >
-              ÚLTIMOS REGISTROS:
-            </Text>
+          {listCheckin.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Últimos Registros:</Text>
 
-            {listCheckin.map(item => (
-              <View key={String(item.participant_id)} style={styles.cardList}>
-                <View style={styles.nameContainer}>
-                  <Text style={styles.firstName}>{item.name_participante}</Text>
-                  <TouchableOpacity onPress={() => openModal(item)}>
-                    <Icon name="info-outline" size={24} color="#000" />
+              <View style={styles.recordsContainer}>
+                {listCheckin.map((item, index) => (
+                  <TouchableOpacity
+                    key={String(item.participant_id) + index}
+                    style={[
+                      styles.recordItem,
+                      index < listCheckin.length - 1 && styles.recordItemBorder,
+                    ]}
+                    onPress={() => openModal(item)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.recordAvatar}>
+                      <Text style={styles.recordAvatarText}>
+                        {getInitials(item.name_participante)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.recordInfo}>
+                      <Text style={styles.recordName} numberOfLines={1}>
+                        {item.name_participante}
+                      </Text>
+                      <Text style={styles.recordType} numberOfLines={1}>
+                        {item.user_create || 'Check-in'}
+                      </Text>
+                    </View>
+
+                    <Text style={styles.recordTime}>
+                      {getRelativeTime(item.started_at)}
+                    </Text>
                   </TouchableOpacity>
-                </View>
-                <View style={styles.nameContainer}>
-                  <Text style={styles.lastName}>{item.user_create}</Text>
-                  <Text style={styles.birthDate}>
-                    {formatDateEvent(item.started_at)}
-                  </Text>
-                </View>
+                ))}
               </View>
-            ))}
-            <View style={{ height: 20 }} />
-          </ScrollView>
-        </View>
+            </>
+          )}
+        </ScrollView>
       )}
 
       {scannerVisible && (
@@ -385,7 +445,7 @@ export default function Service() {
               ]}
             >
               <Text style={[styles.textBold, styles.modalTitle]}>
-                Check-ins
+                Detalhes do Registro
               </Text>
               {renderCheckinDetails(selectedItem?.checkin || [])}
             </Animated.View>
@@ -397,43 +457,84 @@ export default function Service() {
 }
 
 const styles = StyleSheet.create({
-  eventCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 10,
-    marginTop: 10,
-    marginBottom: 20,
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F6F8',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 40,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  eventCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    paddingLeft: 24,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  eventCardAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 16,
+    bottom: 16,
+    width: 4,
+    backgroundColor: '#4A9954',
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
   },
   eventName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: '700',
+    color: '#1A1A1A',
     marginBottom: 12,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  infoIcon: {
+    marginRight: 8,
   },
   infoText: {
-    marginLeft: 5,
-    fontSize: 14,
-    color: '#757575',
+    fontSize: 13,
+    color: '#8A8A8A',
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#757575',
-    marginBottom: 10,
+    fontWeight: '600',
+    color: '#8A8A8A',
+    marginBottom: 12,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   actionCard: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
@@ -441,15 +542,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.02,
     shadowRadius: 5,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
+    elevation: 1,
   },
   actionIconContainer: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -457,80 +556,134 @@ const styles = StyleSheet.create({
   },
   actionTextContainer: {
     flex: 1,
+    paddingRight: 10,
   },
   actionTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 2,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 4,
   },
   actionSubtitle: {
     fontSize: 12,
-    color: '#757575',
+    color: '#8A8A8A',
+    lineHeight: 16,
   },
-  cardList: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
+  recordsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.02,
+    shadowRadius: 5,
+    elevation: 1,
   },
-  firstName: { fontSize: 16, fontWeight: 'bold', color: '#000' },
-  nameContainer: {
+  recordItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 5,
+    paddingVertical: 16,
   },
-  lastName: { fontSize: 14, color: '#888' },
-  birthDate: { fontSize: 12, color: '#555', marginLeft: 10 },
-  scannerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  centerText: { flex: 1, fontSize: 18, padding: 32, color: '#777' },
-  textBold: { fontWeight: '500', color: '#000' },
-  buttonText: { fontSize: 21, color: '#000' },
+  recordItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  recordAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  recordAvatarText: {
+    color: '#4A9954',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  recordInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  recordName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 2,
+  },
+  recordType: {
+    fontSize: 12,
+    color: '#8A8A8A',
+  },
+  recordTime: {
+    fontSize: 12,
+    color: '#A0A0A0',
+    marginLeft: 10,
+  },
   closeButton: {
     position: 'absolute',
     top: 50,
     right: 20,
     backgroundColor: COLORS.danger,
-    padding: 10,
-    borderRadius: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
     zIndex: 999,
   },
-  closeButtonText: { color: '#fff', fontSize: 16 },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   modalOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   modal: {
     backgroundColor: '#fff',
-    width: '80%',
-    padding: 20,
-    borderRadius: 10,
+    width: '100%',
+    padding: 24,
+    borderRadius: 16,
     elevation: 5,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 16,
     textAlign: 'center',
+    color: '#1A1A1A',
   },
-  modalContent: { fontSize: 14, color: '#555' },
+  modalContent: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 4,
+  },
   checkinRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 16,
+    backgroundColor: '#F7F8FA',
+    padding: 12,
+    borderRadius: 8,
   },
-  checkinColumn: { flex: 1, alignItems: 'center' },
-  emptyColumn: { flex: 1 },
+  checkinColumn: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  emptyColumn: {
+    flex: 1,
+  },
+  textBold: {
+    fontWeight: '600',
+    color: '#1A1A1A',
+  },
 });

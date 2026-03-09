@@ -1,7 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-//component screens
 import SignIn from '../screen/SignIn';
 import Home from '../screen/Home';
 import Preload from '../screen/Preload';
@@ -9,11 +8,11 @@ import ResetPassword from '../screen/ResetPassword';
 import ValidatePin from '../screen/ValidatePin';
 import NewPassword from '../screen/NewPassword';
 import Service from '../screen/Service';
-import Signature from '../screen/ResponsibleSignature/Responsible Signature';
 import EventShow from '../screen/EventShow';
 import TabNavigator from './TabNavigator';
 import Credential from '../screen/Credential';
-import CredencialResponsavel from '../screen/ResponsibleSignature/CredenciamentoResponsavel';
+import CredencialResponsavel from '../screen/Signature/ResponsibleSignature';
+import SplashScreen from '../screen/SplashScreen/Splash';
 
 const StackComponent = createNativeStackNavigator();
 
@@ -21,7 +20,7 @@ const StackNavigator = () => {
   return (
     <>
       <StackComponent.Navigator
-        initialRouteName="Preload"
+        initialRouteName="SplashScreen"
         screenOptions={{
           headerShown: false,
           headerStyle: {
@@ -31,15 +30,14 @@ const StackNavigator = () => {
           },
         }}
       >
-        {/* component screens start */}
         <StackComponent.Screen name={'SignIn'} component={SignIn} />
+        <StackComponent.Screen name={'SplashScreen'} component={SplashScreen} />
         <StackComponent.Screen name={'Preload'} component={Preload} />
         <StackComponent.Screen name={'Home'} component={Home} />
-        <StackComponent.Screen name={'Signature'} component={Signature} />
         <StackComponent.Screen
           name={'CredencialmentoResponsavel'}
           component={CredencialResponsavel}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
         <StackComponent.Screen
           name={'ResetPassword'}
@@ -59,7 +57,7 @@ const StackNavigator = () => {
         <StackComponent.Screen
           name={'Service'}
           component={Service}
-          options={{ headerShown: true, unmountOnBlur: true }}
+          options={{ headerShown: false, unmountOnBlur: true }}
         />
         <StackComponent.Screen
           name={'EventShow'}
@@ -70,9 +68,8 @@ const StackNavigator = () => {
         <StackComponent.Screen
           name="Credential"
           component={Credential}
-          options={{ title: 'Credenciamento', headerShown: true }}
+          options={{ title: 'Credenciamento', headerShown: false }}
         />
-        {/* component screens end */}
       </StackComponent.Navigator>
     </>
   );

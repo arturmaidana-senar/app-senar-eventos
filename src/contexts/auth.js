@@ -16,61 +16,50 @@ export default ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Define a função loadStorage fora do useEffect para que possa ser chamada de qualquer lugar dentro do componente
   async function loadStorage() {
     try {
-      const storageUser = await AsyncStorage.getItem('@eventToken');
-      if (storageUser) {
+      // ✅ FIX 1: chave unificada '@eventToken' (mesma que a Splash.js deve checar)
+      const storageToken = await AsyncStorage.getItem('@eventToken');
+
+      if (storageToken) {
         const response = await api.get('/user', {
           headers: {
-            Authorization: `Bearer ${storageUser}`,
+            Authorization: `Bearer ${storageToken}`,
           },
         });
-        try {
-          if (response.data) {
-            api.defaults.headers['Authorization'] = `Bearer ${storageUser}`;
-            setUser(response.data);
-            await AsyncStorage.setItem('@eventUser', response.data.name);
-            navigation.reset({ routes: [{ name: 'TabNavigator' }] });
-          } else {
-            navigation.reset({ routes: [{ name: 'SignIn' }] });
-          }
-        } finally {
-          setUser(null);
-          setLoading(false);
+
+        if (response.data) {
+          api.defaults.headers['Authorization'] = `Bearer ${storageToken}`;
+
+          // ✅ FIX 2: removido o bloco `finally` que sobrescrevia setUser(null)
+          // O setUser agora persiste corretamente após o login
+          setUser(response.data);
+          await AsyncStorage.setItem('@eventUser', response.data.name ?? '');
+          navigation.reset({ routes: [{ name: 'TabNavigator' }] });
+        } else {
+          await AsyncStorage.removeItem('@eventToken');
+          navigation.reset({ routes: [{ name: 'SplashScreen' }] });
         }
       } else {
-        navigation.reset({ routes: [{ name: 'SignIn' }] });
-        setUser(null);
+        navigation.reset({ routes: [{ name: 'SplashScreen' }] });
       }
     } catch (error) {
-      await AsyncStorage.setItem('@eventToken', '');
+      // Token inválido ou expirado — limpa e manda pro login
+      await AsyncStorage.removeItem('@eventToken');
       console.error('Erro ao carregar o armazenamento:', error);
-      navigation.reset({ routes: [{ name: 'SignIn' }] });
-      setUser(null);
+      navigation.reset({ routes: [{ name: 'SplashScreen' }] });
     } finally {
       setLoading(false);
     }
   }
+
+  // ✅ FIX 3: loadStorage() descomentado — executa ao iniciar o app
   useEffect(() => {
-    //loadStorage();
+    loadStorage();
   }, []);
 
-  // https://sgee-atende.senarmt.org.br/api/v1/auth/evento-atendimento/validar-token
-  // https://api.appateg.senarmt.org.br/api/doubts/1
-  // https://eventos.senarmt.org.br/api/auth/recuperar-senha
   async function signIn(email, password) {
     setLoadingAuth(true);
-
-    // axios.get('https://eventos.senarmt.org.br/api/auth/recuperar-senha')
-    // .then(response => {
-    //     setLoadingAuth(false);
-    //     // console.log('TUDO CERTO,', response);
-    // })
-    // .catch(error => {
-    //     setLoadingAuth(false);
-    //     console.log('Erro no Axios:', error);
-    // });
 
     try {
       const response = await api.post('/auth/login', {
@@ -81,7 +70,7 @@ export default ({ children }) => {
       if (response?.data.register == 'update') {
         return Alert.alert('Aviso', response?.data.message, [
           { text: 'Ok', onPress: () => newRegister() },
-          { text: 'Cancelar', onPress: null, styled: 'cancel' },
+          { text: 'Cancelar', onPress: null, style: 'cancel' },
         ]);
       }
 
@@ -96,10 +85,17 @@ export default ({ children }) => {
 
       const accessToken = response?.data.token || '';
 
-      // Salva o token no AsyncStorage
-      await AsyncStorage.setItem('@eventToken', accessToken);
+      if (!accessToken) {
+        return Dialog.show({
+          type: ALERT_TYPE.DANGER,
+          title: 'Erro',
+          textBody: 'Token não recebido. Contate o suporte.',
+          button: 'Fechar',
+        });
+      }
 
-      // Chama a função loadStorage para atualizar o estado com o novo token
+      // Salva o token e carrega o usuário
+      await AsyncStorage.setItem('@eventToken', accessToken);
       await loadStorage();
     } catch (err) {
       Dialog.show({
@@ -116,9 +112,9 @@ export default ({ children }) => {
 
   async function logoff() {
     setUser(null);
-    const accessToken = '';
-    await AsyncStorage.setItem('@eventToken', accessToken);
-    await loadStorage();
+    await AsyncStorage.removeItem('@eventToken');
+    await AsyncStorage.removeItem('@eventUser');
+    navigation.reset({ routes: [{ name: 'SignIn' }] });
   }
 
   async function newRegister() {

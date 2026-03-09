@@ -1,153 +1,248 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, FlatList, Animated, Dimensions, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useNavigation, useTheme } from '@react-navigation/native';
-import { 
-  Container, 
-  MonthSelector, 
-  MonthButton, 
-  MonthText, 
-  EventosText, 
-  Row, 
-} from './styles'; 
-import CardNotEvent from '../../components/CardNotEvent';
+import {
+  View,
+  Text,
+  FlatList,
+  Dimensions,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  SafeAreaView,
+  StatusBar,
+} from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
 import Header from '../../components/Header';
 import CardEvent from '../../components/CardEvent';
+import CardNotEvent from '../../components/CardNotEvent';
 import api from '../../services/endpont';
-import { COLORS, FONTS } from "../../constants/theme";
 
 const { width } = Dimensions.get('window');
 
-export default function Event(){
-    const { colors } = useTheme();
-    const [events, setEvents] = useState([]);
-    const [showTickets, setShowTickets] = useState(true);  
-    const [showServices, setShowServices] = useState(true);  
-    
-    const scrollX = useRef(new Animated.Value(0)).current;
-    const scrollViewRef = useRef(null);
-    const [active, setActive] = useState(0);
+export default function Event() {
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
 
-    async function getEvents() {
-        const response = await api.getUserEvents();
-        setEvents(response.data);
-        setShowTickets(true);
-        setShowServices(true);
+  const scrollViewRef = useRef(null);
+
+  async function getEvents() {
+    try {
+      const response = await api.getUserEvents();
+      setEvents(response.data);
+      setFilteredEvents(response.data);
+    } catch (error) {
+      console.error('Erro ao buscar eventos do usuário:', error);
     }
+  }
 
-    useEffect(() => {
-        getEvents();
-    }, []); 
+  useEffect(() => {
+    getEvents();
+  }, []);
 
-    const buttons = [showServices ? 'Meus Serviços' : null, showTickets ? 'Meus Tickets' : null].filter(Boolean); // Filtra null de 'Fotos'
-
-    const onClick = i => {
-        setActive(i);
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollTo({ x: i * width });
-        }
-    };
-
-    function ButtonContainer({ buttons, onClick, scrollX, active }) {
-        const { colors } = useTheme();
-        const [btnContainerWidth, setWidth] = useState(0);
-        const btnWidth = btnContainerWidth / buttons.length;
-        const translateX = scrollX.interpolate({
-            inputRange: [0, width, width * 2],
-            outputRange: [0, btnWidth, btnWidth * 2],
-        });
-
-        return (
-            <View
-                style={[styles.btnContainer, { borderColor: colors.borderColor }]}
-                onLayout={e => setWidth(e.nativeEvent.layout.width)}>
-                {buttons.map((btn, i) => (
-                    <TouchableOpacity
-                        key={btn}
-                        style={styles.btn}
-                        onPress={() => onClick(i)}>
-                        <Text style={[{ ...FONTS.font, color: colors.text }, active === i && { color: '#000' }]}>{btn}</Text>
-                    </TouchableOpacity>
-                ))}
-                <Animated.View
-                    style={[
-                        styles.animatedBtnContainer,
-                        {
-                            width: btnWidth,
-                            backgroundColor: active in([1,2,3]) ? COLORS.primary : colors.title,  
-                            transform: [{ translateX }],
-                        },
-                    ]}
-                />
-            </View>
-        );
+  const handleSearch = text => {
+    setSearchQuery(text);
+    if (text) {
+      const filtered = events.filter(
+        event =>
+          event.name?.toLowerCase().includes(text.toLowerCase()) ||
+          event.name_location?.toLowerCase().includes(text.toLowerCase()),
+      );
+      setFilteredEvents(filtered);
+    } else {
+      setFilteredEvents(events);
     }
+  };
 
-    return (
-        <Container>
-            <Header />
-            <Row>
-                <EventosText>Eventos</EventosText>
-            </Row>
-            <View style={{ marginBottom: 10 }}>
-                <ButtonContainer buttons={buttons} onClick={onClick} scrollX={scrollX} active={active} />
-            </View>
+  const handleTabPress = index => {
+    setActiveTab(index);
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: index * width, animated: true });
+    }
+  };
 
-            <ScrollView
-                contentContainerStyle={{ paddingBottom: 70 }}
-                ref={scrollViewRef}
-                horizontal
-                pagingEnabled
-                scrollEventThrottle={16}
-                decelerationRate="fast"
-                showsHorizontalScrollIndicator={false}
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-                    { useNativeDriver: false },
-                )}>
+  const handleScroll = event => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(scrollPosition / width);
+    if (currentIndex !== activeTab) {
+      setActiveTab(currentIndex);
+    }
+  };
 
-                <View style={[styles.card]}>
-                    <View style={[styles.container]}>
-						<FlatList
-							data={events}
-							renderItem={({ item }) => <CardEvent item={item} />}   
-							keyExtractor={(item) => item.id}
-						/>
-                    </View>
-                </View>
-                <View style={[styles.card]}>
-                    <CardNotEvent />
-                </View>
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <Header />
 
-            </ScrollView>
-        </Container>
-    );
+      <View style={styles.content}>
+        <Text style={styles.pageTitle}>Eventos</Text>
+
+        <View style={styles.searchContainer}>
+          <Feather
+            name="search"
+            size={20}
+            color="#999"
+            style={styles.searchIcon}
+          />
+          <TextInput
+            placeholder="Buscar eventos..."
+            placeholderTextColor="#A0A0A0"
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+        </View>
+
+        <View style={styles.segmentContainer}>
+          <TouchableOpacity
+            style={[
+              styles.segmentButton,
+              activeTab === 0 && styles.segmentButtonActive,
+            ]}
+            onPress={() => handleTabPress(0)}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                activeTab === 0 && styles.segmentTextActive,
+              ]}
+            >
+              Meus Serviços
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.segmentButton,
+              activeTab === 1 && styles.segmentButtonActive,
+            ]}
+            onPress={() => handleTabPress(1)}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                activeTab === 1 && styles.segmentTextActive,
+              ]}
+            >
+              Meus Tickets
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        <View style={styles.page}>
+          <FlatList
+            data={filteredEvents}
+            renderItem={({ item }) => <CardEvent item={item} />}
+            keyExtractor={(item, index) =>
+              item.id ? item.id.toString() : index.toString()
+            }
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Nenhum evento encontrado.</Text>
+              </View>
+            }
+          />
+        </View>
+
+        <View style={styles.page}>
+          <View style={styles.listContent}>
+            <CardNotEvent />
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-    btnContainer: {
-        height: 45,
-        overflow: 'hidden',
-        flexDirection: 'row',
-        width: '100%',
-        borderBottomWidth: 1,
-    },
-    btn: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    animatedBtnContainer: {
-        height: 2,
-        flexDirection: 'row',
-        position: 'absolute',
-        overflow: 'hidden',
-        bottom: 0,
-    },
-    container: {
-        flex: 1,
-        padding: 20,
-    },
-    card: {
-        width: width,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#F7F8FA',
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  pageTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    marginBottom: 16,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#EAEAEA',
+    borderRadius: 8,
+    height: 48,
+    paddingHorizontal: 12,
+    marginBottom: 20,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
+    height: '100%',
+  },
+  segmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#EAEAEA',
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 16,
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+  },
+  segmentButtonActive: {
+    backgroundColor: '#4A9954',
+  },
+  segmentText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8A8A8A',
+  },
+  segmentTextActive: {
+    color: '#FFFFFF',
+  },
+  page: {
+    width: width,
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: '#8A8A8A',
+    fontSize: 15,
+  },
 });

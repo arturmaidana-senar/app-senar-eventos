@@ -1,80 +1,178 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import { formatDate } from '../../utils/dateFormat';
-
-import {
-	Container,
-	InfoContainer,
-	Title,
-	LocationContainer,
-	LocationText,
-	DateStatusContainer,
-	DateContainer,
-	DateText,
-	StatusText,
-} from './styles';
+import Feather from 'react-native-vector-icons/Feather';
 
 const CardEvent = ({ item }) => {
+  const navigation = useNavigation();
 
-	const navigation = useNavigation();
+  const formatDateObj = dateString => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
-	const formatDate = (dateString) => {
-		const date = new Date(dateString);
-	  
-		const day = String(date.getDate()).padStart(2, '0');
-		const month = String(date.getMonth() + 1).padStart(2, '0'); // Meses começam de 0
-		const year = date.getFullYear();
-	  
-		const hours = String(date.getHours()).padStart(2, '0');
-		const minutes = String(date.getMinutes()).padStart(2, '0');
-	  
-		return `${day}/${month}/${year} às ${hours}:${minutes}`;
-	};
+  const currentDate = new Date();
+  const eventDate = new Date(item.ended_at || item.started_at);
+  const isRealizado = currentDate > eventDate;
 
-	const currentDate = new Date();
-	const eventDate = new Date(item.ended_at);
-	const status = currentDate > eventDate ? "Realizado" : "Aguardando";
+  const status = isRealizado ? 'REALIZADO' : 'AGUARDANDO';
+  const startDate = formatDateObj(item.started_at);
+  const endDate = formatDateObj(item.ended_at);
 
-	const formattedDate = formatDate(item.started_at);
-	const formattedDateEnd = formatDate(item.ended_at);
-	
-	return (
-		<TouchableOpacity onPress={ () => navigation.navigate('EventShow', { eventId: item.id }) }>
-			<Container>
-				<InfoContainer>
-					<Title>{item.name}</Title>
-					<LocationContainer>
-						<Icon name="map-marker-alt" size={12} color="#007C6F" />
-						<LocationText>{item.name_location}</LocationText>
-					</LocationContainer>
-					<DateStatusContainer>
-						<DateContainer>
-							<Icon name="calendar-alt" size={12} color="#6d6d6d" />
-							<DateText>{formattedDate} até {formattedDateEnd}</DateText>
-						</DateContainer>
-						<StatusText>{status}</StatusText>
-					</DateStatusContainer>
-				</InfoContainer>
-				<Icon name="angle-right" size={16} color="#37C064" />
-			</Container>
-		</TouchableOpacity>
-	);
+  let displayDate = startDate;
+  if (endDate && startDate !== endDate) {
+    displayDate = `${startDate} — ${endDate}`;
+  }
+
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('EventShow', { eventId: item.id })}
+      activeOpacity={0.8}
+    >
+      <View style={styles.cardHeader}>
+        <Text style={styles.title} numberOfLines={1}>
+          {item.name}
+        </Text>
+
+        <View
+          style={[
+            styles.badge,
+            isRealizado ? styles.badgeRealizado : styles.badgeAguardando,
+          ]}
+        >
+          <View
+            style={[
+              styles.badgeDot,
+              isRealizado ? styles.dotRealizado : styles.dotAguardando,
+            ]}
+          />
+          <Text
+            style={[
+              styles.badgeText,
+              isRealizado ? styles.textRealizado : styles.textAguardando,
+            ]}
+          >
+            {status}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.infoRow}>
+        <Feather name="map-pin" size={14} color="#4A9954" style={styles.icon} />
+        <Text style={styles.infoText} numberOfLines={1}>
+          {item.name_location}
+        </Text>
+      </View>
+
+      <View style={styles.infoRow}>
+        <Feather
+          name="calendar"
+          size={14}
+          color="#8A8A8A"
+          style={styles.icon}
+        />
+        <Text style={styles.infoText}>{displayDate}</Text>
+      </View>
+
+      <Feather
+        name="chevron-right"
+        size={20}
+        color="#D3D3D3"
+        style={styles.chevronIcon}
+      />
+    </TouchableOpacity>
+  );
 };
 
-
-  
-
 const styles = StyleSheet.create({
-  item: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 1,
+    position: 'relative',
+    justifyContent: 'center',
   },
-  text: {
-    fontSize: 18,
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+    paddingRight: 10,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    flex: 1,
+    marginRight: 8,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  badgeRealizado: {
+    backgroundColor: '#E8F5E9',
+  },
+  badgeAguardando: {
+    backgroundColor: '#FFF8E1',
+  },
+  badgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  dotRealizado: {
+    backgroundColor: '#4CAF50',
+  },
+  dotAguardando: {
+    backgroundColor: '#F59E0B',
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  textRealizado: {
+    color: '#4CAF50',
+  },
+  textAguardando: {
+    color: '#D97706',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingRight: 24,
+  },
+  icon: {
+    marginRight: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#6A737D',
+  },
+  chevronIcon: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    marginTop: -2,
   },
 });
 

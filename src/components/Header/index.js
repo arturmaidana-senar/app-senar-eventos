@@ -44,31 +44,92 @@ export default function Header() {
     loadStorage();
   }, []);
 
+  const getInitials = name => {
+    if (!name) return 'US';
+    const nameParts = name.trim().split(' ');
+    if (nameParts.length >= 2) {
+      return `${nameParts[0][0]}${
+        nameParts[nameParts.length - 1][0]
+      }`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const initials = getInitials(userName);
+  const displayName = userName || 'Usuário';
+
   return (
-    <View style={styles.body}>
-      <Image
-        style={styles.logo}
-        source={require('../../assets/images/logo_home.png')}
-      />
-      <Text style={styles.greeting}>Olá, {userName}</Text>
+    <View style={styles.container}>
+      <View style={styles.userInfo}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initials}</Text>
+        </View>
+        <View>
+          <Text style={styles.welcomeText}>Bem-vindo(a)</Text>
+          <Text style={styles.userName} numberOfLines={1}>
+            {displayName}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.logoContainer}>
+        <Image
+          style={styles.logo}
+          source={require('../../assets/images/logo_home.png')}
+          resizeMode="contain"
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  body: {
-    padding: 20,
+  container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingRight: 10,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  welcomeText: {
+    fontSize: 15,
+    color: '#8A8A8A',
+    marginBottom: 2,
+  },
+  userName: {
+    fontSize: 13,
+    color: '#1A1A1A',
+    fontWeight: '600',
+  },
+  logoContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logo: {
     width: 100,
-    height: 30,
-  },
-  greeting: {
-    fontSize: 18,
-    color: '#000',
+    height: 35,
   },
 });
