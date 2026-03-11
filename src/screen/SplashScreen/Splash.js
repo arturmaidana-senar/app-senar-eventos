@@ -4,15 +4,20 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ImageBackground,
   Image,
   StatusBar,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Importe seu SVG como um componente
+import BackgroundSvg from '../../assets/images/Background4.svg';
 import Logo from '../../assets/images/LogoSenar3.png';
+
+const { width, height } = Dimensions.get('window');
 
 export default function SplashScreen() {
   const navigation = useNavigation();
@@ -22,12 +27,8 @@ export default function SplashScreen() {
     async function checkLoginStatus() {
       try {
         const userToken = await AsyncStorage.getItem('@eventToken');
-
         if (userToken) {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Home' }],
-          });
+          navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
         } else {
           setIsChecking(false);
         }
@@ -35,38 +36,45 @@ export default function SplashScreen() {
         setIsChecking(false);
       }
     }
-
     checkLoginStatus();
   }, [navigation]);
 
+  const Background = () => (
+    <View style={styles.svgWrapper}>
+      <BackgroundSvg
+        width="100%"
+        height="100%"
+        // 'xMidYMid slice' centraliza e corta as sobras (igual ao 'cover')
+        // Se estiver muito para cima, tente mudar para 'xMidYMax slice'
+        // ou apenas garantir que o viewBox do arquivo esteja correto.
+        preserveAspectRatio="xMidYMid slice"
+      />
+    </View>
+  );
+
   if (isChecking) {
     return (
-      <ImageBackground
-        source={require('../../assets/images/Background4.png')}
-        style={styles.loadingContainer}
-        resizeMode="cover"
-      >
+      <View style={styles.loadingContainer}>
+        <Background />
         <StatusBar
           translucent
           backgroundColor="transparent"
           barStyle="light-content"
         />
         <ActivityIndicator size="large" color="#FFFFFF" />
-      </ImageBackground>
+      </View>
     );
   }
 
   return (
-    <ImageBackground
-      source={require('../../assets/images/Background4.png')}
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <View style={styles.container}>
+      <Background />
       <StatusBar
         translucent
         backgroundColor="transparent"
         barStyle="light-content"
       />
+
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <Image
@@ -104,24 +112,25 @@ export default function SplashScreen() {
           </View>
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  svgWrapper: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden', // Garante que nada saia dos limites da tela
+    backgroundColor: '#40914D', // Cor de fundo caso o SVG demore a carregar
+  },
   container: {
     flex: 1,
-    backgroundColor: '#40914D',
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#40914D', // Fallback
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#40914D',
-    width: '100%',
-    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#40914D',
   },
   content: {
     flex: 1,

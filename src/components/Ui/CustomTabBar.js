@@ -45,9 +45,8 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
             key={index}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={options.tabBarTestID}
             onPress={onPress}
+            // Removido padding fixo e adicionado flex: 1 para distribuir o espaço
             style={[styles.tabItem, isFocused && styles.tabItemFocused]}
             activeOpacity={0.8}
           >
@@ -56,7 +55,11 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
               size={22}
               color={isFocused ? '#4A9954' : '#FFFFFF'}
             />
-            {isFocused && <Text style={styles.tabLabel}>{label}</Text>}
+            {isFocused && (
+              <Text style={styles.tabLabel} numberOfLines={1}>
+                {label}
+              </Text>
+            )}
           </TouchableOpacity>
         );
       })}
@@ -74,9 +77,11 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     height: 64,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    width: width * 0.5,
+    justifyContent: 'space-around', // Distribui melhor os itens internamente
+    paddingHorizontal: 10,
+    // AJUSTE RESPONSIVO:
+    width: width > 500 ? 400 : '90%', // Em tablets usa 400px, em celulares usa 90% da largura
+    maxWidth: 450, // Garante que não estique demais em telas gigantes
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -84,15 +89,17 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   tabItem: {
+    flex: 1, // Faz cada item ocupar o mesmo espaço disponível
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 20,
+    height: 48,
+    marginHorizontal: 4,
+    borderRadius: 24,
   },
   tabItemFocused: {
     backgroundColor: '#FFFFFF',
+    flex: 1.5, // Dá um pouco mais de destaque para o item focado
   },
   tabLabel: {
     color: '#4A9954',
