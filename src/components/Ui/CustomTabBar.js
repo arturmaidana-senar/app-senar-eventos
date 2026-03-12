@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around', // Distribui melhor os itens internamente
     paddingHorizontal: 10,
     // AJUSTE RESPONSIVO:
-    width: width > 500 ? 400 : '90%', // Em tablets usa 400px, em celulares usa 90% da largura
-    maxWidth: 450, // Garante que não estique demais em telas gigantes
+    width: width > 500 ? 300 : '90%', // Em tablets usa 400px, em celulares usa 90% da largura
+    maxWidth: 350, // Garante que não estique demais em telas gigantes
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },

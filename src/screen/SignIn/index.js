@@ -25,7 +25,7 @@ export default function SignIn() {
   const [passwordField, setPasswordField] = useState('');
   const [passwordHide, setPasswordHide] = useState(true);
 
-  const backgroundImage = require('../../assets/images/Background4.png');
+  const backgroundImage = require('../../assets/images/Background4.svg');
   const logoImage = require('../../assets/images/LogoSenar3.png');
 
   async function handleLogin() {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Alert, Text } from 'react-native'; // ← Text adicionado
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { setHeaderOptions } from '../../components/HeaderTitle';
@@ -20,9 +20,9 @@ export default function EventShow() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await api.getEvent(eventId);
-      
+
       if (response && response.data) {
         setEvent(response.data);
       } else {
@@ -31,25 +31,29 @@ export default function EventShow() {
     } catch (err) {
       console.error('Erro ao carregar evento:', err);
       setError('Não foi possível carregar os dados do evento');
-      
-      Alert.alert(
-        'Erro',
-        'Não foi possível carregar os dados do evento. Tente novamente.',
-        [
-          { text: 'Tentar Novamente', onPress: fetchEvent },
-          { text: 'Voltar', onPress: () => navigation.goBack() }
-        ]
-      );
     } finally {
       setLoading(false);
     }
   }
 
+  // ← Alert movido para useEffect, reage à mudança do estado error
   useEffect(() => {
-    // Configuração do header com estilo melhorado
+    if (error) {
+      Alert.alert(
+        'Erro',
+        'Não foi possível carregar os dados do evento. Tente novamente.',
+        [
+          { text: 'Tentar Novamente', onPress: fetchEvent },
+          { text: 'Voltar', onPress: () => navigation.goBack() },
+        ],
+      );
+    }
+  }, [error]);
+
+  useEffect(() => {
     setHeaderOptions(navigation, {
       headerTitle: 'Detalhes do Evento',
-      headerTitleStyle: { 
+      headerTitleStyle: {
         fontFamily: EventTheme.typography.fontFamily.bold,
         fontSize: EventTheme.typography.fontSize.lg,
         color: EventTheme.colors.gray[900],
@@ -76,9 +80,9 @@ export default function EventShow() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator 
-          size="large" 
-          color={EventTheme.colors.primary[500]} 
+        <ActivityIndicator
+          size="large"
+          color={EventTheme.colors.primary[500]}
         />
       </View>
     );
@@ -87,18 +91,16 @@ export default function EventShow() {
   if (error || !event) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
-          {error || 'Evento não encontrado'}
-        </Text>
+        <Text style={styles.errorText}>{error || 'Evento não encontrado'}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <EventDetailView 
+      <EventDetailView
         event={event}
-        imageBaseUrl="https://eventos.senarmt.org.br/storage/" // Configure com sua URL base
+        imageBaseUrl="https://eventos.senarmt.org.br/storage/"
       />
     </View>
   );
@@ -126,7 +128,8 @@ const styles = StyleSheet.create({
     fontSize: EventTheme.typography.fontSize.base,
     color: EventTheme.colors.error[600],
     textAlign: 'center',
-    lineHeight: EventTheme.typography.lineHeight.normal * EventTheme.typography.fontSize.base,
+    lineHeight:
+      EventTheme.typography.lineHeight.normal *
+      EventTheme.typography.fontSize.base,
   },
 });
-

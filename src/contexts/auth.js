@@ -18,7 +18,6 @@ export default ({ children }) => {
 
   async function loadStorage() {
     try {
-      // ✅ FIX 1: chave unificada '@eventToken' (mesma que a Splash.js deve checar)
       const storageToken = await AsyncStorage.getItem('@eventToken');
 
       if (storageToken) {
@@ -31,32 +30,24 @@ export default ({ children }) => {
         if (response.data) {
           api.defaults.headers['Authorization'] = `Bearer ${storageToken}`;
 
-          // ✅ FIX 2: removido o bloco `finally` que sobrescrevia setUser(null)
-          // O setUser agora persiste corretamente após o login
           setUser(response.data);
           await AsyncStorage.setItem('@eventUser', response.data.name ?? '');
           navigation.reset({ routes: [{ name: 'TabNavigator' }] });
         } else {
           await AsyncStorage.removeItem('@eventToken');
-          navigation.reset({ routes: [{ name: 'SplashScreen' }] });
+          navigation.reset({ routes: [{ name: 'SignIn' }] });
         }
       } else {
-        navigation.reset({ routes: [{ name: 'SplashScreen' }] });
+        navigation.reset({ routes: [{ name: 'SignIn' }] });
       }
     } catch (error) {
-      // Token inválido ou expirado — limpa e manda pro login
       await AsyncStorage.removeItem('@eventToken');
       console.error('Erro ao carregar o armazenamento:', error);
-      navigation.reset({ routes: [{ name: 'SplashScreen' }] });
+      navigation.reset({ routes: [{ name: 'SignIn' }] });
     } finally {
       setLoading(false);
     }
   }
-
-  // ✅ FIX 3: loadStorage() descomentado — executa ao iniciar o app
-  useEffect(() => {
-    loadStorage();
-  }, []);
 
   async function signIn(email, password) {
     setLoadingAuth(true);
@@ -94,7 +85,6 @@ export default ({ children }) => {
         });
       }
 
-      // Salva o token e carrega o usuário
       await AsyncStorage.setItem('@eventToken', accessToken);
       await loadStorage();
     } catch (err) {

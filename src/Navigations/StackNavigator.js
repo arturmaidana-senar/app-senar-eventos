@@ -20,7 +20,7 @@ const StackNavigator = () => {
   return (
     <>
       <StackComponent.Navigator
-        initialRouteName="SplashScreen"
+        initialRouteName="Preload"
         screenOptions={{
           headerShown: false,
           headerStyle: {
