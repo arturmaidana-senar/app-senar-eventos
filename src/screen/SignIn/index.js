@@ -11,10 +11,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ImageBackground,
   Image,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { LinearGradient } from 'react-native-linear-gradient'; // Ou 'react-native-linear-gradient'
 import { AuthContext } from '../../contexts/auth';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
@@ -25,8 +25,9 @@ export default function SignIn() {
   const [passwordField, setPasswordField] = useState('');
   const [passwordHide, setPasswordHide] = useState(true);
 
-  const backgroundImage = require('../../assets/images/Background4.svg');
-  const logoImage = require('../../assets/images/LogoSenar3.png');
+  const logoImage = require('../../assets/images/LogoSenar1.png');
+  // Substitua pelo caminho correto da sua imagem de rodapé, se houver
+  const footerLogos = require('../../assets/images/Famato.png');
 
   async function handleLogin() {
     if (ValidarAcesso()) {
@@ -81,12 +82,11 @@ export default function SignIn() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#51A85A" />
+      <StatusBar barStyle="light-content" backgroundColor="#4ea658" />
 
-      <ImageBackground
-        source={backgroundImage}
+      <LinearGradient
+        colors={['#00A859', '#004A24']}
         style={styles.headerBackground}
-        resizeMode="cover"
       >
         <View style={styles.eventosLogoContainer}>
           <Image
@@ -94,8 +94,10 @@ export default function SignIn() {
             style={styles.logoImage}
             resizeMode="contain"
           />
+          <Text style={styles.logoTitle}>Senar Eventos</Text>
+          <Text style={styles.logoSubtitle}>Controle de Eventos</Text>
         </View>
-      </ImageBackground>
+      </LinearGradient>
 
       <ScrollView
         contentContainerStyle={styles.scrollViewContent}
@@ -103,15 +105,15 @@ export default function SignIn() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.card}>
-          <Text style={styles.title}>Bem-vindo!</Text>
+          <Text style={styles.title}>Seja Bem-vindo!</Text>
           <Text style={styles.subtitle}>
-            Entre com suas credenciais para continuar
+            Para continuar é necessário fazer login
           </Text>
 
           <View style={styles.inputWrapper}>
-            <Text style={styles.label}>E-mail</Text>
+            <Text style={styles.label}>Email</Text>
             <View style={styles.inputContainer}>
-              <Feather name="mail" size={20} color="#999" style={styles.icon} />
+              <Feather name="mail" size={18} color="#777" style={styles.icon} />
               <TextInput
                 placeholder="seu@senarmt.org.br"
                 placeholderTextColor="#A0A0A0"
@@ -127,9 +129,9 @@ export default function SignIn() {
           <View style={styles.inputWrapper}>
             <Text style={styles.label}>Senha</Text>
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#999" style={styles.icon} />
+              <Feather name="lock" size={18} color="#777" style={styles.icon} />
               <TextInput
-                placeholder="••••••••"
+                placeholder="senha"
                 placeholderTextColor="#A0A0A0"
                 style={styles.input}
                 value={passwordField}
@@ -142,8 +144,8 @@ export default function SignIn() {
               >
                 <Feather
                   name={passwordHide ? 'eye' : 'eye-off'}
-                  size={20}
-                  color="#999"
+                  size={18}
+                  color="#777"
                 />
               </TouchableOpacity>
             </View>
@@ -154,7 +156,7 @@ export default function SignIn() {
             activeOpacity={0.7}
             style={styles.forgotPasswordContainer}
           >
-            <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
+            <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -166,29 +168,16 @@ export default function SignIn() {
             {loadingAuth ? (
               <ActivityIndicator size={20} color="#FFF" />
             ) : (
-              <View style={styles.buttonContent}>
-                <Text style={styles.submitText}>Entrar</Text>
-                <Feather
-                  name="arrow-right"
-                  size={20}
-                  color="#FFF"
-                  style={styles.buttonIcon}
-                />
-              </View>
+              <Text style={styles.submitText}>Entrar</Text>
             )}
           </TouchableOpacity>
 
-          <View style={styles.dividerContainer}>
-            <View style={styles.line} />
-            <Text style={styles.orText}>ou</Text>
-            <View style={styles.line} />
-          </View>
-
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Não tem uma conta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-              <Text style={styles.registerLink}>Criar conta</Text>
-            </TouchableOpacity>
+          <View style={styles.footerContainer}>
+            <Image
+              source={footerLogos}
+              style={styles.footerImage}
+              resizeMode="contain"
+            />
           </View>
         </View>
       </ScrollView>
@@ -199,15 +188,16 @@ export default function SignIn() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#3d8b46',
   },
   headerBackground: {
-    height: 250,
+    height: '40%',
     width: '100%',
     position: 'absolute',
     top: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 20,
   },
   eventosLogoContainer: {
     alignItems: 'center',
@@ -215,48 +205,65 @@ const styles = StyleSheet.create({
     marginTop: -20,
   },
   logoImage: {
-    width: 200,
+    width: 80,
     height: 80,
+    marginBottom: 10,
+    tintColor: '#FFF',
+  },
+  logoTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  logoSubtitle: {
+    fontSize: 14,
+    color: '#E0F2E9',
+    marginTop: 4,
   },
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'flex-end',
-    paddingTop: 190,
+    paddingTop: '65%',
   },
   card: {
     backgroundColor: '#FFF',
     flex: 1,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    borderTopLeftRadius: 35,
+    borderTopRightRadius: 35,
+    paddingHorizontal: 28,
+    paddingTop: 40,
     paddingBottom: 20,
   },
   title: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1A1A1A',
+    color: '#333',
+    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#8A8A8A',
-    marginBottom: 32,
+    fontSize: 15,
+    color: '#333',
+    textAlign: 'center',
+    fontWeight: '500',
+    marginBottom: 40,
   },
   inputWrapper: {
     marginBottom: 20,
   },
   label: {
-    color: '#555555',
+    color: '#333',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   inputContainer: {
     width: '100%',
     height: 52,
     borderRadius: 8,
-    backgroundColor: '#F4F6F5',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -275,62 +282,35 @@ const styles = StyleSheet.create({
   },
   forgotPasswordContainer: {
     alignItems: 'flex-end',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#4A9954',
-    fontWeight: '600',
+    color: '#333',
+    fontWeight: 'bold',
   },
   submitButton: {
-    backgroundColor: '#4A9954',
+    backgroundColor: '#4ea658',
     height: 52,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
   },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   submitText: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: 'bold',
-    marginRight: 8,
   },
-  buttonIcon: {
-    marginTop: 2,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  line: {
+  footerContainer: {
     flex: 1,
-    height: 1,
-    backgroundColor: '#EAEAEA',
-  },
-  orText: {
-    marginHorizontal: 16,
-    color: '#A0A0A0',
-    fontSize: 14,
-  },
-  registerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 40,
+    marginBottom: 10,
   },
-  registerText: {
-    color: '#8A8A8A',
-    fontSize: 14,
-  },
-  registerLink: {
-    color: '#4A9954',
-    fontSize: 14,
-    fontWeight: 'bold',
+  footerImage: {
+    width: '100%',
+    height: 60,
   },
 });
