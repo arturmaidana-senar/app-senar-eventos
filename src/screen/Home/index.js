@@ -14,6 +14,7 @@ import Header from '../../components/Header';
 import CardHome from '../../components/CardHome';
 import api from '../../services/endpont';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import { InteractionManager } from 'react-native';
 
 export default function Home() {
   const [events, setEvents] = useState([]);
@@ -21,6 +22,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    getEvents();
+
+    const task = InteractionManager.runAfterInteractions(() => {
+      requestPermissions();
+    });
+
+    return () => task.cancel();
+  }, []);
 
   async function getEvents() {
     try {
@@ -135,7 +146,7 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: '#F5F7F5',
   },
   loadingContainer: {
     flex: 1,

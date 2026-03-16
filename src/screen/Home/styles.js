@@ -4,7 +4,7 @@ import styled from 'styled-components/native';
 
 export const Container = styled.View`
   flex: 1;
-  background-color: #F8F8F8;
+  background-color: #f8f8f8;
 `;
 
 export const Header = styled.View`
@@ -28,8 +28,8 @@ export const Greeting = styled.Text`
 export const MonthSelector = styled.ScrollView`
   flex-direction: row;
   padding: 10px 0;
-  background-color: #F6F6F6;
-  max-height: 80px;  
+  background-color: #f6f6f6;
+  max-height: 80px;
 `;
 
 export const MonthButton = styled.TouchableOpacity`
@@ -58,7 +58,7 @@ export const EventosText = styled.Text`
 `;
 
 export const ProgramadosText = styled.Text`
-  color: #7C7A80;
+  color: #7c7a80;
   font-family: Ubuntu;
   font-size: 10px;
   font-style: normal;
@@ -74,5 +74,5 @@ export const Row = styled.View`
 `;
 
 export const Spacer = styled.View`
-  width: 5px;  
+  width: 5px;
 `;

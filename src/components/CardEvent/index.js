@@ -6,13 +6,18 @@ import Feather from 'react-native-vector-icons/Feather';
 const CardHome = ({ item }) => {
   const navigation = useNavigation();
 
-  const formatDateObj = dateString => {
-    if (!dateString) return '';
+  const formatDateTime = dateString => {
+    if (!dateString) return null;
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return null;
+
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year} às ${hours}:${minutes}`;
   };
 
   const currentDate = new Date();
@@ -20,12 +25,12 @@ const CardHome = ({ item }) => {
   const isRealizado = currentDate > eventDate;
 
   const status = isRealizado ? 'REALIZADO' : 'AGUARDANDO';
-  const startDate = formatDateObj(item.started_at);
-  const endDate = formatDateObj(item.ended_at);
+  const statusColor = isRealizado ? '#51A85A' : '#EBB455';
+  const badgeBgColor = isRealizado ? '#E8F5E9' : '#FFF8E1';
 
-  let displayDate = startDate;
-  if (endDate && startDate !== endDate) {
-    displayDate = `${startDate} — ${endDate}`;
+  let displayDate = formatDateTime(item.started_at);
+  if (!displayDate) {
+    displayDate = `${item?.date || '00/00/0000'} às ${item?.time || '00:00'}`;
   }
 
   return (
@@ -34,145 +39,102 @@ const CardHome = ({ item }) => {
       onPress={() => navigation.navigate('Service', { eventId: item.id })}
       activeOpacity={0.8}
     >
-      <View style={styles.cardHeader}>
-        <Text style={styles.title} numberOfLines={1}>
-          {item.name}
-        </Text>
+      <View style={[styles.indicatorLine, { backgroundColor: statusColor }]} />
 
-        <View
-          style={[
-            styles.badge,
-            isRealizado ? styles.badgeRealizado : styles.badgeAguardando,
-          ]}
-        >
-          <View
-            style={[
-              styles.badgeDot,
-              isRealizado ? styles.dotRealizado : styles.dotAguardando,
-            ]}
-          />
-          <Text
-            style={[
-              styles.badgeText,
-              isRealizado ? styles.textRealizado : styles.textAguardando,
-            ]}
-          >
-            {status}
+      <View style={styles.content}>
+        <View style={styles.headerRow}>
+          <Text style={styles.title} numberOfLines={1}>
+            {item.name || 'Nome do Evento'}
           </Text>
+
+          <View style={[styles.badge, { backgroundColor: badgeBgColor }]}>
+            <Text style={[styles.badgeText, { color: statusColor }]}>
+              {status}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Feather name="map-pin" size={14} color="#A0A0A0" />
+          <Text style={styles.infoText} numberOfLines={1}>
+            {item.name_location || 'Local não informado'}
+          </Text>
+        </View>
+
+        <View style={styles.infoRow}>
+          <Feather name="calendar" size={14} color="#A0A0A0" />
+          <Text style={styles.infoText}>{displayDate}</Text>
         </View>
       </View>
 
-      <View style={styles.infoRow}>
-        <Feather name="map-pin" size={14} color="#4A9954" style={styles.icon} />
-        <Text style={styles.infoText} numberOfLines={1}>
-          {item.name_location}
-        </Text>
+      <View style={styles.chevronContainer}>
+        <Feather name="chevron-right" size={20} color="#C0C0C0" />
       </View>
-
-      <View style={styles.infoRow}>
-        <Feather
-          name="calendar"
-          size={14}
-          color="#8A8A8A"
-          style={styles.icon}
-        />
-        <Text style={styles.infoText}>{displayDate}</Text>
-      </View>
-
-      <Feather
-        name="chevron-right"
-        size={20}
-        color="#D3D3D3"
-        style={styles.chevronIcon}
-      />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
+    flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 8,
+    borderColor: '#EAEAEA',
     elevation: 1,
-    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  indicatorLine: {
+    width: 4,
+    borderRadius: 2,
+    marginRight: 16,
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
   },
-  cardHeader: {
+  headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingRight: 10,
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
     flex: 1,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2C3539',
     marginRight: 8,
   },
   badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderRadius: 12,
-  },
-  badgeRealizado: {
-    backgroundColor: '#E8F5E9',
-  },
-  badgeAguardando: {
-    backgroundColor: '#FFF8E1',
-  },
-  badgeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  dotRealizado: {
-    backgroundColor: '#4CAF50',
-  },
-  dotAguardando: {
-    backgroundColor: '#F59E0B',
   },
   badgeText: {
     fontSize: 10,
     fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  textRealizado: {
-    color: '#4CAF50',
-  },
-  textAguardando: {
-    color: '#D97706',
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingRight: 24,
-  },
-  icon: {
-    marginRight: 8,
+    marginBottom: 6,
   },
   infoText: {
-    fontSize: 14,
-    color: '#6A737D',
+    fontSize: 13,
+    color: '#8A8A8A',
+    marginLeft: 8,
+    flex: 1,
   },
-  chevronIcon: {
-    position: 'absolute',
-    right: 16,
-    top: '50%',
-    marginTop: -2,
+  chevronContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 8,
   },
 });
 

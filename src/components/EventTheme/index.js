@@ -12,7 +12,7 @@ export const EventTheme = {
       700: '#1D4ED8',
       900: '#1E3A8A',
     },
-    
+
     // Cores secundárias
     secondary: {
       50: '#F0FDF4',
@@ -21,7 +21,7 @@ export const EventTheme = {
       600: '#16A34A',
       700: '#15803D',
     },
-    
+
     // Cores de status
     success: {
       50: '#F0FDF4',
@@ -29,21 +29,21 @@ export const EventTheme = {
       600: '#059669',
       700: '#047857',
     },
-    
+
     error: {
       50: '#FEF2F2',
       500: '#EF4444',
       600: '#DC2626',
       700: '#B91C1C',
     },
-    
+
     warning: {
       50: '#FFFBEB',
       500: '#F59E0B',
       600: '#D97706',
       700: '#B45309',
     },
-    
+
     // Cores neutras
     gray: {
       50: '#F9FAFB',
@@ -57,13 +57,13 @@ export const EventTheme = {
       800: '#1F2937',
       900: '#111827',
     },
-    
+
     // Cores especiais
     white: '#FFFFFF',
     black: '#000000',
     transparent: 'transparent',
   },
-  
+
   // Tipografia
   typography: {
     fontFamily: {
@@ -71,7 +71,7 @@ export const EventTheme = {
       medium: 'System',
       bold: 'System',
     },
-    
+
     fontSize: {
       xs: 12,
       sm: 14,
@@ -82,21 +82,21 @@ export const EventTheme = {
       '3xl': 30,
       '4xl': 36,
     },
-    
+
     fontWeight: {
       normal: '400',
       medium: '500',
       semibold: '600',
       bold: '700',
     },
-    
+
     lineHeight: {
       tight: 1.25,
       normal: 1.5,
       relaxed: 1.75,
     },
   },
-  
+
   // Espaçamento
   spacing: {
     xs: 4,
@@ -110,7 +110,7 @@ export const EventTheme = {
     '5xl': 48,
     '6xl': 64,
   },
-  
+
   // Bordas e raios
   borderRadius: {
     none: 0,
@@ -121,7 +121,7 @@ export const EventTheme = {
     '2xl': 20,
     full: 9999,
   },
-  
+
   // Sombras
   shadows: {
     sm: {
@@ -153,7 +153,7 @@ export const EventTheme = {
       elevation: 12,
     },
   },
-  
+
   // Componentes específicos
   components: {
     card: {
@@ -168,7 +168,7 @@ export const EventTheme = {
         elevation: 8,
       },
     },
-    
+
     badge: {
       paddingHorizontal: 8,
       paddingVertical: 4,
@@ -176,7 +176,7 @@ export const EventTheme = {
       fontSize: 12,
       fontWeight: '600',
     },
-    
+
     button: {
       primary: {
         backgroundColor: '#3B82F6',
@@ -195,7 +195,7 @@ export const EventTheme = {
 };
 
 // Utilitários para facilitar o uso do tema
-export const createStyles = (styleFunction) => {
+export const createStyles = styleFunction => {
   return styleFunction(EventTheme);
 };
 
@@ -206,7 +206,7 @@ export const getColorWithOpacity = (color, opacity) => {
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
-  
+
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
@@ -218,7 +218,7 @@ export const createResponsiveStyle = (baseStyle, screenWidth) => {
     lg: 1024,
     xl: 1280,
   };
-  
+
   if (screenWidth < breakpoints.sm) {
     return { ...baseStyle, ...baseStyle.sm };
   } else if (screenWidth < breakpoints.md) {
@@ -231,4 +231,3 @@ export const createResponsiveStyle = (baseStyle, screenWidth) => {
 };
 
 export default EventTheme;
-

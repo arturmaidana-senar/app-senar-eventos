@@ -109,7 +109,7 @@ export default function EventShow() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: EventTheme.colors.gray[50],
+    backgroundColor: '#F5F7F5',
   },
   loadingContainer: {
     flex: 1,

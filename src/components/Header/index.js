@@ -55,8 +55,24 @@ export default function Header() {
     return name.substring(0, 2).toUpperCase();
   };
 
+  const formatName = name => {
+    if (!name) return 'Usuário';
+    const parts = name.trim().split(' ').filter(Boolean);
+    if (parts.length <= 2) return name;
+
+    const primeiro = parts[0];
+    const ultimo = parts[parts.length - 1];
+    const meio = parts
+      .slice(1, -1)
+      .map(n => `${n[0]}.`)
+      .join(' ');
+
+    return `${primeiro} ${meio} ${ultimo}`;
+  };
+
   const initials = getInitials(userName);
-  const displayName = userName || 'Usuário';
+
+  const displayName = formatName(userName);
 
   return (
     <View style={styles.container}>

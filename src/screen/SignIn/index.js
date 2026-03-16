@@ -14,7 +14,7 @@ import {
   Image,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { LinearGradient } from 'react-native-linear-gradient'; // Ou 'react-native-linear-gradient'
+import { LinearGradient } from 'react-native-linear-gradient';
 import { AuthContext } from '../../contexts/auth';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
@@ -26,7 +26,6 @@ export default function SignIn() {
   const [passwordHide, setPasswordHide] = useState(true);
 
   const logoImage = require('../../assets/images/LogoSenar1.png');
-  // Substitua pelo caminho correto da sua imagem de rodapé, se houver
   const footerLogos = require('../../assets/images/Famato.png');
 
   async function handleLogin() {
@@ -80,107 +79,118 @@ export default function SignIn() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#4ea658" />
+      <StatusBar barStyle="light-content" backgroundColor="#00A859" />
 
       <LinearGradient
         colors={['#00A859', '#004A24']}
-        style={styles.headerBackground}
+        style={styles.gradientBackground}
       >
-        <View style={styles.eventosLogoContainer}>
-          <Image
-            source={logoImage}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-          <Text style={styles.logoTitle}>Senar Eventos</Text>
-          <Text style={styles.logoSubtitle}>Controle de Eventos</Text>
-        </View>
-      </LinearGradient>
-
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.card}>
-          <Text style={styles.title}>Seja Bem-vindo!</Text>
-          <Text style={styles.subtitle}>
-            Para continuar é necessário fazer login
-          </Text>
-
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputContainer}>
-              <Feather name="mail" size={18} color="#777" style={styles.icon} />
-              <TextInput
-                placeholder="seu@senarmt.org.br"
-                placeholderTextColor="#A0A0A0"
-                style={styles.input}
-                value={emailField}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                onChangeText={t => setEmailField(t.toLowerCase())}
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Senha</Text>
-            <View style={styles.inputContainer}>
-              <Feather name="lock" size={18} color="#777" style={styles.icon} />
-              <TextInput
-                placeholder="senha"
-                placeholderTextColor="#A0A0A0"
-                style={styles.input}
-                value={passwordField}
-                secureTextEntry={passwordHide}
-                onChangeText={t => setPasswordField(t)}
-              />
-              <TouchableOpacity
-                onPress={() => setPasswordHide(!passwordHide)}
-                style={styles.eyeIcon}
-              >
-                <Feather
-                  name={passwordHide ? 'eye' : 'eye-off'}
-                  size={18}
-                  color="#777"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ResetPassword')}
-            activeOpacity={0.7}
-            style={styles.forgotPasswordContainer}
-          >
-            <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleLogin}
-            activeOpacity={0.8}
-            disabled={loadingAuth}
-          >
-            {loadingAuth ? (
-              <ActivityIndicator size={20} color="#FFF" />
-            ) : (
-              <Text style={styles.submitText}>Entrar</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.footerContainer}>
+        <ScrollView
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <View style={styles.headerContainer}>
             <Image
-              source={footerLogos}
-              style={styles.footerImage}
+              source={logoImage}
+              style={styles.logoImage}
               resizeMode="contain"
             />
+            <Text style={styles.logoTitle}>Senar Eventos</Text>
+            <Text style={styles.logoSubtitle}>Controle de Eventos</Text>
           </View>
-        </View>
-      </ScrollView>
+
+          <View style={styles.card}>
+            <Text style={styles.title}>Seja Bem-vindo!</Text>
+            <Text style={styles.subtitle}>
+              Para continuar é necessário fazer login
+            </Text>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Email</Text>
+              <View style={styles.inputContainer}>
+                <Feather
+                  name="mail"
+                  size={18}
+                  color="#777"
+                  style={styles.icon}
+                />
+                <TextInput
+                  placeholder="seu@senarmt.org.br"
+                  placeholderTextColor="#A0A0A0"
+                  style={styles.input}
+                  value={emailField}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  onChangeText={t => setEmailField(t.toLowerCase())}
+                />
+              </View>
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>Senha</Text>
+              <View style={styles.inputContainer}>
+                <Feather
+                  name="lock"
+                  size={18}
+                  color="#777"
+                  style={styles.icon}
+                />
+                <TextInput
+                  placeholder="senha"
+                  placeholderTextColor="#A0A0A0"
+                  style={styles.input}
+                  value={passwordField}
+                  secureTextEntry={passwordHide}
+                  onChangeText={t => setPasswordField(t)}
+                />
+                <TouchableOpacity
+                  onPress={() => setPasswordHide(!passwordHide)}
+                  style={styles.eyeIcon}
+                >
+                  <Feather
+                    name={passwordHide ? 'eye' : 'eye-off'}
+                    size={18}
+                    color="#777"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ResetPassword')}
+              activeOpacity={0.7}
+              style={styles.forgotPasswordContainer}
+            >
+              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleLogin}
+              activeOpacity={0.8}
+              disabled={loadingAuth}
+            >
+              {loadingAuth ? (
+                <ActivityIndicator size={20} color="#FFF" />
+              ) : (
+                <Text style={styles.submitText}>Entrar</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.footerContainer}>
+              <Image
+                source={footerLogos}
+                style={styles.footerImage}
+                resizeMode="contain"
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </LinearGradient>
     </KeyboardAvoidingView>
   );
 }
@@ -190,19 +200,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#3d8b46',
   },
-  headerBackground: {
-    height: '40%',
-    width: '100%',
-    position: 'absolute',
-    top: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 20,
+  gradientBackground: {
+    flex: 1,
   },
-  eventosLogoContainer: {
+  scrollViewContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
+  headerContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -20,
+    minHeight: 180,
+    paddingVertical: 20,
   },
   logoImage: {
     width: 80,
@@ -220,14 +230,8 @@ const styles = StyleSheet.create({
     color: '#E0F2E9',
     marginTop: 4,
   },
-  scrollViewContent: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-    paddingTop: '65%',
-  },
   card: {
     backgroundColor: '#FFF',
-    flex: 1,
     borderTopLeftRadius: 35,
     borderTopRightRadius: 35,
     paddingHorizontal: 28,
@@ -303,11 +307,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   footerContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginTop: 40,
+    marginTop: 20,
     marginBottom: 10,
+    alignItems: 'center',
   },
   footerImage: {
     width: '100%',

@@ -243,6 +243,7 @@ export default function CredentialScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f7f5f5',
   },
   scroll: {
     padding: 16,

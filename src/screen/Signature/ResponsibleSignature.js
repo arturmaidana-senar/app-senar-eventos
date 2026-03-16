@@ -165,10 +165,7 @@ export default function CredentialScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[
-        styles.container,
-        { backgroundColor: colors.background || '#F2F4F8' },
-      ]}
+      style={[styles.container, { backgroundColor: '#F5F7F5' || '#F2F4F8' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       enabled={Platform.OS === 'ios'}
     >
@@ -248,7 +245,7 @@ export default function CredentialScreen() {
               <Icon
                 name="info-outline"
                 size={22}
-                color="#0288D1"
+                color="#2E7D32"
                 style={{ marginRight: 10 }}
               />
               <Text style={styles.infoText}>
@@ -285,6 +282,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#101828',
   },
   eventDate: {
     fontSize: 14,
@@ -294,12 +292,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
-    elevation: 2,
+    elevation: 1,
   },
   searchLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#101828',
     marginBottom: 15,
   },
   inputWrapper: {
@@ -309,18 +307,18 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 12,
     fontSize: 16,
     color: '#333',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#ffffff',
     marginRight: 10,
   },
   searchButton: {
-    backgroundColor: COLORS.primary || '#3E7B58',
-    borderRadius: 8,
+    backgroundColor: '#2E7D32',
+    borderRadius: 18,
     width: 56,
     justifyContent: 'center',
     alignItems: 'center',
@@ -329,16 +327,16 @@ const styles = StyleSheet.create({
 
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#E1F5FE',
+    backgroundColor: '#E8F5E9',
     padding: 15,
     borderRadius: 8,
     alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: '#B3E5FC',
+    borderColor: '#E8F5E9',
   },
   infoText: {
     flex: 1,
-    color: '#0277BD',
+    color: '#2E7D32',
     fontSize: 13,
     lineHeight: 18,
   },

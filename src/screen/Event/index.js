@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  FlatList,
   Dimensions,
   StyleSheet,
   TouchableOpacity,
@@ -70,9 +69,21 @@ export default function Event() {
     }
   };
 
+  const hoje = new Date();
+
+  const aguardandoEvents = filteredEvents.filter(e => {
+    const fim = new Date(e.ended_at);
+    return fim >= hoje; // data de fim ainda não passou
+  });
+
+  const realizadosEvents = filteredEvents.filter(e => {
+    const fim = new Date(e.ended_at);
+    return fim < hoje; // data de fim já passou
+  });
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <Header />
 
       <View style={styles.content}>
@@ -82,7 +93,7 @@ export default function Event() {
           <Feather
             name="search"
             size={20}
-            color="#999"
+            color="#A0A0A0"
             style={styles.searchIcon}
           />
           <TextInput
@@ -138,29 +149,61 @@ export default function Event() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
-        contentContainerStyle={{ paddingBottom: 100 }}
       >
         <View style={styles.page}>
-          <FlatList
-            data={filteredEvents}
-            renderItem={({ item }) => <CardEvent item={item} />}
-            keyExtractor={(item, index) =>
-              item.id ? item.id.toString() : index.toString()
-            }
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
+          >
+            {aguardandoEvents.length > 0 && (
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.dot, { backgroundColor: '#EBB455' }]} />
+                  <Text style={styles.sectionTitle}>
+                    AGUARDANDO ({aguardandoEvents.length})
+                  </Text>
+                </View>
+                {aguardandoEvents.map((item, index) => (
+                  <CardEvent
+                    key={item.id ? item.id.toString() : index.toString()}
+                    item={item}
+                  />
+                ))}
+              </View>
+            )}
+
+            {realizadosEvents.length > 0 && (
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.dot, { backgroundColor: '#51A85A' }]} />
+                  <Text style={styles.sectionTitle}>
+                    REALIZADOS ({realizadosEvents.length})
+                  </Text>
+                </View>
+                {realizadosEvents.map((item, index) => (
+                  <CardEvent
+                    key={item.id ? item.id.toString() : index.toString()}
+                    item={item}
+                  />
+                ))}
+              </View>
+            )}
+
+            {filteredEvents.length === 0 && (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyText}>Nenhum evento encontrado.</Text>
               </View>
-            }
-          />
+            )}
+          </ScrollView>
         </View>
 
         <View style={styles.page}>
-          <View style={styles.listContent}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+          >
             <CardNotEvent />
-          </View>
+          </ScrollView>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -170,14 +213,14 @@ export default function Event() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: '#F5F7F5',
   },
   content: {
     paddingHorizontal: 20,
     paddingTop: 16,
   },
   pageTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#1A1A1A',
     marginBottom: 16,
@@ -185,12 +228,10 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
     height: 48,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     marginBottom: 20,
   },
   searchIcon: {
@@ -204,22 +245,20 @@ const styles = StyleSheet.create({
   },
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    borderRadius: 8,
+    backgroundColor: '#F4F5F4',
+    borderRadius: 12,
     padding: 4,
     marginBottom: 16,
   },
   segmentButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 6,
+    borderRadius: 10,
   },
   segmentButtonActive: {
-    backgroundColor: '#4A9954',
+    backgroundColor: '#56A960',
   },
   segmentText: {
     fontSize: 14,
@@ -234,12 +273,33 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 24,
+    paddingBottom: 100,
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2C3539',
   },
   emptyContainer: {
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 40,
   },
   emptyText: {
     color: '#8A8A8A',

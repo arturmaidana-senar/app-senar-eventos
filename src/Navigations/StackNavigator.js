@@ -12,7 +12,6 @@ import EventShow from '../screen/EventShow';
 import TabNavigator from './TabNavigator';
 import Credential from '../screen/Credential';
 import CredencialResponsavel from '../screen/Signature/ResponsibleSignature';
-import SplashScreen from '../screen/SplashScreen/Splash';
 
 const StackComponent = createNativeStackNavigator();
 
@@ -31,7 +30,6 @@ const StackNavigator = () => {
         }}
       >
         <StackComponent.Screen name={'SignIn'} component={SignIn} />
-        <StackComponent.Screen name={'SplashScreen'} component={SplashScreen} />
         <StackComponent.Screen name={'Preload'} component={Preload} />
         <StackComponent.Screen name={'Home'} component={Home} />
         <StackComponent.Screen

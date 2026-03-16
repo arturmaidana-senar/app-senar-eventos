@@ -139,8 +139,8 @@ export default function Service() {
       const response = await api.getEvent(eventId);
       setEvent(response.data);
 
-      setIsCheckin(response.isCheckin || false);
-      setIsCredential(response.isCredential || false);
+      setIsCheckin(response.isCredential || false);
+      setIsCredential(response.isCheckin || false);
       setFreeCheckin(response.freeCheckin || false);
     } catch (error) {
       console.log('Erro ao buscar o evento:', error);
@@ -459,7 +459,7 @@ export default function Service() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F6F8',
+    backgroundColor: '#F5F7F5',
   },
   scrollView: {
     flex: 1,

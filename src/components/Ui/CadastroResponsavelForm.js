@@ -1176,7 +1176,7 @@ export default function CadastroResponsavelForm({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F5F7F5',
   },
   cancelButton: {
     padding: 10,
@@ -1203,7 +1203,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
   },

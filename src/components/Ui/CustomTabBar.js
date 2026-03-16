@@ -1,110 +1,104 @@
 import React from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
+  useWindowDimensions,
   Dimensions,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
 
-const { width } = Dimensions.get('window');
+import { HomeIcon, Dashboard2, ProfileIcon } from '../Icons/Icons';
+const { width, height } = Dimensions.get('window');
 
-export default function CustomTabBar({ state, descriptors, navigation }) {
+const iconConfig = {
+  Home: HomeIcon,
+  Event: Dashboard2,
+  Information: ProfileIcon,
+};
+
+export default ({ state, navigation }) => {
+  const { width } = useWindowDimensions();
+  const isTablet = Math.min(width, height) >= 600;
+  const goTo = screenName => {
+    navigation.navigate(screenName);
+  };
+
   return (
     <View style={styles.container}>
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-        const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel
-            : options.title !== undefined
-            ? options.title
-            : route.name;
+      <View style={[styles.tabBar, { width: isTablet ? '35%' : '65%' }]}>
+        {state.routes.map((route, index) => {
+          const isFocused = state.index === index;
+          const IconComponent = iconConfig[route.name];
+          const iconColor = isFocused ? '#02613C' : '#FFFFFF';
 
-        const isFocused = state.index === index;
-
-        const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
-
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
-          }
-        };
-
-        let iconName = 'home-outline';
-        if (route.name === 'Event') iconName = 'grid-outline';
-        if (route.name === 'Information') iconName = 'person-outline';
-
-        return (
-          <TouchableOpacity
-            key={index}
-            accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            onPress={onPress}
-            // Removido padding fixo e adicionado flex: 1 para distribuir o espaço
-            style={[styles.tabItem, isFocused && styles.tabItemFocused]}
-            activeOpacity={0.8}
-          >
-            <Icon
-              name={iconName}
-              size={22}
-              color={isFocused ? '#4A9954' : '#FFFFFF'}
-            />
-            {isFocused && (
-              <Text style={styles.tabLabel} numberOfLines={1}>
-                {label}
-              </Text>
-            )}
-          </TouchableOpacity>
-        );
-      })}
+          return (
+            <Pressable
+              key={route.name}
+              style={styles.tabItem}
+              onPress={() => goTo(route.name)}
+              android_ripple={{
+                color: 'rgba(255,255,255,0.2)',
+                borderless: true,
+              }}
+            >
+              <View
+                style={
+                  isFocused
+                    ? styles.activeIconContainer
+                    : styles.inactiveIconContainer
+                }
+              >
+                {IconComponent && <IconComponent size={32} color={iconColor} />}
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     position: 'absolute',
-    bottom: 24,
-    alignSelf: 'center',
-    backgroundColor: '#4A9954',
-    borderRadius: 40,
-    height: 64,
+    bottom: 25,
+    left: 20,
+    right: 20,
     alignItems: 'center',
-    justifyContent: 'space-around', // Distribui melhor os itens internamente
-    paddingHorizontal: 10,
-    // AJUSTE RESPONSIVO:
-    width: width > 500 ? 300 : '90%', // Em tablets usa 400px, em celulares usa 90% da largura
-    maxWidth: 350, // Garante que não estique demais em telas gigantes
-    elevation: 8,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    height: 75,
+    backgroundColor: '#00a840',
+    borderRadius: 43,
+    alignItems: 'center',
+    justifyContent: 'space-around',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   tabItem: {
-    flex: 1, // Faz cada item ocupar o mesmo espaço disponível
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
+    height: '100%',
     justifyContent: 'center',
-    height: 48,
-    marginHorizontal: 4,
-    borderRadius: 24,
+    alignItems: 'center',
   },
-  tabItemFocused: {
+  inactiveIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  activeIconContainer: {
+    width: 55,
+    height: 55,
+    borderRadius: 50,
     backgroundColor: '#FFFFFF',
-    flex: 1.5, // Dá um pouco mais de destaque para o item focado
-  },
-  tabLabel: {
-    color: '#4A9954',
-    marginLeft: 8,
-    fontSize: 13,
-    fontWeight: '600',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
