@@ -57,7 +57,7 @@ export default function CadastroResponsavelForm({
     new Animated.Value(-Dimensions.get('window').height),
   ).current;
 
-  const sexoOptions = initialData?.genders || [];
+  const [sexoOptions, setSexoOptions] = useState(initialData?.genders || []);
 
   const [participante, setParticipante] = useState({
     nome: '',
@@ -82,6 +82,27 @@ export default function CadastroResponsavelForm({
 
   const [parentescoOptions, setParentescoOptions] = useState([]);
   const [loadingParentesco, setLoadingParentesco] = useState(false);
+
+  const [isAutoridade, setIsAutoridade] = useState(false);
+  const [autoridadeOptions, setAutoridadeOptions] = useState([]);
+  const [loadingAutoridades, setLoadingAutoridades] = useState(false);
+  const [selectedAutoridade, setSelectedAutoridade] = useState(null);
+
+  useEffect(() => {
+    if (sexoOptions.length > 0) return;
+    api
+      .get('/genders')
+      .then(res => {
+        if (Array.isArray(res.data)) setSexoOptions(res.data);
+      })
+      .catch(err => console.error('Erro ao buscar genders:', err));
+  }, []);
+
+  useEffect(() => {
+    if (initialData?.genders?.length > 0) {
+      setSexoOptions(initialData.genders);
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const fetchTermStatus = async () => {
@@ -122,6 +143,27 @@ export default function CadastroResponsavelForm({
     };
     fetchParentescos();
   }, []);
+
+  useEffect(() => {
+    if (!isAutoridade) {
+      setSelectedAutoridade(null);
+      return;
+    }
+    const fetchAutoridades = async () => {
+      setLoadingAutoridades(true);
+      try {
+        const response = await api.get('/tipos-participantes');
+        if (Array.isArray(response.data)) {
+          setAutoridadeOptions(response.data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar autoridades:', error);
+      } finally {
+        setLoadingAutoridades(false);
+      }
+    };
+    fetchAutoridades();
+  }, [isAutoridade]);
 
   const formatDateToBr = dateString => {
     if (!dateString) return '';
@@ -544,6 +586,10 @@ export default function CadastroResponsavelForm({
         participanteConfirmado ? '1' : '0',
       );
 
+      if (isAutoridade && selectedAutoridade) {
+        formData.append('participante[autoridade_id]', selectedAutoridade.id);
+      }
+
       if (hasTerm && assinaturaBase64) {
         formData.append('participante[assinatura_png]', {
           uri: assinaturaBase64,
@@ -727,28 +773,28 @@ export default function CadastroResponsavelForm({
                   {dropdownAberto === 'participante_sexo' ? '▲' : '▼'}
                 </Text>
               </TouchableOpacity>
-              {dropdownAberto === 'participante_sexo' && (
-                <View style={styles.dropdownList}>
-                  {sexoOptions.map(item => (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setParticipante({
-                          ...participante,
-                          sexo: item.id,
-                          sexoNome: item.name,
-                        });
-                        setDropdownAberto('');
-                      }}
-                    >
-                      <Text style={styles.dropdownItemText}>{item.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
             </View>
           </View>
+          {dropdownAberto === 'participante_sexo' && (
+            <View style={styles.dropdownList}>
+              {sexoOptions.map(item => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setParticipante({
+                      ...participante,
+                      sexo: item.id,
+                      sexoNome: item.name,
+                    });
+                    setDropdownAberto('');
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>{item.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {criancas.length > 0 && (
             <TouchableOpacity
@@ -775,6 +821,87 @@ export default function CadastroResponsavelForm({
               </Text>
             </TouchableOpacity>
           )}
+
+          {/* Checkbox: É Autoridade */}
+          <TouchableOpacity
+            style={[styles.checkboxContainer, { marginTop: 8 }]}
+            onPress={() => setIsAutoridade(prev => !prev)}
+          >
+            <View
+              style={[styles.checkbox, isAutoridade && styles.checkboxChecked]}
+            >
+              {isAutoridade && <Text style={styles.checkboxCheckmark}>✓</Text>}
+            </View>
+            <Text style={styles.checkboxLabel}>É uma autoridade</Text>
+          </TouchableOpacity>
+
+          {/* Select de Autoridade */}
+          {isAutoridade && (
+            <>
+              <Text style={[styles.label, { marginTop: 8 }]}>Autoridade *</Text>
+              {loadingAutoridades ? (
+                <ActivityIndicator
+                  size="small"
+                  color="#3E7D56"
+                  style={{ marginBottom: 12 }}
+                />
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={styles.pickerButton}
+                    onPress={() =>
+                      setDropdownAberto(
+                        dropdownAberto === 'autoridade' ? '' : 'autoridade',
+                      )
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.pickerText,
+                        !selectedAutoridade && styles.placeholderText,
+                      ]}
+                    >
+                      {selectedAutoridade
+                        ? selectedAutoridade.name
+                        : 'Selecione a autoridade'}
+                    </Text>
+                    <Text style={styles.pickerIcon}>
+                      {dropdownAberto === 'autoridade' ? '▲' : '▼'}
+                    </Text>
+                  </TouchableOpacity>
+                  {dropdownAberto === 'autoridade' && (
+                    <View style={styles.dropdownList}>
+                      {autoridadeOptions.length === 0 ? (
+                        <Text
+                          style={[
+                            styles.dropdownItemText,
+                            { padding: 12, color: '#aaa' },
+                          ]}
+                        >
+                          Nenhuma autoridade encontrada.
+                        </Text>
+                      ) : (
+                        autoridadeOptions.map(item => (
+                          <TouchableOpacity
+                            key={item.id}
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setSelectedAutoridade(item);
+                              setDropdownAberto('');
+                            }}
+                          >
+                            <Text style={styles.dropdownItemText}>
+                              {item.name}
+                            </Text>
+                          </TouchableOpacity>
+                        ))
+                      )}
+                    </View>
+                  )}
+                </>
+              )}
+            </>
+          )}
         </View>
 
         {hasMinorTerm && (
@@ -782,11 +909,9 @@ export default function CadastroResponsavelForm({
             <View
               style={[styles.cardHeader, { justifyContent: 'space-between' }]}
             >
-              <Text style={styles.cardTitle}>
-                Menores sob Responsabilidade (Opcional)
-              </Text>
+              <Text style={styles.cardTitle}>Dependentes (Opcional)</Text>
               <TouchableOpacity onPress={abrirModalNovaCrianca}>
-                <Text style={styles.addButtonText}>+ Adicionar</Text>
+                <Text style={styles.addButtonText}>+Adicionar</Text>
               </TouchableOpacity>
             </View>
             {criancas.length === 0 ? (
@@ -1206,6 +1331,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
+    maxWidth: 180, // ajusta conforme necessário
   },
   label: {
     fontSize: 13,
