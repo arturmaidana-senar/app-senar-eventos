@@ -78,7 +78,10 @@ export default function ModalAssinatura({
 }
 
 const styles = StyleSheet.create({
-  landscapeModalContainer: { flex: 1, backgroundColor: '#f0f0f0' },
+  landscapeModalContainer: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+  },
   landscapeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -87,14 +90,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#3E7D56',
     height: 50,
   },
-  landscapeTitle: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  landscapeTitle: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   landscapeCancelBtn: {
     backgroundColor: 'rgba(0,0,0,0.2)',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 4,
   },
-  landscapeCancelText: { color: '#FFF', fontSize: 12 },
+  landscapeCancelText: {
+    color: '#FFF',
+    fontSize: 12,
+  },
   signatureCanvasArea: {
     flex: 1,
     backgroundColor: '#FFF',
@@ -126,6 +136,13 @@ const styles = StyleSheet.create({
     width: '75%',
     alignItems: 'center',
   },
-  btnFooterTextRed: { color: '#D32F2F', fontWeight: 'bold' },
-  btnFooterTextWhite: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  btnFooterTextRed: {
+    color: '#D32F2F',
+    fontWeight: 'bold',
+  },
+  btnFooterTextWhite: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });

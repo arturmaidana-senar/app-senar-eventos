@@ -126,7 +126,6 @@ export default function NewPassword() {
         <TouchableOpacity
           style={{ marginLeft: 15 }}
           onPress={() => {
-            // Resetar a pilha de navegação e navegar para "SignIn"
             navigation.dispatch(
               CommonActions.reset({
                 index: 0,

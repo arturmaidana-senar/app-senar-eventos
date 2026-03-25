@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, Text } from 'react-native'; // ← Text adicionado
+import { View, StyleSheet, ActivityIndicator, Alert, Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
@@ -36,7 +36,6 @@ export default function EventShow() {
     }
   }
 
-  // ← Alert movido para useEffect, reage à mudança do estado error
   useEffect(() => {
     if (error) {
       Alert.alert(

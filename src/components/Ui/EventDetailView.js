@@ -7,14 +7,14 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { formatDateEvent } from '../../utils/dateFormat'; // Assumindo que esta função existe
+import { formatDateEvent } from '../../utils/dateFormat';
 import EventDescription from './EventDescription';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const EventDetailView = ({
   event,
-  imageBaseUrl = 'https://eventos.senarmt.org.br/storage/', // Configure com sua URL base
+  imageBaseUrl = 'https://eventos.senarmt.org.br/storage/',
 }) => {
   if (!event) {
     return (
@@ -24,7 +24,6 @@ const EventDetailView = ({
     );
   }
 
-  // Função para formatar a data de forma mais elegante
   const formatEventDate = (startDate, endDate) => {
     if (!startDate) return 'Data não informada';
 
@@ -39,7 +38,6 @@ const EventDetailView = ({
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Imagem principal do evento */}
       <View style={styles.imageContainer}>
         {event.image ? (
           <Image
@@ -53,27 +51,14 @@ const EventDetailView = ({
             <Text style={styles.placeholderSubtext}>Imagem do evento</Text>
           </View>
         )}
-
-        {/* Overlay com informações básicas */}
-        {/* <View style={styles.imageOverlay}>
-          <View style={[styles.statusBadge, { backgroundColor: event.status === '1' ? '#10B981' : '#EF4444' }]}>
-            <Text style={styles.statusText}>
-              {event.status === '1' ? 'Evento Ativo' : 'Evento Inativo'}
-            </Text>
-          </View>
-        </View> */}
       </View>
 
-      {/* Conteúdo principal */}
       <View style={styles.contentContainer}>
-        {/* Título do evento */}
         <View style={styles.titleSection}>
           <Text style={styles.eventTitle}>{event.name}</Text>
         </View>
 
-        {/* Informações principais em cards */}
         <View style={styles.infoCardsContainer}>
-          {/* Card de Data */}
           <View style={styles.infoCard}>
             <View style={styles.infoCardHeader}>
               <Text style={styles.infoCardIcon}>📅</Text>
@@ -84,7 +69,6 @@ const EventDetailView = ({
             </Text>
           </View>
 
-          {/* Card de Local */}
           {event.name_location && (
             <View style={styles.infoCard}>
               <View style={styles.infoCardHeader}>
@@ -98,7 +82,6 @@ const EventDetailView = ({
             </View>
           )}
 
-          {/* Card de Assunto */}
           {event.subject && (
             <View style={styles.infoCard}>
               <View style={styles.infoCardHeader}>
@@ -109,7 +92,6 @@ const EventDetailView = ({
             </View>
           )}
 
-          {/* Card de Categoria/Material */}
           {event.category && (
             <View style={styles.infoCard}>
               <View style={styles.infoCardHeader}>
@@ -120,7 +102,6 @@ const EventDetailView = ({
             </View>
           )}
 
-          {/* Card de Capacidade */}
           {event.number_max && parseInt(event.number_max) > 0 && (
             <View style={styles.infoCard}>
               <View style={styles.infoCardHeader}>
@@ -139,7 +120,6 @@ const EventDetailView = ({
           )}
         </View>
 
-        {/* Descrição detalhada */}
         {event.description && (
           <View style={styles.descriptionSection}>
             <Text style={styles.sectionTitle}>Sobre o Evento</Text>
@@ -147,7 +127,6 @@ const EventDetailView = ({
           </View>
         )}
 
-        {/* Link online se disponível */}
         {event.link_online && (
           <View style={styles.linkSection}>
             <Text style={styles.sectionTitle}>Acesso Online</Text>
@@ -160,7 +139,6 @@ const EventDetailView = ({
           </View>
         )}
 
-        {/* Espaçamento final */}
         <View style={styles.bottomSpacing} />
       </View>
     </ScrollView>

@@ -14,14 +14,12 @@ export const Body = styled.View`
   background-color: #f8f8f8;
 `;
 
-// Container para o ScrollView
 const Container = styled(ScrollView)`
   flex: 1;
   background-color: #fafafa;
   padding: 16px;
 `;
 
-// Componente para os Cards
 const Card = styled.TouchableOpacity`
   background-color: white;
   padding: 16px;
@@ -31,20 +29,17 @@ const Card = styled.TouchableOpacity`
   align-items: center;
 `;
 
-// Container do texto dentro do Card
 const CardTextContainer = styled.View`
   flex: 1;
   margin-left: 16px;
 `;
 
-// Título do Card
 const CardTitle = styled.Text`
   font-size: 16px;
   font-weight: bold;
   color: #2b9348;
 `;
 
-// Descrição do Card
 const CardDescription = styled.Text`
   font-size: 14px;
   color: #666;
@@ -104,8 +99,6 @@ const Information = () => {
         { text: 'Sim', onPress: () => logoff() },
         { text: 'Cancelar', onPress: null, styled: 'cancel' },
       ]);
-
-      // logoff();
     } else if (index == 0) {
       setModalHelpVisible(true);
     }

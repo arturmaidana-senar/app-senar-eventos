@@ -1,8 +1,7 @@
 import React from 'react';
-import {useWindowDimensions, View, ActivityIndicator} from 'react-native';
+import { useWindowDimensions, View, ActivityIndicator } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 
-// Estilos para as Tags HTML e Classes (Mantidos)
 const tagsStyles = {
   p: {
     fontSize: 16,
@@ -11,7 +10,7 @@ const tagsStyles = {
     marginBottom: 10,
     textAlign: 'justify',
   },
-  strong: {fontWeight: 'bold', color: '#000'},
+  strong: { fontWeight: 'bold', color: '#000' },
 };
 
 const classesStyles = {
@@ -23,19 +22,18 @@ const classesStyles = {
   },
 };
 
-// Agora recebe 'content' via props
-export default function TermosConsentimento({content}) {
-  const {width} = useWindowDimensions();
+export default function TermosConsentimento({ content }) {
+  const { width } = useWindowDimensions();
 
   if (!content) {
     return <ActivityIndicator color="#3E7D56" />;
   }
 
   return (
-    <View style={{paddingHorizontal: 10}}>
+    <View style={{ paddingHorizontal: 10 }}>
       <RenderHtml
         contentWidth={width - 40}
-        source={{html: content}}
+        source={{ html: content }}
         tagsStyles={tagsStyles}
         classesStyles={classesStyles}
       />

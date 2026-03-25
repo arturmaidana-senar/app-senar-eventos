@@ -73,12 +73,12 @@ export default function Event() {
 
   const aguardandoEvents = filteredEvents.filter(e => {
     const fim = new Date(e.ended_at);
-    return fim >= hoje; // data de fim ainda não passou
+    return fim >= hoje;
   });
 
   const realizadosEvents = filteredEvents.filter(e => {
     const fim = new Date(e.ended_at);
-    return fim < hoje; // data de fim já passou
+    return fim < hoje;
   });
 
   return (

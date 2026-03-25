@@ -1,9 +1,5 @@
-// EventTheme.js - Sistema de design centralizado para componentes de eventos
-
 export const EventTheme = {
-  // Paleta de cores
   colors: {
-    // Cores primárias
     primary: {
       50: '#EFF6FF',
       100: '#DBEAFE',
@@ -13,7 +9,6 @@ export const EventTheme = {
       900: '#1E3A8A',
     },
 
-    // Cores secundárias
     secondary: {
       50: '#F0FDF4',
       100: '#DCFCE7',
@@ -22,7 +17,6 @@ export const EventTheme = {
       700: '#15803D',
     },
 
-    // Cores de status
     success: {
       50: '#F0FDF4',
       500: '#10B981',
@@ -44,7 +38,6 @@ export const EventTheme = {
       700: '#B45309',
     },
 
-    // Cores neutras
     gray: {
       50: '#F9FAFB',
       100: '#F3F4F6',
@@ -58,13 +51,11 @@ export const EventTheme = {
       900: '#111827',
     },
 
-    // Cores especiais
     white: '#FFFFFF',
     black: '#000000',
     transparent: 'transparent',
   },
 
-  // Tipografia
   typography: {
     fontFamily: {
       regular: 'System',
@@ -97,7 +88,6 @@ export const EventTheme = {
     },
   },
 
-  // Espaçamento
   spacing: {
     xs: 4,
     sm: 8,
@@ -111,7 +101,6 @@ export const EventTheme = {
     '6xl': 64,
   },
 
-  // Bordas e raios
   borderRadius: {
     none: 0,
     sm: 4,
@@ -122,7 +111,6 @@ export const EventTheme = {
     full: 9999,
   },
 
-  // Sombras
   shadows: {
     sm: {
       shadowColor: '#000',
@@ -154,7 +142,6 @@ export const EventTheme = {
     },
   },
 
-  // Componentes específicos
   components: {
     card: {
       backgroundColor: '#FFFFFF',
@@ -194,14 +181,11 @@ export const EventTheme = {
   },
 };
 
-// Utilitários para facilitar o uso do tema
 export const createStyles = styleFunction => {
   return styleFunction(EventTheme);
 };
 
-// Função para obter cores com opacidade
 export const getColorWithOpacity = (color, opacity) => {
-  // Converte hex para rgba
   const hex = color.replace('#', '');
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
@@ -210,7 +194,6 @@ export const getColorWithOpacity = (color, opacity) => {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
-// Função para criar estilos responsivos
 export const createResponsiveStyle = (baseStyle, screenWidth) => {
   const breakpoints = {
     sm: 640,

@@ -2,31 +2,33 @@ import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const AccessProfile = ({ visible, onClose }) => {
+  const handleProfile = index => {
+    onClose();
+  };
 
-	const handleProfile = (index) => {
-		onClose(); // Fecha o modal
-	};
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>Entre em contato</Text>
+          <Text style={styles.subTitle}>E-mail: suporte@senarmt.org.br</Text>
+          <Text style={styles.subTitle}>Telefone: (65) 3928-4800</Text>
 
-	return (
-		<Modal
-		animationType="slide"
-		transparent={true}
-		visible={visible}
-		onRequestClose={onClose}
-		>
-			<View style={styles.overlay}>
-				<View style={styles.modalContainer}>
-					<Text style={styles.title}>Entre em contato</Text>
-					<Text style={styles.subTitle}>E-mail: suporte@senarmt.org.br</Text>
-					<Text style={styles.subTitle}>Telefone: (65) 3928-4800</Text>
-
-					<TouchableOpacity style={styles.button} onPress={() => handleProfile(2)}>
-						<Text style={styles.buttonText}>Fechar</Text>
-					</TouchableOpacity>
-				</View>
-			</View>
-		</Modal>
- 	);
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handleProfile(2)}
+          >
+            <Text style={styles.buttonText}>Fechar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -56,7 +58,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   button: {
-    backgroundColor: '#2B9348', // verde escuro
+    backgroundColor: '#2B9348',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

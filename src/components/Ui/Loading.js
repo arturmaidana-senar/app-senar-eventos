@@ -1,17 +1,15 @@
-// components/Loading.js
-import React from 'react';
 import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
 
-const Loading = ({ message = "Carregando informações..." }) => {
+const Loading = ({ message = 'Carregando informações...' }) => {
   return (
     <View style={styles.container}>
-        <Image
-            style={styles.imageSplash}
-            source={require('../../assets/images/icon_splash.png')}
-        />
-        <Text style={styles.title}>Senar Eventos</Text>
-            <ActivityIndicator size="large" color="#37C064" />
-        <Text style={styles.message}>{message}</Text>
+      <Image
+        style={styles.imageSplash}
+        source={require('../../assets/images/icon_splash.png')}
+      />
+      <Text style={styles.title}>Senar Eventos</Text>
+      <ActivityIndicator size="large" color="#37C064" />
+      <Text style={styles.message}>{message}</Text>
     </View>
   );
 };
@@ -40,4 +38,3 @@ const styles = StyleSheet.create({
 });
 
 export default Loading;
-

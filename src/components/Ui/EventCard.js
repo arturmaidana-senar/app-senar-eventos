@@ -1,47 +1,50 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { formatDateEvent } from '../../utils/dateFormat'; // Assumindo que esta função existe
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
+import { formatDateEvent } from '../../utils/dateFormat';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const EventCard = ({ 
-  event, 
-  onPress, 
-  imageBaseUrl = 'https://eventos.senarmt.org.br/storage/' // Configure com sua URL base
+const EventCard = ({
+  event,
+  onPress,
+  imageBaseUrl = 'https://eventos.senarmt.org.br/storage/',
 }) => {
-  // Função para formatar a data de forma mais elegante
   const formatEventDate = (startDate, endDate) => {
     if (!startDate) return 'Data não informada';
-    
+
     const start = formatDateEvent(startDate);
     const end = formatDateEvent(endDate);
-    
+
     if (start === end) {
       return start;
     }
     return `${start} - ${end}`;
   };
 
-  // Função para truncar texto longo
   const truncateText = (text, maxLength = 100) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
   };
 
-  // Remove tags HTML da descrição para preview
-  const getPlainTextFromHtml = (html) => {
+  const getPlainTextFromHtml = html => {
     if (!html) return '';
     return html.replace(/<[^>]*>/g, '').trim();
   };
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
+    <TouchableOpacity
+      style={styles.card}
       onPress={() => onPress && onPress(event)}
       activeOpacity={0.7}
     >
-      {/* Imagem do evento */}
       <View style={styles.imageContainer}>
         {event.image ? (
           <Image
@@ -54,23 +57,24 @@ const EventCard = ({
             <Text style={styles.placeholderText}>📅</Text>
           </View>
         )}
-        
-        {/* Badge de status */}
-        <View style={[styles.statusBadge, { backgroundColor: event.status === '1' ? '#10B981' : '#EF4444' }]}>
+
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: event.status === '1' ? '#10B981' : '#EF4444' },
+          ]}
+        >
           <Text style={styles.statusText}>
-            {event.status === '1' ? 'Ativo' : 'Inativo'} 
+            {event.status === '1' ? 'Ativo' : 'Inativo'}
           </Text>
         </View>
       </View>
 
-      {/* Conteúdo do card */}
       <View style={styles.cardContent}>
-        {/* Título do evento */}
         <Text style={styles.eventTitle} numberOfLines={2}>
           {event.name}
         </Text>
 
-        {/* Data do evento */}
         <View style={styles.infoRow}>
           <Text style={styles.infoIcon}>📅</Text>
           <Text style={styles.infoText}>
@@ -78,7 +82,6 @@ const EventCard = ({
           </Text>
         </View>
 
-        {/* Local do evento */}
         {event.name_location && (
           <View style={styles.infoRow}>
             <Text style={styles.infoIcon}>📍</Text>
@@ -88,7 +91,6 @@ const EventCard = ({
           </View>
         )}
 
-        {/* Assunto */}
         {event.subject && (
           <View style={styles.infoRow}>
             <Text style={styles.infoIcon}>📋</Text>
@@ -98,14 +100,12 @@ const EventCard = ({
           </View>
         )}
 
-        {/* Preview da descrição */}
         {event.description && (
           <Text style={styles.descriptionPreview} numberOfLines={2}>
             {truncateText(getPlainTextFromHtml(event.description))}
           </Text>
         )}
 
-        {/* Informações adicionais */}
         <View style={styles.footer}>
           {event.number_max && parseInt(event.number_max) > 0 && (
             <View style={styles.capacityBadge}>
@@ -114,12 +114,10 @@ const EventCard = ({
               </Text>
             </View>
           )}
-          
+
           {event.category && (
             <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>
-                {event.category}
-              </Text>
+              <Text style={styles.categoryText}>{event.category}</Text>
             </View>
           )}
         </View>
@@ -244,4 +242,3 @@ const styles = StyleSheet.create({
 });
 
 export default EventCard;
-

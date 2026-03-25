@@ -5,10 +5,8 @@ import RenderHTML from 'react-native-render-html';
 const { width: screenWidth } = Dimensions.get('window');
 
 const EventDescription = ({ htmlContent = '<p>Texto padrão</p>' }) => {
-  // Verifica se o conteúdo é HTML
   const isHtml = /<\/?[a-z][\s\S]*>/i.test(htmlContent);
 
-  // Configurações de estilo para o HTML renderizado
   const htmlStyles = {
     p: {
       fontSize: 16,
@@ -57,7 +55,6 @@ const EventDescription = ({ htmlContent = '<p>Texto padrão</p>' }) => {
     },
   };
 
-  // Configurações do sistema para o HTML
   const systemFonts = ['System', 'Arial', 'Helvetica', 'sans-serif'];
 
   return (
@@ -66,7 +63,7 @@ const EventDescription = ({ htmlContent = '<p>Texto padrão</p>' }) => {
         {isHtml ? (
           <RenderHTML
             source={{ html: htmlContent }}
-            contentWidth={screenWidth - 32} // Margem de 16px de cada lado
+            contentWidth={screenWidth - 32}
             tagsStyles={htmlStyles}
             systemFonts={systemFonts}
             defaultTextProps={{
@@ -112,4 +109,3 @@ const styles = StyleSheet.create({
 });
 
 export default EventDescription;
-

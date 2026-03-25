@@ -1,33 +1,31 @@
-import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const Help = ({ visible, onClose, profile }) => {
-
-  const handleProfile = (index) => {
+  const handleProfile = index => {
     console.log(index);
-    onClose(); // Fecha o modal
+    onClose();
   };
 
-	return (
-		<Modal
-		animationType="slide"
-		transparent={true}
-		visible={visible}
-		onRequestClose={onClose}
-		>
-			<View style={styles.overlay}>
-				<View style={styles.modalContainer}>
-					<Text style={styles.title}>SELECIONE O PERFIL DESEJADO</Text>
-					<TouchableOpacity style={styles.button} onPress={() => handleProfile(1)}>
-						<Text style={styles.buttonText}>{profile}</Text>
-					</TouchableOpacity>
-						{/* <TouchableOpacity style={styles.button} onPress={() => handleProfile(2)}>
-							<Text style={styles.buttonText}>Instrutor(a)</Text>
-						</TouchableOpacity> */}
-				</View>
-			</View>
-		</Modal>
-	);
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.title}>SELECIONE O PERFIL DESEJADO</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => handleProfile(1)}
+          >
+            <Text style={styles.buttonText}>{profile}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -50,7 +48,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#2B9348', // verde escuro
+    backgroundColor: '#2B9348',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

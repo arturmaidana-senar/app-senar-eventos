@@ -51,7 +51,10 @@ export default function ModalTermos({
 }
 
 const styles = StyleSheet.create({
-  termosContainer: { flex: 1, backgroundColor: '#fff' },
+  termosContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   termosHeader: {
     padding: 20,
     backgroundColor: '#3E7D56',
@@ -59,10 +62,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  termosTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  termosSubtitle: { color: '#E0EFE5', fontSize: 14, marginTop: 5 },
-  termosScroll: { flex: 1, padding: 20 },
-  termosContent: { paddingBottom: 40 },
+  termosTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  termosSubtitle: {
+    color: '#E0EFE5',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  termosScroll: {
+    flex: 1,
+    padding: 20,
+  },
+  termosContent: {
+    paddingBottom: 40,
+  },
   termosFooter: {
     padding: 20,
     borderTopWidth: 1,
@@ -75,5 +91,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#3E7D56',
     alignItems: 'center',
   },
-  btnAceitarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  btnAceitarText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
