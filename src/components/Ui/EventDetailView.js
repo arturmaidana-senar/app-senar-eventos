@@ -1,13 +1,20 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { formatDateEvent } from '../../utils/dateFormat'; // Assumindo que esta função existe
-import EventDescription from '../EventDescription';
+import EventDescription from './EventDescription';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const EventDetailView = ({ 
-  event, 
-  imageBaseUrl = 'https://eventos.senarmt.org.br/storage/' // Configure com sua URL base
+const EventDetailView = ({
+  event,
+  imageBaseUrl = 'https://eventos.senarmt.org.br/storage/', // Configure com sua URL base
 }) => {
   if (!event) {
     return (
@@ -20,10 +27,10 @@ const EventDetailView = ({
   // Função para formatar a data de forma mais elegante
   const formatEventDate = (startDate, endDate) => {
     if (!startDate) return 'Data não informada';
-    
+
     const start = formatDateEvent(startDate);
     const end = formatDateEvent(endDate);
-    
+
     if (start === end) {
       return start;
     }
@@ -46,7 +53,7 @@ const EventDetailView = ({
             <Text style={styles.placeholderSubtext}>Imagem do evento</Text>
           </View>
         )}
-        
+
         {/* Overlay com informações básicas */}
         {/* <View style={styles.imageOverlay}>
           <View style={[styles.statusBadge, { backgroundColor: event.status === '1' ? '#10B981' : '#EF4444' }]}>
@@ -84,9 +91,7 @@ const EventDetailView = ({
                 <Text style={styles.infoCardIcon}>📍</Text>
                 <Text style={styles.infoCardTitle}>Local</Text>
               </View>
-              <Text style={styles.infoCardContent}>
-                {event.name_location}
-              </Text>
+              <Text style={styles.infoCardContent}>{event.name_location}</Text>
               <Text style={styles.infoCardSubcontent}>
                 {event.cidade}/{event.sigla}
               </Text>
@@ -100,9 +105,7 @@ const EventDetailView = ({
                 <Text style={styles.infoCardIcon}>📋</Text>
                 <Text style={styles.infoCardTitle}>Assunto</Text>
               </View>
-              <Text style={styles.infoCardContent}>
-                {event.subject}
-              </Text>
+              <Text style={styles.infoCardContent}>{event.subject}</Text>
             </View>
           )}
 
@@ -113,9 +116,7 @@ const EventDetailView = ({
                 <Text style={styles.infoCardIcon}>📚</Text>
                 <Text style={styles.infoCardTitle}>Material</Text>
               </View>
-              <Text style={styles.infoCardContent}>
-                {event.category}
-              </Text>
+              <Text style={styles.infoCardContent}>{event.category}</Text>
             </View>
           )}
 
@@ -330,4 +331,3 @@ const styles = StyleSheet.create({
 });
 
 export default EventDetailView;
-

@@ -3,10 +3,10 @@ import { ScrollView, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../../contexts/auth';
-import Header from '../../components/Header';
-import Help from '../../components/Help';
+import Header from '../../components/Ui/Header';
+import Help from '../../components/Ui/Help';
 import api from './../../services/endpont';
-import LoadingInfo from '../../components/LoadingInfo';
+import LoadingInfo from '../../components/Ui/LoadingInfo';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
 export const Body = styled.View`

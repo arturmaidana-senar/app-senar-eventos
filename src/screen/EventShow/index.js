@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, Alert, Text } from 'react-native'; // ← Text adicionado
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import { setHeaderOptions } from '../../components/HeaderTitle';
+import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import api from '../../services/endpont';
-import EventDetailView from '../../components/EventDetailView';
-import { EventTheme } from '../../components/EventTheme';
+import EventDetailView from '../../components/Ui/EventDetailView';
+import { EventTheme } from '../../components/Ui/EventTheme';
 
 export default function EventShow() {
   const route = useRoute();

@@ -20,7 +20,7 @@ import apiEndpoint from '../../services/endpont';
 
 import { formatDateEvent } from '../../utils/dateFormat';
 import { COLORS } from '../../constants/theme';
-import { setHeaderOptions } from '../../components/HeaderTitle';
+import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import CustomTopHeader from '../../components/Ui/CustomTopHeader';
 
 import CadastroResponsavelForm from '../../components/Ui/CadastroResponsavelForm';

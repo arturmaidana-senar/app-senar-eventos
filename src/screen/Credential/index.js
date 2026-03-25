@@ -17,7 +17,7 @@ import api from '../../services/endpont';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 import { formatDateEvent } from '../../utils/dateFormat';
 import { COLORS, FONTS } from '../../constants/theme';
-import { setHeaderOptions } from '../../components/HeaderTitle';
+import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import CustomTopHeader from '../../components/Ui/CustomTopHeader';
 
 export default function CredentialScreen() {

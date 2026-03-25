@@ -60,7 +60,7 @@ export default {
     return json?.data || [];
   },
 
-  postCheckinEvent: async data => {
+  postCheckinEventData: async data => {
     const response = await api.post('/checkin', data, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -81,5 +81,47 @@ export default {
   createCredential: async (eventId, data) => {
     const json = await api.post(`/events/${eventId}/credential`, data);
     return json?.data || [];
+  },
+
+  checkGendersViaCpf: async (eventId, cpf) => {
+    try {
+      const response = await api.post(`/checkin/${eventId}/cpf`, { cpf });
+      return response?.data;
+    } catch (error) {
+      if (error?.response?.data?.genders) {
+        return error.response.data;
+      }
+      throw error;
+    }
+  },
+
+  getEventTerm: async eventId => {
+    const response = await api.get(`/events/${eventId}/term`);
+    return response?.data || {};
+  },
+
+  getParentescos: async () => {
+    const response = await api.get('/parentesco');
+    return response?.data || [];
+  },
+
+  getTiposParticipantes: async () => {
+    const response = await api.get('/tipos-participantes');
+    return response?.data || [];
+  },
+
+  postFreeListCheckin: async (eventId, formData, customToken) => {
+    const headers = {
+      'Content-Type': 'multipart/form-data',
+    };
+
+    if (customToken) {
+      headers['Authorization'] = customToken;
+    }
+
+    const response = await api.post(`/checkin/${eventId}/free-list`, formData, {
+      headers,
+    });
+    return response?.data || {};
   },
 };

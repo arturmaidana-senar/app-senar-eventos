@@ -22,8 +22,8 @@ import {
 import { Camera } from 'react-native-camera-kit';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
-import { setHeaderOptions } from '../../components/HeaderTitle';
-import LoadingInfo from '../../components/LoadingInfo';
+import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
+import LoadingInfo from '../../components/Ui/LoadingInfo';
 import { COLORS, FONTS } from '../../constants/theme';
 import CustomTopHeader from '../../components/Ui/CustomTopHeader';
 import api from '../../services/endpont';

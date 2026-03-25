@@ -11,9 +11,9 @@ import {
   StatusBar,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import Header from '../../components/Header';
-import CardEvent from '../../components/CardEvent';
-import CardNotEvent from '../../components/CardNotEvent';
+import Header from '../../components/Ui/Header';
+import CardEvent from '../../components/Ui/CardEvent';
+import CardNotEvent from '../../components/Ui/CardNotEvent';
 import api from '../../services/endpont';
 
 const { width } = Dimensions.get('window');

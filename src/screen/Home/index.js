@@ -10,8 +10,8 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
-import Header from '../../components/Header';
-import CardHome from '../../components/CardHome';
+import Header from '../../components/Ui/Header';
+import CardHome from '../../components/Ui/CardHome';
 import api from '../../services/endpont';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { InteractionManager } from 'react-native';

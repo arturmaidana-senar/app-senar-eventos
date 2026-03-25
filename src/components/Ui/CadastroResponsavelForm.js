@@ -6,24 +6,31 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
-  Modal,
-  FlatList,
   Image,
   Dimensions,
   ActivityIndicator,
-  Platform,
   Animated,
 } from 'react-native';
-import SignatureScreen from 'react-native-signature-canvas';
 import Orientation from 'react-native-orientation-locker';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
-import TermosConsentimento from '../../components/Ui/TermosConsentimento';
-import api from '../../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import {
+  formatDateToBr,
+  formatCPF,
+  maskTelefone,
+  formatarData,
+  isValidDate,
+  calcularIdade,
+} from '../../utils/formatters';
+
+import ModalTermos from '../Modals/ModalTermos';
+import ModalAssinatura from '../Modals/ModalAssinatura';
+import ModalCrianca from '../Modals/ModalCrianca';
+import useSubmitCadastro from '../../hooks/useSubmitCadastro';
+
+import endpoint from '../../services/endpont';
 import { useRoute } from '@react-navigation/native';
-import { BlurView } from '@react-native-community/blur';
 
 export default function CadastroResponsavelForm({
   id_evento,
@@ -32,11 +39,9 @@ export default function CadastroResponsavelForm({
   onSuccess,
 }) {
   const [scrollEnabled, setScrollEnabled] = useState(true);
-  const signatureRef = useRef();
   const route = useRoute();
   const params = route.params || {};
   const currentEventId = params.eventId || id_evento;
-  const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   const [hasTerm, setHasTerm] = useState(false);
   const [rawTermText, setRawTermText] = useState('');
@@ -90,26 +95,35 @@ export default function CadastroResponsavelForm({
 
   useEffect(() => {
     if (sexoOptions.length > 0) return;
-    api
-      .get('/genders')
-      .then(res => {
-        if (Array.isArray(res.data)) setSexoOptions(res.data);
-      })
-      .catch(err => console.error('Erro ao buscar genders:', err));
-  }, []);
 
-  useEffect(() => {
-    if (initialData?.genders?.length > 0) {
-      setSexoOptions(initialData.genders);
-    }
-  }, [initialData]);
+    const fetchGendersViaCpf = async () => {
+      try {
+        const cpfLimpo = participante.cpf.replace(/\D/g, '');
+
+        if (!cpfLimpo || cpfLimpo.length < 11) return;
+
+        const data = await endpoint.checkGendersViaCpf(
+          currentEventId,
+          cpfLimpo,
+        );
+
+        if (Array.isArray(data?.genders)) {
+          setSexoOptions(data.genders);
+        }
+      } catch (err) {
+        console.error(err?.response?.status);
+      }
+    };
+
+    fetchGendersViaCpf();
+  }, [participante.cpf, currentEventId]);
 
   useEffect(() => {
     const fetchTermStatus = async () => {
       if (!currentEventId) return;
       try {
-        const response = await api.get(`/events/${currentEventId}/term`);
-        const data = response.data;
+        const data = await endpoint.getEventTerm(currentEventId);
+
         if (data && (data.term_text || data.term_minor_text)) {
           setHasTerm(true);
           setRawTermText(data.term_text || '');
@@ -118,7 +132,6 @@ export default function CadastroResponsavelForm({
           setHasTerm(false);
         }
       } catch (error) {
-        console.log('Erro ao buscar termo, assumindo sem termo', error);
         setHasTerm(false);
       } finally {
         setLoadingInitialTerm(false);
@@ -131,12 +144,12 @@ export default function CadastroResponsavelForm({
     const fetchParentescos = async () => {
       setLoadingParentesco(true);
       try {
-        const response = await api.get('/parentesco');
-        if (Array.isArray(response.data)) {
-          setParentescoOptions(response.data);
+        const data = await endpoint.getParentescos();
+        if (Array.isArray(data)) {
+          setParentescoOptions(data);
         }
       } catch (error) {
-        console.error('Erro ao buscar parentescos:', error);
+        console.error(error);
       } finally {
         setLoadingParentesco(false);
       }
@@ -152,35 +165,18 @@ export default function CadastroResponsavelForm({
     const fetchAutoridades = async () => {
       setLoadingAutoridades(true);
       try {
-        const response = await api.get('/tipos-participantes');
-        if (Array.isArray(response.data)) {
-          setAutoridadeOptions(response.data);
+        const data = await endpoint.getTiposParticipantes();
+        if (Array.isArray(data)) {
+          setAutoridadeOptions(data);
         }
       } catch (error) {
-        console.error('Erro ao buscar autoridades:', error);
+        console.error(error);
       } finally {
         setLoadingAutoridades(false);
       }
     };
     fetchAutoridades();
   }, [isAutoridade]);
-
-  const formatDateToBr = dateString => {
-    if (!dateString) return '';
-    try {
-      const [year, month, day] = dateString.split('-');
-      if (!year || !month || !day) return dateString;
-      return `${day}/${month}/${year}`;
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  const formatForBackend = dateStr => {
-    if (!dateStr || dateStr.length !== 10) return dateStr;
-    const [d, m, y] = dateStr.split('/');
-    return `${y}-${m}-${d}`;
-  };
 
   useEffect(() => {
     if (initialData) {
@@ -220,67 +216,6 @@ export default function CadastroResponsavelForm({
       }).start();
     }
   }, [modalCriancaVisible]);
-
-  const formatCPF = v =>
-    v
-      .replace(/\D/g, '')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-      .replace(/(-\d{2})\d+?$/, '$1');
-
-  const maskTelefone = v =>
-    v
-      .replace(/\D/g, '')
-      .replace(/^(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2')
-      .slice(0, 15);
-
-  const formatarData = t => {
-    let c = t.replace(/\D/g, '');
-    if (c.length > 8) c = c.slice(0, 8);
-
-    if (c.length >= 2) {
-      let dia = parseInt(c.slice(0, 2), 10);
-      if (dia > 31) c = '31' + c.slice(2);
-      if (dia === 0) c = '01' + c.slice(2);
-    }
-
-    if (c.length >= 4) {
-      let mes = parseInt(c.slice(2, 4), 10);
-      if (mes > 12) c = c.slice(0, 2) + '12' + c.slice(4);
-      if (mes === 0) c = c.slice(0, 2) + '01' + c.slice(4);
-    }
-
-    if (c.length >= 5) return `${c.slice(0, 2)}/${c.slice(2, 4)}/${c.slice(4)}`;
-    if (c.length >= 3) return `${c.slice(0, 2)}/${c.slice(2)}`;
-    return c;
-  };
-
-  const isValidDate = dateString => {
-    if (!dateString || dateString.length !== 10) return false;
-    const [day, month, year] = dateString.split('/').map(Number);
-    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900)
-      return false;
-    const dt = new Date(year, month - 1, day);
-    return (
-      dt.getDate() === day &&
-      dt.getMonth() === month - 1 &&
-      dt.getFullYear() === year
-    );
-  };
-
-  const calcularIdade = d => {
-    if (!d || d.length !== 10 || !isValidDate(d)) return '';
-    const [D, M, A] = d.split('/').map(Number);
-    const dt = new Date(A, M - 1, D);
-    const h = new Date();
-    if (isNaN(dt.getTime())) return '';
-    let i = h.getFullYear() - dt.getFullYear();
-    const m = h.getMonth() - dt.getMonth();
-    if (m < 0 || (m === 0 && h.getDate() < dt.getDate())) i--;
-    return i >= 0 ? i.toString() : '0';
-  };
 
   const handleDataNascimentoChange = text => {
     const dataFormatada = formatarData(text);
@@ -372,21 +307,8 @@ export default function CadastroResponsavelForm({
     fecharModalAssinatura();
   };
 
-  const handleSignatureEmpty = () => {
-    Alert.alert('Atenção', 'Por favor, faça a assinatura antes de confirmar.');
-  };
-
   const limparAssinaturaAtual = () => {
     setAssinaturaBase64(null);
-    if (signatureRef.current) signatureRef.current.clearSignature();
-  };
-
-  const handleConfirmarAssinatura = () => {
-    if (signatureRef.current) signatureRef.current.readSignature();
-  };
-
-  const handleLimparAssinaturaCanvas = () => {
-    if (signatureRef.current) signatureRef.current.clearSignature();
   };
 
   const abrirModalNovaCrianca = () => {
@@ -515,168 +437,18 @@ export default function CadastroResponsavelForm({
     setCriancas(criancas.filter(c => c.id !== id));
   };
 
-  const handleSubmit = async () => {
-    if (
-      !participante.nome ||
-      !participante.cpf ||
-      !participante.telefone ||
-      !participante.sexo
-    ) {
-      Alert.alert('Erro', 'Preencha os dados do participante, incluindo sexo.');
-      return;
-    }
-
-    if (!validarIdadeParticipante()) return;
-
-    if (hasTerm && !assinaturaBase64) {
-      Alert.alert('Erro', 'A assinatura é obrigatória.');
-      return;
-    }
-
-    if (!currentEventId) {
-      Alert.alert('Erro', 'ID do evento perdido. Reinicie o processo.');
-      return;
-    }
-
-    setLoadingSubmit(true);
-
-    try {
-      let token =
-        api.defaults.headers.common['Authorization'] ||
-        api.defaults.headers['Authorization'];
-      if (!token) {
-        const chaves = await AsyncStorage.getAllKeys();
-        const possiveisNomes = [
-          '@token',
-          'token',
-          'userToken',
-          'access_token',
-          'sessao',
-        ];
-        for (const nome of possiveisNomes) {
-          const chaveReal = chaves.find(k =>
-            k.toLowerCase().includes(nome.toLowerCase().replace('@', '')),
-          );
-          if (chaveReal) {
-            const valor = await AsyncStorage.getItem(chaveReal);
-            if (valor) {
-              token = valor.includes('{') ? JSON.parse(valor).token : valor;
-              if (token) break;
-            }
-          }
-        }
-      }
-      if (token && !token.startsWith('Bearer ')) token = `Bearer ${token}`;
-
-      const formData = new FormData();
-
-      const participanteConfirmado =
-        criancas.length === 0 ? true : participante.isParticipante;
-
-      formData.append('participante[nome]', participante.nome);
-      formData.append('participante[cpf]', participante.cpf.replace(/\D/g, ''));
-      formData.append('participante[telefone]', participante.telefone);
-      formData.append(
-        'participante[birth_date]',
-        formatForBackend(participante.data_nascimento),
-      );
-      formData.append('participante[gender_id]', participante.sexo);
-      formData.append(
-        'participante[is_participante]',
-        participanteConfirmado ? '1' : '0',
-      );
-
-      if (isAutoridade && selectedAutoridade) {
-        formData.append('participante[autoridade_id]', selectedAutoridade.id);
-      }
-
-      if (hasTerm && assinaturaBase64) {
-        formData.append('participante[assinatura_png]', {
-          uri: assinaturaBase64,
-          type: 'image/png',
-          name: `assinatura.png`,
-        });
-        formData.append('termo_aceite[lido]', '1');
-        formData.append('termo_aceite[data_aceite]', new Date().toISOString());
-        formData.append('termo_aceite[conteudo_html]', termoTexto);
-      }
-
-      criancas.forEach((c, index) => {
-        formData.append(`criancas_vinculadas[${index}][nome]`, c.nome);
-        formData.append(
-          `criancas_vinculadas[${index}][birth_date]`,
-          formatForBackend(c.dataNascimento),
-        );
-        formData.append(
-          `criancas_vinculadas[${index}][idade]`,
-          c.idadeCalculada,
-        );
-        formData.append(`criancas_vinculadas[${index}][gender_id]`, c.sexo);
-
-        if (typeof c.parentesco === 'object') {
-          formData.append(
-            `criancas_vinculadas[${index}][parentesco][id]`,
-            c.parentesco.id,
-          );
-          formData.append(
-            `criancas_vinculadas[${index}][parentesco][name]`,
-            c.parentesco.name,
-          );
-        } else {
-          formData.append(
-            `criancas_vinculadas[${index}][parentesco][name]`,
-            c.parentesco,
-          );
-        }
-
-        if (c.cpf) {
-          formData.append(
-            `criancas_vinculadas[${index}][cpf]`,
-            c.cpf.replace(/\D/g, ''),
-          );
-        }
-      });
-
-      formData.append('data_hora', new Date().toISOString());
-
-      const response = await api.post(
-        `/checkin/${currentEventId}/free-list`,
-        formData,
-        {
-          headers: {
-            Authorization: token,
-            'Content-Type': 'multipart/form-data',
-          },
-        },
-      );
-
-      setLoadingSubmit(false);
-      Orientation.lockToPortrait();
-
-      Alert.alert('Pronto', 'Cadastro realizado com sucesso!', [
-        {
-          text: 'Ok',
-          onPress: () => onSuccess?.(),
-        },
-      ]);
-    } catch (error) {
-      console.error('Erro detalhado:', error);
-      let msg = 'Ocorreu um erro ao enviar.';
-
-      if (error.response) {
-        if (error.response.data.errors) {
-          const erros = error.response.data.errors;
-          const primeiraMsg = Object.values(erros)[0];
-          msg = Array.isArray(primeiraMsg) ? primeiraMsg[0] : primeiraMsg;
-        } else {
-          msg = error.response.data.message || `Erro ${error.response.status}`;
-        }
-      }
-
-      Alert.alert('Atenção', msg);
-    } finally {
-    }
-  };
+  const { handleSubmit, loadingSubmit } = useSubmitCadastro({
+    currentEventId,
+    participante,
+    criancas,
+    isAutoridade,
+    selectedAutoridade,
+    hasTerm,
+    assinaturaBase64,
+    termoTexto,
+    validarIdadeParticipante,
+    onSuccess,
+  });
 
   if (loadingInitialTerm) {
     return (
@@ -822,7 +594,6 @@ export default function CadastroResponsavelForm({
             </TouchableOpacity>
           )}
 
-          {/* Checkbox: É Autoridade */}
           <TouchableOpacity
             style={[styles.checkboxContainer, { marginTop: 8 }]}
             onPress={() => setIsAutoridade(prev => !prev)}
@@ -835,7 +606,6 @@ export default function CadastroResponsavelForm({
             <Text style={styles.checkboxLabel}>É uma autoridade</Text>
           </TouchableOpacity>
 
-          {/* Select de Autoridade */}
           {isAutoridade && (
             <>
               <Text style={[styles.label, { marginTop: 8 }]}>Autoridade *</Text>
@@ -1005,295 +775,35 @@ export default function CadastroResponsavelForm({
         <View style={{ height: 50 }} />
       </ScrollView>
 
-      {/* MODAL DE TERMOS */}
-      <Modal
+      <ModalTermos
         visible={modalTermosVisible}
-        animationType="slide"
-        transparent={false}
-      >
-        <SafeAreaView style={styles.termosContainer}>
-          <View style={styles.termosHeader}>
-            <View style={{ width: 30 }} />
-            <View style={{ alignItems: 'center' }}>
-              <Text style={styles.termosTitle}>Termos e Autorização</Text>
-              <Text style={styles.termosSubtitle}>Leia para prosseguir</Text>
-            </View>
-            <TouchableOpacity onPress={cancelarTermos} style={{ padding: 5 }}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
-                X
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            style={styles.termosScroll}
-            contentContainerStyle={styles.termosContent}
-          >
-            <TermosConsentimento
-              content={termoTexto || '<p>Carregando termo...</p>'}
-            />
-            <View style={{ height: 50 }} />
-          </ScrollView>
-          <View style={styles.termosFooter}>
-            <TouchableOpacity
-              style={styles.btnAceitarTermos}
-              onPress={aceitarTermos}
-            >
-              <Text style={styles.btnAceitarText}>LI E CONCORDO - ASSINAR</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
+        termoTexto={termoTexto}
+        onCancel={cancelarTermos}
+        onAccept={aceitarTermos}
+      />
 
-      <Modal visible={modalCriancaVisible} transparent animationType="fade">
-        <BlurView
-          style={StyleSheet.absoluteFill}
-          blurType="dark"
-          blurAmount={4}
-          reducedTransparencyFallbackColor="rgba(0,0,0,0.5)"
-        />
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: 'rgba(0,0,0,0.3)' },
-          ]}
-        />
-
-        <Animated.View
-          style={[{ flex: 1 }, { transform: [{ translateY: slideAnim }] }]}
-        >
-          <View style={styles.modalContainer}>
-            <ScrollView
-              contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.modalContentNovo}>
-                <View style={styles.modalHeaderNovo}>
-                  <Text style={styles.modalTitleNovo}>
-                    {editingChildId ? 'Editar Criança' : 'Adicionar Criança'}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={cancelarModalCrianca}
-                    style={styles.closeButtonNovo}
-                  >
-                    <Text style={styles.closeButtonTextNovo}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={styles.labelNovo}>Nome da Criança</Text>
-                <TextInput
-                  style={styles.inputNovo}
-                  placeholder="Digite o nome da criança"
-                  placeholderTextColor="#999"
-                  value={novaCrianca.nome}
-                  onChangeText={t =>
-                    setNovaCrianca({ ...novaCrianca, nome: t })
-                  }
-                />
-
-                <Text style={styles.labelNovo}>CPF da Criança (Opcional)</Text>
-                <TextInput
-                  style={styles.inputNovo}
-                  placeholder="000.000.000-60"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  maxLength={14}
-                  value={novaCrianca.cpf}
-                  onChangeText={t =>
-                    setNovaCrianca({ ...novaCrianca, cpf: formatCPF(t) })
-                  }
-                />
-
-                <View style={styles.rowNovo}>
-                  <View
-                    style={[styles.colNovo, { flex: 2.5, marginRight: 12 }]}
-                  >
-                    <Text style={styles.labelNovo}>Data de Nascimento</Text>
-                    <TextInput
-                      style={styles.inputNovo}
-                      placeholder="00/00/0000"
-                      placeholderTextColor="#999"
-                      keyboardType="numeric"
-                      value={novaCrianca.dataNascimento}
-                      onChangeText={handleDataNascimentoChange}
-                      maxLength={10}
-                    />
-                  </View>
-                  <View style={[styles.colNovo, { flex: 1 }]}>
-                    <Text style={styles.labelNovo}>Idade</Text>
-                    <View
-                      style={[
-                        styles.inputNovo,
-                        { backgroundColor: '#F8F9FA', alignItems: 'center' },
-                      ]}
-                    >
-                      <Text style={{ color: '#555' }}>
-                        {novaCrianca.idadeCalculada || '-'}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                <Text style={styles.labelNovo}>Parentesco</Text>
-                <TouchableOpacity
-                  style={styles.inputNovoPicker}
-                  onPress={() =>
-                    setDropdownAberto(
-                      dropdownAberto === 'crianca_parentesco'
-                        ? ''
-                        : 'crianca_parentesco',
-                    )
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.pickerTextNovo,
-                      !novaCrianca.parentesco && styles.placeholderText,
-                    ]}
-                  >
-                    {typeof novaCrianca.parentesco === 'object'
-                      ? novaCrianca.parentesco?.name
-                      : novaCrianca.parentesco || 'Selecione'}
-                  </Text>
-
-                  <Text style={styles.pickerIconNovo}>
-                    {dropdownAberto === 'crianca_parentesco' ? '▲' : '▼'}
-                  </Text>
-                </TouchableOpacity>
-
-                {dropdownAberto === 'crianca_parentesco' && (
-                  <View style={styles.dropdownListNovo}>
-                    {loadingParentesco ? (
-                      <ActivityIndicator
-                        style={{ padding: 10 }}
-                        color="#3E7D56"
-                      />
-                    ) : (
-                      <ScrollView style={{ maxHeight: 200 }}>
-                        {parentescoOptions.map(item => (
-                          <TouchableOpacity
-                            key={item.id}
-                            style={styles.dropdownItemNovo}
-                            onPress={() => {
-                              setNovaCrianca({
-                                ...novaCrianca,
-                                parentesco: item,
-                              });
-                              setDropdownAberto('');
-                            }}
-                          >
-                            <Text style={styles.dropdownItemTextNovo}>
-                              {item.name}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    )}
-                  </View>
-                )}
-
-                <Text style={styles.labelNovo}>Sexo</Text>
-                <TouchableOpacity
-                  style={styles.inputNovoPicker}
-                  onPress={() =>
-                    setDropdownAberto(
-                      dropdownAberto === 'crianca_sexo' ? '' : 'crianca_sexo',
-                    )
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.pickerTextNovo,
-                      !novaCrianca.sexo && styles.placeholderText,
-                    ]}
-                  >
-                    {novaCrianca.sexoNome || 'Selecione'}
-                  </Text>
-                  <Text style={styles.pickerIconNovo}>
-                    {dropdownAberto === 'crianca_sexo' ? '▲' : '▼'}
-                  </Text>
-                </TouchableOpacity>
-                {dropdownAberto === 'crianca_sexo' && (
-                  <View style={styles.dropdownListNovo}>
-                    {sexoOptions.map(item => (
-                      <TouchableOpacity
-                        key={item.id}
-                        style={styles.dropdownItemNovo}
-                        onPress={() => {
-                          setNovaCrianca({
-                            ...novaCrianca,
-                            sexo: item.id,
-                            sexoNome: item.name,
-                          });
-                          setDropdownAberto('');
-                        }}
-                      >
-                        <Text style={styles.dropdownItemTextNovo}>
-                          {item.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-
-                <TouchableOpacity
-                  onPress={salvarCrianca}
-                  style={styles.btnConfirmNovo}
-                >
-                  <Text style={styles.btnConfirmTextNovo}>
-                    {editingChildId ? 'Salvar Alterações' : 'Salvar Criança'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </Animated.View>
-      </Modal>
-
-      <Modal
+      <ModalAssinatura
         visible={modalAssinaturaVisible}
-        transparent={false}
-        animationType="fade"
-        supportedOrientations={['landscape']}
-      >
-        <SafeAreaView style={styles.landscapeModalContainer}>
-          <View style={styles.landscapeHeader}>
-            <Text style={styles.landscapeTitle}>Assine no quadro abaixo</Text>
-            <TouchableOpacity
-              style={styles.landscapeCancelBtn}
-              onPress={fecharModalAssinatura}
-            >
-              <Text style={styles.landscapeCancelText}>Cancelar X</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.signatureCanvasArea}>
-            {renderCanvas && (
-              <SignatureScreen
-                ref={signatureRef}
-                onOK={handleSignatureOK}
-                onEmpty={handleSignatureEmpty}
-                webStyle={`.m-signature-pad--footer {display: none; margin: 0px;}`}
-                autoClear={true}
-              />
-            )}
-          </View>
-          <View style={styles.landscapeFooter}>
-            <TouchableOpacity
-              style={styles.btnFooterClear}
-              onPress={handleLimparAssinaturaCanvas}
-            >
-              <Text style={styles.btnFooterTextRed}>Limpar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.btnFooterConfirm}
-              onPress={handleConfirmarAssinatura}
-            >
-              <Text style={styles.btnFooterTextWhite}>
-                CONFIRMAR ASSINATURA
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
+        renderCanvas={renderCanvas}
+        onCancel={fecharModalAssinatura}
+        onSignatureCaptured={handleSignatureOK}
+      />
+
+      <ModalCrianca
+        visible={modalCriancaVisible}
+        slideAnim={slideAnim}
+        editingChildId={editingChildId}
+        novaCrianca={novaCrianca}
+        setNovaCrianca={setNovaCrianca}
+        handleDataNascimentoChange={handleDataNascimentoChange}
+        dropdownAberto={dropdownAberto}
+        setDropdownAberto={setDropdownAberto}
+        parentescoOptions={parentescoOptions}
+        sexoOptions={sexoOptions}
+        loadingParentesco={loadingParentesco}
+        onSave={salvarCrianca}
+        onCancel={cancelarModalCrianca}
+      />
     </View>
   );
 }
@@ -1331,7 +841,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
-    maxWidth: 180, // ajusta conforme necessário
+    maxWidth: 180,
   },
   label: {
     fontSize: 13,
@@ -1503,176 +1013,6 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   legalText: { fontSize: 12, color: '#666', marginBottom: 15, lineHeight: 18 },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  termosContainer: { flex: 1, backgroundColor: '#fff' },
-  termosHeader: {
-    padding: 20,
-    backgroundColor: '#3E7D56',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  termosTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  termosSubtitle: { color: '#E0EFE5', fontSize: 14, marginTop: 5 },
-  termosScroll: { flex: 1, padding: 20 },
-  termosContent: { paddingBottom: 40 },
-  termosFooter: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#f9f9f9',
-  },
-  btnAceitarTermos: {
-    padding: 18,
-    borderRadius: 10,
-    backgroundColor: '#3E7D56',
-    alignItems: 'center',
-  },
-  btnAceitarText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  landscapeModalContainer: { flex: 1, backgroundColor: '#f0f0f0' },
-  landscapeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: '#3E7D56',
-    height: 50,
-  },
-  landscapeTitle: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  landscapeCancelBtn: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  landscapeCancelText: { color: '#FFF', fontSize: 12 },
-  signatureCanvasArea: {
-    flex: 1,
-    backgroundColor: '#FFF',
-    margin: 10,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  landscapeFooter: {
-    height: 70,
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-  },
-  btnFooterClear: {
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: '#FFEBEE',
-    width: '20%',
-    alignItems: 'center',
-  },
-  btnFooterConfirm: {
-    padding: 15,
-    borderRadius: 8,
-    backgroundColor: '#3E7D56',
-    width: '75%',
-    alignItems: 'center',
-  },
-  btnFooterTextRed: { color: '#D32F2F', fontWeight: 'bold' },
-  btnFooterTextWhite: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-
-  /* --- NOVOS ESTILOS PARA O MODAL (MATCH VISUAL) --- */
-  modalContentNovo: {
-    backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 20,
-    elevation: 10,
-    width: '100%',
-  },
-  modalHeaderNovo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitleNovo: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111',
-  },
-  closeButtonNovo: {
-    backgroundColor: '#F5F5F5',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonTextNovo: {
-    color: '#888',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  labelNovo: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-    marginBottom: 8,
-  },
-  inputNovo: {
-    backgroundColor: '#FAFAFA',
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 15,
-    marginBottom: 16,
-    color: '#333',
-  },
-  inputNovoPicker: {
-    backgroundColor: '#FAFAFA',
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  rowNovo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  colNovo: {
-    flexDirection: 'column',
-  },
-  pickerTextNovo: {
-    fontSize: 15,
-    color: '#333',
-  },
-  pickerIconNovo: {
-    color: '#999',
-    fontSize: 12,
-  },
-  btnConfirmNovo: {
-    backgroundColor: '#357342',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  btnConfirmTextNovo: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-
-  /* --- ESTILOS DOS DROPDOWNS INLINE --- */
   dropdownList: {
     backgroundColor: '#F9F9F9',
     borderWidth: 1,
@@ -1688,25 +1028,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#EEE',
   },
   dropdownItemText: {
-    fontSize: 15,
-    color: '#333',
-  },
-  dropdownListNovo: {
-    backgroundColor: '#FAFAFA',
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    borderRadius: 10,
-    marginTop: -10,
-    marginBottom: 16,
-    overflow: 'hidden',
-    maxHeight: 180,
-  },
-  dropdownItemNovo: {
-    padding: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  dropdownItemTextNovo: {
     fontSize: 15,
     color: '#333',
   },

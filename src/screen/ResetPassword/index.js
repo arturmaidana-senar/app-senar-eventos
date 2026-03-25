@@ -1,116 +1,137 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { setHeaderOptions } from '../../components/HeaderTitle';
+import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import api from './../../services/endpont';
-import LoadingInfo from '../../components/LoadingInfo';
-import { AlertNotificationRoot, ALERT_TYPE, Dialog } from 'react-native-alert-notification';
+import LoadingInfo from '../../components/Ui/LoadingInfo';
+import {
+  AlertNotificationRoot,
+  ALERT_TYPE,
+  Dialog,
+} from 'react-native-alert-notification';
 
 export default function ResetPassword() {
- 	const navigation = useNavigation();
-  	const [cpf, setCpf] = useState('');	
-  	const [loading, setLoading] = useState(false); 
+  const navigation = useNavigation();
+  const [cpf, setCpf] = useState('');
+  const [loading, setLoading] = useState(false);
 
-	// Função para formatar o CPF
-	const formatCPF = (cpf) => {
-		cpf = cpf.replace(/\D/g, ''); // Remove tudo que não for número
-		cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
-		cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
-		cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-		return cpf;
-	};
+  // Função para formatar o CPF
+  const formatCPF = cpf => {
+    cpf = cpf.replace(/\D/g, ''); // Remove tudo que não for número
+    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
+    cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    return cpf;
+  };
 
-	const handleCpfChange = (text) => {
-		let cleanedText = text.replace(/\D/g, '');
-		if (cleanedText.length <= 11) { // O comprimento máximo para o valor limpo deve ser 11
-		setCpf(formatCPF(cleanedText));
-		}
-	};
+  const handleCpfChange = text => {
+    let cleanedText = text.replace(/\D/g, '');
+    if (cleanedText.length <= 11) {
+      // O comprimento máximo para o valor limpo deve ser 11
+      setCpf(formatCPF(cleanedText));
+    }
+  };
 
-	async function handleCpfPress(){
-		try{
-			setLoading(true);
-			const response = await api.getRecoverPassword(cpf);
-			if(response.error){
-				return Dialog.show({
-					type: ALERT_TYPE.DANGER,
-					title: 'Erro',
-					textBody: response.message,
-					button: 'Fechar',
-				});
-			}
-			const name = response.data.name;
-			navigation.navigate('ValidatePin', { cpf, name });
-		} catch (error) {
-			return Dialog.show({
-				type: ALERT_TYPE.DANGER,
-				title: 'Erro',
-				textBody: error,
-				button: 'Fechar',
-			});
- 		} finally {
-			setLoading(false);
-		}
-	}
+  async function handleCpfPress() {
+    try {
+      setLoading(true);
+      const response = await api.getRecoverPassword(cpf);
+      if (response.error) {
+        return Dialog.show({
+          type: ALERT_TYPE.DANGER,
+          title: 'Erro',
+          textBody: response.message,
+          button: 'Fechar',
+        });
+      }
+      const name = response.data.name;
+      navigation.navigate('ValidatePin', { cpf, name });
+    } catch (error) {
+      return Dialog.show({
+        type: ALERT_TYPE.DANGER,
+        title: 'Erro',
+        textBody: error,
+        button: 'Fechar',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
 
-	useEffect(() => {
-		setHeaderOptions(navigation, {
-			headerTitle: 'Esqueceu sua senha?',
-			headerTitleStyle: { fontFamily: 'Arial', fontSize: 18, color: '#333333' },
-			headerTintColor: '#333333',
-		});
-	}, [navigation]);
+  useEffect(() => {
+    setHeaderOptions(navigation, {
+      headerTitle: 'Esqueceu sua senha?',
+      headerTitleStyle: { fontFamily: 'Arial', fontSize: 18, color: '#333333' },
+      headerTintColor: '#333333',
+    });
+  }, [navigation]);
 
-return (
+  return (
     <View style={styles.page}>
-		<StatusBar backgroundColor="#37C064" barStyle="light-content" />
-		<LoadingInfo visible={loading} />
-		<View style={styles.container}>
-			<Text style={styles.title}>Não se preocupe, vamos te ajudar</Text>
-			<Text style={styles.subtitle}>
-			Digite seu CPF no campo abaixo e escolha como quer receber um PIN de validação.
-			</Text>
+      <StatusBar backgroundColor="#37C064" barStyle="light-content" />
+      <LoadingInfo visible={loading} />
+      <View style={styles.container}>
+        <Text style={styles.title}>Não se preocupe, vamos te ajudar</Text>
+        <Text style={styles.subtitle}>
+          Digite seu CPF no campo abaixo e escolha como quer receber um PIN de
+          validação.
+        </Text>
 
-			<View style={styles.inputContainer}>
-				<TextInput
-					style={styles.input}
-					placeholder="Digite o CPF"
-					placeholderTextColor="#999"
-					keyboardType="numeric"
-					value={cpf}
-					onChangeText={handleCpfChange} 
-					maxLength={14} 
-				/>
-			</View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite o CPF"
+            placeholderTextColor="#999"
+            keyboardType="numeric"
+            value={cpf}
+            onChangeText={handleCpfChange}
+            maxLength={14}
+          />
+        </View>
 
-			{cpf.length > 13 && (
-				<>
-					<TouchableOpacity 
-						onPress={ () => handleCpfPress()}
-						style={styles.optionButton}
-					>
-					<Icon name="mail-outline" size={24} color="#4CAF50" style={styles.icon} />
-					<View style={styles.optionTextContainer}>
-						<Text style={styles.optionTitle}>E-mail</Text>
-						<Text style={styles.optionSubtitle}>Receber PIN no E-mail cadastrado</Text>
-					</View>
-					<Icon name="chevron-forward-outline" size={24} color="#4CAF50" />
-					</TouchableOpacity>
+        {cpf.length > 13 && (
+          <>
+            <TouchableOpacity
+              onPress={() => handleCpfPress()}
+              style={styles.optionButton}
+            >
+              <Icon
+                name="mail-outline"
+                size={24}
+                color="#4CAF50"
+                style={styles.icon}
+              />
+              <View style={styles.optionTextContainer}>
+                <Text style={styles.optionTitle}>E-mail</Text>
+                <Text style={styles.optionSubtitle}>
+                  Receber PIN no E-mail cadastrado
+                </Text>
+              </View>
+              <Icon name="chevron-forward-outline" size={24} color="#4CAF50" />
+            </TouchableOpacity>
 
-					<Text style={styles.footerText}>
-						Vamos te enviar o código PIN por e-mail, confira sua caixa de spam.
-					</Text>
-				</>
-			)}
-		</View>
+            <Text style={styles.footerText}>
+              Vamos te enviar o código PIN por e-mail, confira sua caixa de
+              spam.
+            </Text>
+          </>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   page: {
-    flex: 1
+    flex: 1,
   },
   container: {
     flex: 1,
