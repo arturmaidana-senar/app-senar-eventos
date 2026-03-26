@@ -7,13 +7,17 @@ import {
   Dimensions,
 } from 'react-native';
 
-import { HomeIcon, Dashboard2, ProfileIcon } from '../Icons/Icons';
+import House from '../../assets/images/house.svg';
+import Person from '../../assets/images/user.svg';
+import Layers from '../../assets/images/layers.svg';
+
+import { Dashboard2, ProfileIcon } from '../Icons/Icons';
 const { width, height } = Dimensions.get('window');
 
 const iconConfig = {
-  Home: HomeIcon,
-  Event: Dashboard2,
-  Information: ProfileIcon,
+  Home: House,
+  Event: Layers,
+  Information: Person,
 };
 
 export default ({ state, navigation }) => {
@@ -29,7 +33,7 @@ export default ({ state, navigation }) => {
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
           const IconComponent = iconConfig[route.name];
-          const iconColor = isFocused ? '#02613C' : '#FFFFFF';
+          const iconColor = isFocused ? '#00A859' : '#FFFFFF';
 
           return (
             <Pressable
@@ -69,7 +73,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     height: 75,
-    backgroundColor: '#00a840',
+    backgroundColor: '#00A859',
     borderRadius: 43,
     alignItems: 'center',
     justifyContent: 'space-around',

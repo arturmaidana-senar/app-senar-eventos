@@ -9,7 +9,6 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   StatusBar,
-  PermissionsAndroid,
 } from 'react-native';
 
 import {
@@ -22,6 +21,7 @@ import {
 import { Camera } from 'react-native-camera-kit';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
+import LinearGradient from 'react-native-linear-gradient';
 import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import LoadingInfo from '../../components/Ui/LoadingInfo';
 import { COLORS, FONTS } from '../../constants/theme';
@@ -272,22 +272,19 @@ export default function Service() {
       <View
         style={[styles.actionIconContainer, { backgroundColor: iconBgColor }]}
       >
-        <Icon name={iconName} size={22} color={iconColor} />
+        <Icon name={iconName} size={24} color={iconColor} />
       </View>
       <View style={styles.actionTextContainer}>
         <Text style={styles.actionTitle}>{title}</Text>
         <Text style={styles.actionSubtitle}>{subtitle}</Text>
       </View>
-      <Feather name="chevron-right" size={20} color="#C4C4C4" />
+      <Feather name="chevron-right" size={20} color="#D1D1D1" />
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <CustomTopHeader
-        navigation={navigation}
-        title="Evento" // Defina o título aqui
-      />
+      <CustomTopHeader navigation={navigation} title="Evento" />
 
       <StatusBar barStyle="dark-content" backgroundColor="#F5F6F8" />
       <LoadingInfo visible={loading} message={titleLoading} />
@@ -298,8 +295,12 @@ export default function Service() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.eventCard}>
-            <View style={styles.eventCardAccent} />
+          <LinearGradient
+            colors={['#592104', '#D08236']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.eventCard}
+          >
             <Text style={styles.eventName}>
               {event.name || 'Carregando evento...'}
             </Text>
@@ -308,7 +309,7 @@ export default function Service() {
               <Feather
                 name="calendar"
                 size={14}
-                color="#8A8A8A"
+                color="#FFFFFF"
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
@@ -321,23 +322,23 @@ export default function Service() {
               <Feather
                 name="users"
                 size={14}
-                color="#8A8A8A"
+                color="#FFFFFF"
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>
                 {listCheckin.length} check-ins realizados
               </Text>
             </View>
-          </View>
+          </LinearGradient>
 
-          <Text style={styles.sectionTitle}>Ações</Text>
+          <Text style={styles.sectionTitle}>Ações Disponíveis</Text>
 
           {isCheckin && (
             <ActionButton
               title="Registrar Presença"
               subtitle="Registrar a presença que estão na pré lista do evento."
               iconName="assignment"
-              iconColor="#4A9954"
+              iconColor="#4CAF50"
               iconBgColor="#E8F5E9"
               onPress={() => navigation.navigate('Credential', { eventId })}
             />
@@ -346,10 +347,10 @@ export default function Service() {
           {showCheckInButton && isCredential && (
             <ActionButton
               title="Check-In"
-              subtitle="Registrar a presença de participantes que estão na pré lista do evento via QRCode."
+              subtitle="Registrar a presença de participantes via QRCode."
               iconName="qr-code-scanner"
-              iconColor="#4A9954"
-              iconBgColor="#E8F5E9"
+              iconColor="#9C27B0"
+              iconBgColor="#F3E5F5"
               onPress={toggleScanner}
             />
           )}
@@ -358,9 +359,9 @@ export default function Service() {
             <ActionButton
               title="Credenciar participante"
               subtitle="Credenciar participantes para participar do evento."
-              iconName="person-add-alt"
-              iconColor="#4A9954"
-              iconBgColor="#E8F5E9"
+              iconName="person-add-alt-1"
+              iconColor="#2196F3"
+              iconBgColor="#E3F2FD"
               onPress={() =>
                 navigation.navigate('CredencialmentoResponsavel', {
                   eventId,
@@ -373,7 +374,9 @@ export default function Service() {
 
           {listCheckin.length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>Últimos Registros:</Text>
+              <Text style={[styles.sectionTitle, { marginTop: 16 }]}>
+                Últimos Registros
+              </Text>
 
               <View style={styles.recordsContainer}>
                 {listCheckin.map((item, index) => (
@@ -459,7 +462,7 @@ export default function Service() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7F5',
+    backgroundColor: '#F4F5F7',
   },
   scrollView: {
     flex: 1,
@@ -484,51 +487,39 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   eventCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
-    paddingLeft: 24,
+    padding: 24,
     marginBottom: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  eventCardAccent: {
-    position: 'absolute',
-    left: 0,
-    top: 16,
-    bottom: 16,
-    width: 4,
-    backgroundColor: '#4A9954',
-    borderTopRightRadius: 4,
-    borderBottomRightRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 5,
   },
   eventName: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 12,
+    color: '#FFFFFF',
+    marginBottom: 16,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   infoIcon: {
-    marginRight: 8,
+    marginRight: 10,
+    opacity: 0.9,
   },
   infoText: {
     fontSize: 13,
-    color: '#8A8A8A',
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8A8A8A',
+    fontWeight: '700',
+    color: '#9E9E9E',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -541,14 +532,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.02,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
     shadowRadius: 5,
-    elevation: 1,
+    elevation: 2,
   },
   actionIconContainer: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -559,15 +550,15 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   actionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#1A1A1A',
     marginBottom: 4,
   },
   actionSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#8A8A8A',
-    lineHeight: 16,
+    lineHeight: 18,
   },
   recordsContainer: {
     backgroundColor: '#FFFFFF',

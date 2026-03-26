@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 
@@ -21,11 +20,9 @@ export default function CustomTopHeader({ navigation, title }) {
           <Feather name="arrow-left" size={20} color="#1A1A1A" />
         </TouchableOpacity>
 
-        <View style={styles.titleContainer}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {title}
-          </Text>
-        </View>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {title}
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -33,41 +30,26 @@ export default function CustomTopHeader({ navigation, title }) {
 
 const styles = StyleSheet.create({
   safeAreaContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    backgroundColor: 'transparent',
   },
   headerContainer: {
-    height: 60,
+    height: 70,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: 20,
-    position: 'relative',
   },
   backButton: {
-    position: 'absolute',
-    left: 20,
     width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 12,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
-  },
-  titleContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginRight: 16,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#1A1A1A',
-    textAlign: 'center',
   },
 });

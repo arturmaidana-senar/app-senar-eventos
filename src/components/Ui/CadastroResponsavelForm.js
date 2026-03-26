@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Orientation from 'react-native-orientation-locker';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
+import Feather from 'react-native-vector-icons/Feather';
 
 import {
   formatDateToBr,
@@ -452,7 +453,7 @@ export default function CadastroResponsavelForm({
           { justifyContent: 'center', alignItems: 'center' },
         ]}
       >
-        <ActivityIndicator size="large" color="#3E7D56" />
+        <ActivityIndicator size="large" color="#1A8F4A" />
       </View>
     );
   }
@@ -461,49 +462,54 @@ export default function CadastroResponsavelForm({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-        <Text style={styles.cancelButtonText}>Trocar CPF / Voltar</Text>
-      </TouchableOpacity>
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         scrollEnabled={scrollEnabled}
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>
-              Dados do Participante / Responsável
-            </Text>
-          </View>
+          <Text style={styles.cardTitle}>
+            Dados do Participante / Responsável
+          </Text>
+
           <Text style={styles.label}>CPF</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: '#eee', color: '#555' }]}
+            style={[
+              styles.input,
+              { backgroundColor: '#F9FAFB', color: '#9CA3AF' },
+            ]}
             value={participante.cpf}
             editable={false}
           />
+
           <Text style={styles.label}>Nome Completo *</Text>
           <TextInput
             style={styles.input}
-            placeholder="Nome"
+            placeholder="Nome Completo"
+            placeholderTextColor="#9CA3AF"
             value={participante.nome}
             onChangeText={t => setParticipante({ ...participante, nome: t })}
           />
+
           <Text style={styles.label}>Telefone *</Text>
           <TextInput
             style={styles.input}
             placeholder="(00) 00000-0000"
+            placeholderTextColor="#9CA3AF"
             keyboardType="phone-pad"
             value={participante.telefone}
             onChangeText={t =>
               setParticipante({ ...participante, telefone: maskTelefone(t) })
             }
           />
+
           <View style={styles.row}>
-            <View style={[styles.col, { marginRight: 10 }]}>
+            <View style={[styles.col, { marginRight: 12 }]}>
               <Text style={styles.label}>Data de Nasc. *</Text>
               <TextInput
                 style={styles.input}
                 placeholder="DD/MM/AAAA"
+                placeholderTextColor="#9CA3AF"
                 keyboardType="numeric"
                 value={participante.data_nascimento}
                 onChangeText={t =>
@@ -532,12 +538,19 @@ export default function CadastroResponsavelForm({
                     styles.pickerText,
                     !participante.sexo && styles.placeholderText,
                   ]}
+                  numberOfLines={1}
                 >
                   {participante.sexoNome || 'Selecione'}
                 </Text>
-                <Text style={styles.pickerIcon}>
-                  {dropdownAberto === 'participante_sexo' ? '▲' : '▼'}
-                </Text>
+                <Feather
+                  name={
+                    dropdownAberto === 'participante_sexo'
+                      ? 'chevron-up'
+                      : 'chevron-down'
+                  }
+                  size={16}
+                  color="#9CA3AF"
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -562,62 +575,25 @@ export default function CadastroResponsavelForm({
             </View>
           )}
 
-          <Text style={styles.label}>Observação</Text>
-          <TextInput
-            style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-            placeholder="Digite uma observação (opcional)"
-            multiline
-            value={participante.observacao}
-            onChangeText={t =>
-              setParticipante({ ...participante, observacao: t })
-            }
-          />
-
-          {criancas.length > 0 && (
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={() =>
-                setParticipante({
-                  ...participante,
-                  isParticipante: !participante.isParticipante,
-                })
-              }
-            >
-              <View
-                style={[
-                  styles.checkbox,
-                  participante.isParticipante && styles.checkboxChecked,
-                ]}
-              >
-                {participante.isParticipante && (
-                  <Text style={styles.checkboxCheckmark}>✓</Text>
-                )}
-              </View>
-              <Text style={styles.checkboxLabel}>
-                Também serei participante neste evento
-              </Text>
-            </TouchableOpacity>
-          )}
-
           <TouchableOpacity
-            style={[styles.checkboxContainer, { marginTop: 8 }]}
+            style={styles.checkboxContainer}
             onPress={() => setIsAutoridade(prev => !prev)}
           >
             <View
               style={[styles.checkbox, isAutoridade && styles.checkboxChecked]}
             >
-              {isAutoridade && <Text style={styles.checkboxCheckmark}>✓</Text>}
+              {isAutoridade && <Feather name="check" size={14} color="#FFF" />}
             </View>
             <Text style={styles.checkboxLabel}>É uma autoridade</Text>
           </TouchableOpacity>
 
           {isAutoridade && (
             <>
-              <Text style={[styles.label, { marginTop: 8 }]}>Autoridade *</Text>
+              <Text style={styles.label}>Autoridade *</Text>
               {loadingAutoridades ? (
                 <ActivityIndicator
                   size="small"
-                  color="#3E7D56"
+                  color="#1A8F4A"
                   style={{ marginBottom: 12 }}
                 />
               ) : (
@@ -640,9 +616,15 @@ export default function CadastroResponsavelForm({
                         ? selectedAutoridade.name
                         : 'Selecione a autoridade'}
                     </Text>
-                    <Text style={styles.pickerIcon}>
-                      {dropdownAberto === 'autoridade' ? '▲' : '▼'}
-                    </Text>
+                    <Feather
+                      name={
+                        dropdownAberto === 'autoridade'
+                          ? 'chevron-up'
+                          : 'chevron-down'
+                      }
+                      size={16}
+                      color="#9CA3AF"
+                    />
                   </TouchableOpacity>
                   {dropdownAberto === 'autoridade' && (
                     <View style={styles.dropdownList}>
@@ -675,50 +657,120 @@ export default function CadastroResponsavelForm({
                   )}
                 </>
               )}
+
+              <Text style={styles.label}>Observação</Text>
+              <TextInput
+                style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+                placeholder="Digite uma observação (opcional)"
+                placeholderTextColor="#9CA3AF"
+                multiline
+                value={participante.observacao}
+                onChangeText={t =>
+                  setParticipante({ ...participante, observacao: t })
+                }
+              />
             </>
+          )}
+
+          {criancas.length > 0 && (
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() =>
+                setParticipante({
+                  ...participante,
+                  isParticipante: !participante.isParticipante,
+                })
+              }
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  participante.isParticipante && styles.checkboxChecked,
+                ]}
+              >
+                {participante.isParticipante && (
+                  <Feather name="check" size={14} color="#FFF" />
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                Também serei participante neste evento
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
 
         {hasMinorTerm && (
           <View style={styles.card}>
-            <View
-              style={[styles.cardHeader, { justifyContent: 'space-between' }]}
-            >
-              <Text style={styles.cardTitle}>Dependentes (Opcional)</Text>
-              <TouchableOpacity onPress={abrirModalNovaCrianca}>
-                <Text style={styles.addButtonText}>+Adicionar</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={[styles.cardTitle, { marginBottom: 16 }]}>
+              Dependentes (Opcional)
+            </Text>
+
             {criancas.length === 0 ? (
-              <Text style={styles.emptyText}>Nenhuma criança vinculada.</Text>
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Nenhuma criança vinculada.</Text>
+                <TouchableOpacity
+                  style={styles.dashedButton}
+                  onPress={abrirModalNovaCrianca}
+                >
+                  <Feather
+                    name="plus"
+                    size={18}
+                    color="#1A8F4A"
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.dashedButtonText}>
+                    Adicionar Dependente
+                  </Text>
+                </TouchableOpacity>
+              </View>
             ) : (
-              criancas.map(child => (
-                <View key={child.id} style={styles.childItem}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.childName}>
-                      {child.nome}{' '}
-                      <Text style={styles.childParentesco}>
-                        ({child.parentesco?.name || child.parentesco})
+              <>
+                {criancas.map(child => (
+                  <View key={child.id} style={styles.childItem}>
+                    <View style={{ flex: 1, paddingRight: 10 }}>
+                      <Text style={styles.childName}>
+                        {child.nome}{' '}
+                        <Text style={styles.childParentesco}>
+                          ({child.parentesco?.name || child.parentesco})
+                        </Text>
                       </Text>
-                    </Text>
-                    {child.cpf ? (
-                      <Text style={styles.childInfoText}>CPF: {child.cpf}</Text>
-                    ) : null}
-                    <Text style={styles.childInfoText}>
-                      Nasc: {child.dataNascimento} • {child.idadeCalculada} anos
-                      • {child.sexoNome}
-                    </Text>
+                      {child.cpf ? (
+                        <Text style={styles.childInfoText}>
+                          CPF: {child.cpf}
+                        </Text>
+                      ) : null}
+                      <Text style={styles.childInfoText}>
+                        Nasc: {child.dataNascimento} • {child.idadeCalculada}{' '}
+                        anos • {child.sexoNome}
+                      </Text>
+                    </View>
+                    <View style={styles.childActions}>
+                      <TouchableOpacity onPress={() => editarCrianca(child)}>
+                        <Text style={styles.editButtonText}>Editar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => removerCrianca(child.id)}
+                      >
+                        <Text style={styles.deleteButtonText}>Remover</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <View style={styles.childActions}>
-                    <TouchableOpacity onPress={() => editarCrianca(child)}>
-                      <Text style={styles.editButtonText}>[Editar]</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => removerCrianca(child.id)}>
-                      <Text style={styles.deleteButtonText}>[Remover]</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
+                ))}
+                <TouchableOpacity
+                  style={[styles.dashedButton, { marginTop: 12 }]}
+                  onPress={abrirModalNovaCrianca}
+                >
+                  <Feather
+                    name="plus"
+                    size={18}
+                    color="#1A8F4A"
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={styles.dashedButtonText}>
+                    Adicionar Dependente
+                  </Text>
+                </TouchableOpacity>
+              </>
             )}
           </View>
         )}
@@ -733,11 +785,12 @@ export default function CadastroResponsavelForm({
             </Text>
             <TouchableOpacity
               style={[
-                styles.openSignatureButton,
+                styles.dashedButton,
                 assinaturaBase64 && {
                   height: 'auto',
                   padding: 10,
                   borderStyle: 'solid',
+                  backgroundColor: '#FFF',
                 },
               ]}
               onPress={iniciarAssinatura}
@@ -753,9 +806,17 @@ export default function CadastroResponsavelForm({
                   </Text>
                 </View>
               ) : (
-                <Text style={styles.openSignatureButtonText}>
-                  Ler Termos e Assinar (Tela Cheia)
-                </Text>
+                <>
+                  <Feather
+                    name="file-text"
+                    size={18}
+                    color="#1A8F4A"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.dashedButtonText}>
+                    Ler Termos e Assinar (Tela Cheia)
+                  </Text>
+                </>
               )}
             </TouchableOpacity>
             {assinaturaBase64 && (
@@ -767,17 +828,17 @@ export default function CadastroResponsavelForm({
         )}
 
         <TouchableOpacity
-          style={[styles.submitButton, loadingSubmit && { opacity: 0.5 }]}
+          style={[styles.submitButton, loadingSubmit && { opacity: 0.7 }]}
           onPress={handleSubmit}
           disabled={loadingSubmit}
         >
           {loadingSubmit ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.submitButtonText}>FINALIZAR CADASTRO</Text>
+            <Text style={styles.submitButtonText}>Finalizar Cadastro</Text>
           )}
         </TouchableOpacity>
-        <View style={{ height: 50 }} />
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       <ModalTermos
@@ -816,54 +877,46 @@ export default function CadastroResponsavelForm({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7F5',
-  },
-  cancelButton: {
-    padding: 10,
-    alignItems: 'center',
-    backgroundColor: '#FFEBEE',
-  },
-  cancelButtonText: {
-    color: '#D32F2F',
-    fontWeight: 'bold',
+    backgroundColor: '#F4F5F7',
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#333',
-    maxWidth: 180,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
   },
   label: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#555',
-    marginBottom: 6,
-    marginTop: 4,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+    marginTop: 12,
   },
   input: {
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 15,
-    marginBottom: 12,
-    color: '#333',
+    color: '#1F2937',
   },
   row: {
     flexDirection: 'row',
@@ -873,167 +926,179 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pickerButton: {
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: 48,
+    height: 52,
   },
   pickerText: {
     fontSize: 15,
-    color: '#333',
+    color: '#1F2937',
+    flex: 1,
   },
   placeholderText: {
-    color: '#999',
-  },
-  pickerIcon: {
-    color: '#999',
-    fontSize: 12,
+    color: '#9CA3AF',
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 16,
   },
   checkbox: {
     width: 22,
     height: 22,
-    borderWidth: 2,
-    borderColor: '#3E7D56',
-    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    borderRadius: 6,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFF',
   },
   checkboxChecked: {
-    backgroundColor: '#3E7D56',
-  },
-  checkboxCheckmark: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: 'bold',
+    backgroundColor: '#1A8F4A',
+    borderColor: '#1A8F4A',
   },
   checkboxLabel: {
     fontSize: 14,
-    color: '#555',
+    color: '#4B5563',
     flex: 1,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginBottom: 16,
+  },
+  dashedButton: {
+    flexDirection: 'row',
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1.5,
+    borderColor: '#86EFAC',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  dashedButtonText: {
+    color: '#1A8F4A',
+    fontWeight: '700',
+    fontSize: 14,
   },
   childItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#EEE',
+    borderColor: '#F3F4F6',
   },
   childName: {
-    fontWeight: 'bold',
-    color: '#444',
+    fontWeight: '700',
+    color: '#1F2937',
     fontSize: 15,
   },
   childParentesco: {
     fontWeight: 'normal',
-    color: '#3E7D56',
+    color: '#1A8F4A',
     fontSize: 14,
   },
   childInfoText: {
     fontSize: 13,
-    color: '#888',
-    marginTop: 2,
+    color: '#6B7280',
+    marginTop: 4,
   },
   childActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   editButtonText: {
-    color: '#0288D1',
-    fontSize: 12,
-    marginRight: 15,
+    color: '#3B82F6',
+    fontWeight: '600',
+    fontSize: 13,
+    marginBottom: 12,
   },
   deleteButtonText: {
-    color: '#FF4444',
-    fontSize: 12,
-  },
-  addButtonText: {
-    color: '#3E7D56',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  emptyText: {
-    fontStyle: 'italic',
-    color: '#aaa',
-    textAlign: 'center',
-    padding: 10,
+    color: '#EF4444',
+    fontWeight: '600',
+    fontSize: 13,
   },
   submitButton: {
-    backgroundColor: '#3E7D56',
-    padding: 18,
-    borderRadius: 10,
+    backgroundColor: '#1A8F4A',
+    paddingVertical: 18,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,
+    elevation: 2,
+    shadowColor: '#1A8F4A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    marginTop: 8,
   },
   submitButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  openSignatureButton: {
-    backgroundColor: '#E8F5E9',
-    borderWidth: 2,
-    borderColor: '#3E7D56',
-    borderStyle: 'dashed',
-    borderRadius: 10,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  openSignatureButtonText: {
-    color: '#3E7D56',
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '700',
     fontSize: 16,
   },
   signaturePreview: {
     width: '100%',
-    height: 150,
+    height: 120,
     resizeMode: 'contain',
-    marginBottom: 5,
+    marginBottom: 8,
     backgroundColor: '#fff',
   },
-  signatureCapturedText: { color: '#3E7D56', fontWeight: 'bold', fontSize: 14 },
-  clearLink: {
-    color: '#FF4444',
-    fontSize: 12,
-    textAlign: 'right',
-    textDecorationLine: 'underline',
+  signatureCapturedText: {
+    color: '#1A8F4A',
+    fontWeight: '600',
+    fontSize: 13,
   },
-  legalText: { fontSize: 12, color: '#666', marginBottom: 15, lineHeight: 18 },
+  clearLink: {
+    color: '#EF4444',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 12,
+    fontWeight: '600',
+  },
+  legalText: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
   dropdownList: {
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    marginTop: -8,
+    borderColor: '#E5E7EB',
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    marginTop: -4,
     marginBottom: 12,
     overflow: 'hidden',
   },
   dropdownItem: {
-    padding: 12,
+    padding: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: '#F3F4F6',
   },
   dropdownItemText: {
     fontSize: 15,
-    color: '#333',
+    color: '#1F2937',
   },
 });

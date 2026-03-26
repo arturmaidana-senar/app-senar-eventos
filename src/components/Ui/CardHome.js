@@ -1,19 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 
-const fallbackImages = [
-  'https://images.unsplash.com/photo-1594498653385-d5172c532c00?q=80&w=400&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=400&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1511225070737-5af5ac9a690d?q=80&w=400&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1534143003024-db5e42d76de8?q=80&w=400&auto=format&fit=crop',
-];
-
-const CardEvent = ({
-  item,
-  imageBaseUrl = 'https://eventos.senarmt.org.br/storage/',
-}) => {
+const CardEvent = ({ item }) => {
   const navigation = useNavigation();
 
   const formatDateObj = dateString => {
@@ -38,20 +28,23 @@ const CardEvent = ({
     displayDate = `${startDate} — ${endDate}`;
   }
 
-  const fallbackImage = fallbackImages[(item.id || 0) % fallbackImages.length];
-  const imageSource = item.image
-    ? { uri: `${imageBaseUrl}${item.image}` }
-    : { uri: fallbackImage };
-
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate('EventShow', { eventId: item.id })}
       activeOpacity={0.8}
     >
-      <View style={styles.imageContainer}>
-        <Image source={imageSource} style={styles.image} resizeMode="cover" />
-        <View style={styles.badge}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.title} numberOfLines={1}>
+          {item.name}
+        </Text>
+
+        <View
+          style={[
+            styles.badge,
+            isRealizado ? styles.badgeRealizado : styles.badgeAguardando,
+          ]}
+        >
           <View
             style={[
               styles.badgeDot,
@@ -69,36 +62,29 @@ const CardEvent = ({
         </View>
       </View>
 
-      <View style={styles.contentContainer}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Feather name="chevron-right" size={20} color="#D3D3D3" />
-        </View>
-
-        <View style={styles.infoRow}>
-          <Feather
-            name="map-pin"
-            size={14}
-            color="#4A9954"
-            style={styles.icon}
-          />
-          <Text style={styles.infoText} numberOfLines={1}>
-            {item.name_location}
-          </Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Feather
-            name="calendar"
-            size={14}
-            color="#8A8A8A"
-            style={styles.icon}
-          />
-          <Text style={styles.infoText}>{displayDate}</Text>
-        </View>
+      <View style={styles.infoRow}>
+        <Feather name="map-pin" size={14} color="#4A9954" style={styles.icon} />
+        <Text style={styles.infoText} numberOfLines={1}>
+          {item.name_location}
+        </Text>
       </View>
+
+      <View style={styles.infoRow}>
+        <Feather
+          name="calendar"
+          size={14}
+          color="#8A8A8A"
+          style={styles.icon}
+        />
+        <Text style={styles.infoText}>{displayDate}</Text>
+      </View>
+
+      <Feather
+        name="chevron-right"
+        size={20}
+        color="#D3D3D3"
+        style={styles.chevronIcon}
+      />
     </TouchableOpacity>
   );
 };
@@ -107,35 +93,44 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 5,
     borderWidth: 1,
     borderColor: '#F0F0F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.02,
     shadowRadius: 8,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  imageContainer: {
-    width: '100%',
-    height: 140,
+    elevation: 1,
     position: 'relative',
+    justifyContent: 'center',
   },
-  image: {
-    width: '100%',
-    height: '100%',
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+    paddingRight: 10,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    flex: 1,
+    marginRight: 8,
   },
   badge: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
-    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 12,
+  },
+  badgeRealizado: {
+    backgroundColor: '#E8F5E9',
+  },
+  badgeAguardando: {
+    backgroundColor: '#FFF8E1',
   },
   badgeDot: {
     width: 6,
@@ -160,22 +155,6 @@ const styles = StyleSheet.create({
   textAguardando: {
     color: '#D97706',
   },
-  contentContainer: {
-    padding: 16,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    flex: 1,
-    marginRight: 8,
-  },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -188,6 +167,12 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     color: '#6A737D',
+  },
+  chevronIcon: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    marginTop: -2,
   },
 });
 
