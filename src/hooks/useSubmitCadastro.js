@@ -123,6 +123,73 @@ export default function useSubmitCadastro({
 
     formData.append('data_hora', new Date().toISOString());
 
+    // ─── LOG DE TUDO QUE SERÁ ENVIADO ───────────────────────────────────────
+    const participanteConfirmadoLog =
+      criancas.length === 0 ? true : participante.isParticipante;
+
+    console.log('======================================================');
+    console.log('📤 PAYLOAD ENVIADO AO BACKEND');
+    console.log('======================================================');
+    console.log('🔹 EVENTO ID:', currentEventId);
+    console.log('------------------------------------------------------');
+    console.log('🔹 PARTICIPANTE:');
+    console.log('   nome            :', participante.nome);
+    console.log('   cpf             :', participante.cpf.replace(/\D/g, ''));
+    console.log('   telefone        :', participante.telefone);
+    console.log(
+      '   birth_date      :',
+      formatForBackend(participante.data_nascimento),
+    );
+    console.log('   gender_id       :', participante.sexo);
+    console.log('   is_participante :', participanteConfirmadoLog ? '1' : '0');
+    if (isAutoridade && selectedAutoridade) {
+      console.log(
+        '   autoridade_id   :',
+        selectedAutoridade.id,
+        '|',
+        selectedAutoridade.name,
+      );
+    }
+    console.log('------------------------------------------------------');
+    console.log('🔹 TERMO / ASSINATURA:');
+    console.log('   hasTerm         :', hasTerm);
+    console.log('   tem assinatura  :', !!assinaturaBase64);
+    if (hasTerm && assinaturaBase64) {
+      console.log(
+        '   assinatura_png  : [base64 presente, tamanho:',
+        assinaturaBase64.length,
+        'chars]',
+      );
+      console.log(
+        '   termo_aceite    : lido=1 | data=',
+        new Date().toISOString(),
+      );
+    }
+    console.log('------------------------------------------------------');
+    console.log(
+      '🔹 CRIANÇAS VINCULADAS:',
+      criancas.length === 0 ? 'Nenhuma' : criancas.length,
+    );
+    criancas.forEach((c, index) => {
+      console.log(`   [${index}] nome       :`, c.nome);
+      console.log(
+        `   [${index}] birth_date :`,
+        formatForBackend(c.dataNascimento),
+      );
+      console.log(`   [${index}] idade      :`, c.idadeCalculada);
+      console.log(`   [${index}] gender_id  :`, c.sexo);
+      console.log(
+        `   [${index}] parentesco :`,
+        typeof c.parentesco === 'object'
+          ? `id=${c.parentesco.id} | ${c.parentesco.name}`
+          : c.parentesco,
+      );
+      if (c.cpf)
+        console.log(`   [${index}] cpf        :`, c.cpf.replace(/\D/g, ''));
+    });
+    console.log('======================================================');
+    // ────────────────────────────────────────────────────────────────────────
+
     return formData;
   };
 

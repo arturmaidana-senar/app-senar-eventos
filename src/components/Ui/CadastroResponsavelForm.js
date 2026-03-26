@@ -96,27 +96,19 @@ export default function CadastroResponsavelForm({
   useEffect(() => {
     if (sexoOptions.length > 0) return;
 
-    const fetchGendersViaCpf = async () => {
+    const fetchSexos = async () => {
       try {
-        const cpfLimpo = participante.cpf.replace(/\D/g, '');
-
-        if (!cpfLimpo || cpfLimpo.length < 11) return;
-
-        const data = await endpoint.checkGendersViaCpf(
-          currentEventId,
-          cpfLimpo,
-        );
-
-        if (Array.isArray(data?.genders)) {
-          setSexoOptions(data.genders);
+        const data = await endpoint.getSexos();
+        if (Array.isArray(data)) {
+          setSexoOptions(data);
         }
       } catch (err) {
-        console.error(err?.response?.status);
+        console.error('Erro ao buscar sexos:', err?.response?.status);
       }
     };
 
-    fetchGendersViaCpf();
-  }, [participante.cpf, currentEventId]);
+    fetchSexos();
+  }, []);
 
   useEffect(() => {
     const fetchTermStatus = async () => {

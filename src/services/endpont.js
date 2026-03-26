@@ -95,6 +95,12 @@ export default {
     }
   },
 
+  // services/endpont.js
+  getSexos: async () => {
+    const response = await api.get('/sexo');
+    return response.data;
+  },
+
   getEventTerm: async eventId => {
     const response = await api.get(`/events/${eventId}/term`);
     return response?.data || {};
