@@ -71,6 +71,7 @@ export default function CadastroResponsavelForm({
     data_nascimento: '',
     sexo: '',
     sexoNome: '',
+    observacao: '',
     isParticipante: false,
   });
 
@@ -189,6 +190,7 @@ export default function CadastroResponsavelForm({
           : '',
         sexo: initialGenderId,
         sexoNome: initialGender ? initialGender.name : '',
+        observacao: initialData.observation || '',
       }));
     }
 
@@ -559,6 +561,17 @@ export default function CadastroResponsavelForm({
               ))}
             </View>
           )}
+
+          <Text style={styles.label}>Observação</Text>
+          <TextInput
+            style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+            placeholder="Digite uma observação (opcional)"
+            multiline
+            value={participante.observacao}
+            onChangeText={t =>
+              setParticipante({ ...participante, observacao: t })
+            }
+          />
 
           {criancas.length > 0 && (
             <TouchableOpacity

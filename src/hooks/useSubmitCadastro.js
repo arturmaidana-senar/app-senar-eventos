@@ -73,8 +73,15 @@ export default function useSubmitCadastro({
       participanteConfirmado ? '1' : '0',
     );
 
+    if (participante.observacao) {
+      formData.append('participante[observation]', participante.observacao);
+    }
+
     if (isAutoridade && selectedAutoridade) {
-      formData.append('participante[autoridade_id]', selectedAutoridade.id);
+      formData.append(
+        'participante[participant_types_id]',
+        selectedAutoridade.id,
+      );
     }
 
     if (hasTerm && assinaturaBase64) {
@@ -142,9 +149,12 @@ export default function useSubmitCadastro({
     );
     console.log('   gender_id       :', participante.sexo);
     console.log('   is_participante :', participanteConfirmadoLog ? '1' : '0');
+    if (participante.observacao) {
+      console.log('   observation     :', participante.observacao);
+    }
     if (isAutoridade && selectedAutoridade) {
       console.log(
-        '   autoridade_id   :',
+        '   participant_types_id :',
         selectedAutoridade.id,
         '|',
         selectedAutoridade.name,
