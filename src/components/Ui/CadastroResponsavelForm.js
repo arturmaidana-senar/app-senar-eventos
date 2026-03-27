@@ -467,7 +467,7 @@ export default function CadastroResponsavelForm({
         scrollEnabled={scrollEnabled}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.card}>
+        <View style={[styles.card, { zIndex: 10, elevation: 10 }]}>
           <Text style={styles.cardTitle}>
             Dados do Participante / Responsável
           </Text>
@@ -702,7 +702,7 @@ export default function CadastroResponsavelForm({
         </View>
 
         {hasMinorTerm && (
-          <View style={styles.card}>
+          <View style={[styles.card, { zIndex: 1, elevation: 2 }]}>
             <Text style={[styles.cardTitle, { marginBottom: 16 }]}>
               Dependentes (Opcional)
             </Text>
@@ -778,7 +778,7 @@ export default function CadastroResponsavelForm({
         )}
 
         {hasTerm && (
-          <View style={styles.card}>
+          <View style={[styles.card, { zIndex: 1, elevation: 2 }]}>
             <Text style={styles.cardTitle}>Assinatura *</Text>
             <Text style={styles.legalText}>
               {criancas.length === 0
@@ -830,7 +830,11 @@ export default function CadastroResponsavelForm({
         )}
 
         <TouchableOpacity
-          style={[styles.submitButton, loadingSubmit && { opacity: 0.7 }]}
+          style={[
+            styles.submitButton,
+            loadingSubmit && { opacity: 0.7 },
+            { zIndex: 1, elevation: 2 },
+          ]}
           onPress={handleSubmit}
           disabled={loadingSubmit}
         >
@@ -895,7 +899,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
-    elevation: 2,
   },
   cardTitle: {
     fontSize: 15,
@@ -1046,7 +1049,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
     shadowColor: '#1A8F4A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
