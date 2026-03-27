@@ -503,7 +503,7 @@ export default function CadastroResponsavelForm({
             }
           />
 
-          <View style={styles.row}>
+          <View style={[styles.row, { zIndex: 10 }]}>
             <View style={[styles.col, { marginRight: 12 }]}>
               <Text style={styles.label}>Data de Nasc. *</Text>
               <TextInput
@@ -521,59 +521,61 @@ export default function CadastroResponsavelForm({
                 maxLength={10}
               />
             </View>
-            <View style={styles.col}>
+            <View style={[styles.col, { zIndex: 10 }]}>
               <Text style={styles.label}>Sexo *</Text>
-              <TouchableOpacity
-                style={styles.pickerButton}
-                onPress={() =>
-                  setDropdownAberto(
-                    dropdownAberto === 'participante_sexo'
-                      ? ''
-                      : 'participante_sexo',
-                  )
-                }
-              >
-                <Text
-                  style={[
-                    styles.pickerText,
-                    !participante.sexo && styles.placeholderText,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {participante.sexoNome || 'Selecione'}
-                </Text>
-                <Feather
-                  name={
-                    dropdownAberto === 'participante_sexo'
-                      ? 'chevron-up'
-                      : 'chevron-down'
+              <View style={{ zIndex: 10 }}>
+                <TouchableOpacity
+                  style={styles.pickerButton}
+                  onPress={() =>
+                    setDropdownAberto(
+                      dropdownAberto === 'participante_sexo'
+                        ? ''
+                        : 'participante_sexo',
+                    )
                   }
-                  size={16}
-                  color="#9CA3AF"
-                />
-              </TouchableOpacity>
+                >
+                  <Text
+                    style={[
+                      styles.pickerText,
+                      !participante.sexo && styles.placeholderText,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {participante.sexoNome || 'Selecione'}
+                  </Text>
+                  <Feather
+                    name={
+                      dropdownAberto === 'participante_sexo'
+                        ? 'chevron-up'
+                        : 'chevron-down'
+                    }
+                    size={16}
+                    color="#9CA3AF"
+                  />
+                </TouchableOpacity>
+                {dropdownAberto === 'participante_sexo' && (
+                  <View style={[styles.dropdownList, styles.dropdownFloating]}>
+                    {sexoOptions.map(item => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setParticipante({
+                            ...participante,
+                            sexo: item.id,
+                            sexoNome: item.name,
+                          });
+                          setDropdownAberto('');
+                        }}
+                      >
+                        <Text style={styles.dropdownItemText}>{item.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
             </View>
           </View>
-          {dropdownAberto === 'participante_sexo' && (
-            <View style={styles.dropdownList}>
-              {sexoOptions.map(item => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setParticipante({
-                      ...participante,
-                      sexo: item.id,
-                      sexoNome: item.name,
-                    });
-                    setDropdownAberto('');
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{item.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
 
           <TouchableOpacity
             style={styles.checkboxContainer}
@@ -1091,6 +1093,20 @@ const styles = StyleSheet.create({
     marginTop: -4,
     marginBottom: 12,
     overflow: 'hidden',
+  },
+  dropdownFloating: {
+    position: 'absolute',
+    top: 56,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 10,
+    borderRadius: 12,
+    borderTopWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   dropdownItem: {
     padding: 14,
