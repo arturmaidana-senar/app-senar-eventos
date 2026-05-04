@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import Orientation from 'react-native-orientation-locker';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
-import Feather from 'react-native-vector-icons/Feather';
+import { ChevronUp, ChevronDown, Check, Plus, FileText } from 'lucide-react-native';
 
 import {
   formatDateToBr,
@@ -543,15 +543,11 @@ export default function CadastroResponsavelForm({
                   >
                     {participante.sexoNome || 'Selecione'}
                   </Text>
-                  <Feather
-                    name={
-                      dropdownAberto === 'participante_sexo'
-                        ? 'chevron-up'
-                        : 'chevron-down'
-                    }
-                    size={16}
-                    color="#9CA3AF"
-                  />
+                    {dropdownAberto === 'participante_sexo' ? (
+                      <ChevronUp size={16} color="#9CA3AF" />
+                    ) : (
+                      <ChevronDown size={16} color="#9CA3AF" />
+                    )}
                 </TouchableOpacity>
                 {dropdownAberto === 'participante_sexo' && (
                   <View style={[styles.dropdownList, styles.dropdownFloating]}>
@@ -584,7 +580,7 @@ export default function CadastroResponsavelForm({
             <View
               style={[styles.checkbox, isAutoridade && styles.checkboxChecked]}
             >
-              {isAutoridade && <Feather name="check" size={14} color="#FFF" />}
+              {isAutoridade && <Check size={14} color="#FFF" />}
             </View>
             <Text style={styles.checkboxLabel}>É uma autoridade</Text>
           </TouchableOpacity>
@@ -618,15 +614,11 @@ export default function CadastroResponsavelForm({
                         ? selectedAutoridade.name
                         : 'Selecione a autoridade'}
                     </Text>
-                    <Feather
-                      name={
-                        dropdownAberto === 'autoridade'
-                          ? 'chevron-up'
-                          : 'chevron-down'
-                      }
-                      size={16}
-                      color="#9CA3AF"
-                    />
+                    {dropdownAberto === 'autoridade' ? (
+                      <ChevronUp size={16} color="#9CA3AF" />
+                    ) : (
+                      <ChevronDown size={16} color="#9CA3AF" />
+                    )}
                   </TouchableOpacity>
                   {dropdownAberto === 'autoridade' && (
                     <View style={styles.dropdownList}>
@@ -691,7 +683,7 @@ export default function CadastroResponsavelForm({
                 ]}
               >
                 {participante.isParticipante && (
-                  <Feather name="check" size={14} color="#FFF" />
+                  <Check size={14} color="#FFF" />
                 )}
               </View>
               <Text style={styles.checkboxLabel}>
@@ -714,8 +706,7 @@ export default function CadastroResponsavelForm({
                   style={styles.dashedButton}
                   onPress={abrirModalNovaCrianca}
                 >
-                  <Feather
-                    name="plus"
+                  <Plus
                     size={18}
                     color="#1A8F4A"
                     style={{ marginRight: 6 }}
@@ -762,8 +753,7 @@ export default function CadastroResponsavelForm({
                   style={[styles.dashedButton, { marginTop: 12 }]}
                   onPress={abrirModalNovaCrianca}
                 >
-                  <Feather
-                    name="plus"
+                  <Plus
                     size={18}
                     color="#1A8F4A"
                     style={{ marginRight: 6 }}
@@ -809,8 +799,7 @@ export default function CadastroResponsavelForm({
                 </View>
               ) : (
                 <>
-                  <Feather
-                    name="file-text"
+                  <FileText
                     size={18}
                     color="#1A8F4A"
                     style={{ marginRight: 8 }}

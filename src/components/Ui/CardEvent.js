@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Feather from 'react-native-vector-icons/Feather';
+import { MapPin, Calendar, ChevronRight } from 'lucide-react-native';
 
 const CardHome = ({ item }) => {
   const navigation = useNavigation();
@@ -55,20 +55,20 @@ const CardHome = ({ item }) => {
         </View>
 
         <View style={styles.infoRow}>
-          <Feather name="map-pin" size={14} color="#A0A0A0" />
+          <MapPin size={14} color="#A0A0A0" />
           <Text style={styles.infoText} numberOfLines={1}>
             {item.name_location || 'Local não informado'}
           </Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Feather name="calendar" size={14} color="#A0A0A0" />
+          <Calendar size={14} color="#A0A0A0" />
           <Text style={styles.infoText}>{displayDate}</Text>
         </View>
       </View>
 
       <View style={styles.chevronContainer}>
-        <Feather name="chevron-right" size={20} color="#C0C0C0" />
+        <ChevronRight size={20} color="#C0C0C0" />
       </View>
     </TouchableOpacity>
   );

@@ -13,10 +13,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import EyeIcon from 'react-native-vector-icons/Feather';
-import EyeOffIcon from 'react-native-vector-icons/Feather';
+import { ArrowLeft, Lock, Eye, EyeOff } from 'lucide-react-native';
 import api from './../../services/endpont';
 import LoadingInfo from '../../components/Ui/LoadingInfo';
 
@@ -134,7 +131,7 @@ export default function NewPassword() {
             );
           }}
         >
-          <Icon name="arrow-back" size={24} color="black" />
+          <ArrowLeft size={24} color="black" />
         </TouchableOpacity>
       ),
     });
@@ -151,8 +148,7 @@ export default function NewPassword() {
       <View style={[styles.container]}>
         <Text style={styles.label}>Nova Senha</Text>
         <View style={styles.inputContainer}>
-          <MCIcon
-            name="lock-outline"
+          <Lock
             size={24}
             color={iconColorPassWord}
             style={styles.icon}
@@ -166,9 +162,10 @@ export default function NewPassword() {
             onChangeText={t => setPasswordField(t)}
           />
           <CustomButton onPress={() => setPasswordHide(!passwordHide)}>
-            {passwordHide && <EyeIcon name="eye" size={24} marginLeft="2%" />}
-            {!passwordHide && (
-              <EyeOffIcon name="eye-off" size={24} marginLeft="2%" />
+            {passwordHide ? (
+              <Eye size={24} style={{ marginLeft: 8 }} />
+            ) : (
+              <EyeOff size={24} style={{ marginLeft: 8 }} />
             )}
           </CustomButton>
         </View>
@@ -177,8 +174,7 @@ export default function NewPassword() {
       <View style={[styles.container]}>
         <Text style={styles.label}>Confirmação da nova senha</Text>
         <View style={styles.inputContainer}>
-          <MCIcon
-            name="lock-outline"
+          <Lock
             size={24}
             color={iconColorPassWordNew}
             style={styles.icon}
@@ -192,11 +188,10 @@ export default function NewPassword() {
             onChangeText={t => setPasswordNewField(t)}
           />
           <CustomButton onPress={() => setPasswordNewHide(!passwordNewHide)}>
-            {passwordNewHide && (
-              <EyeIcon name="eye" size={24} marginLeft="2%" />
-            )}
-            {!passwordNewHide && (
-              <EyeOffIcon name="eye-off" size={24} marginLeft="2%" />
+            {passwordNewHide ? (
+              <Eye size={24} style={{ marginLeft: 8 }} />
+            ) : (
+              <EyeOff size={24} style={{ marginLeft: 8 }} />
             )}
           </CustomButton>
         </View>

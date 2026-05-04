@@ -10,7 +10,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import { Search } from 'lucide-react-native';
 import Header from '../../components/Ui/Header';
 import CardEvent from '../../components/Ui/CardEvent';
 import CardNotEvent from '../../components/Ui/CardNotEvent';
@@ -83,14 +83,13 @@ export default function Event() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
       <View style={styles.content}>
         <Text style={styles.pageTitle}>Eventos</Text>
 
         <View style={styles.searchContainer}>
-          <Feather
-            name="search"
+          <Search
             size={20}
             color="#A0A0A0"
             style={styles.searchIcon}

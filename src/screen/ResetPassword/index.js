@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   StatusBar,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Mail, ChevronRight } from 'lucide-react-native';
 import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import api from './../../services/endpont';
 import LoadingInfo from '../../components/Ui/LoadingInfo';
@@ -76,7 +76,7 @@ export default function ResetPassword() {
 
   return (
     <View style={styles.page}>
-      <StatusBar backgroundColor="#37C064" barStyle="light-content" />
+      <StatusBar backgroundColor="transparent" barStyle="dark-content" translucent={true} />
       <LoadingInfo visible={loading} />
       <View style={styles.container}>
         <Text style={styles.title}>Não se preocupe, vamos te ajudar</Text>
@@ -103,8 +103,7 @@ export default function ResetPassword() {
               onPress={() => handleCpfPress()}
               style={styles.optionButton}
             >
-              <Icon
-                name="mail-outline"
+              <Mail
                 size={24}
                 color="#4CAF50"
                 style={styles.icon}
@@ -115,7 +114,7 @@ export default function ResetPassword() {
                   Receber PIN no E-mail cadastrado
                 </Text>
               </View>
-              <Icon name="chevron-forward-outline" size={24} color="#4CAF50" />
+              <ChevronRight size={24} color="#4CAF50" />
             </TouchableOpacity>
 
             <Text style={styles.footerText}>

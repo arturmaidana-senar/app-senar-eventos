@@ -1,14 +1,13 @@
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Info } from 'lucide-react-native';
 
 const CardNotEvent = () => {
   return (
     <View style={styles.body}>
       <ScrollView style={styles.container}>
         <View style={styles.card}>
-          <Icon
-            name="info"
+          <Info
             size={32}
             color="#37C064"
             style={{ marginTop: 5 }}

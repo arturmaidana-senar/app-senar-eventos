@@ -21,7 +21,7 @@ const StackNavigator = () => {
       <StackComponent.Navigator
         initialRouteName="Preload"
         screenOptions={{
-          headerShown: false,
+          headerShown: false, headerBackTitleVisible: false,
           headerStyle: {
             backgroundColor: '#FFF',
             elevation: 10,
@@ -55,7 +55,7 @@ const StackNavigator = () => {
         <StackComponent.Screen
           name={'Service'}
           component={Service}
-          options={{ headerShown: false, unmountOnBlur: true }}
+          options={{ headerShown: false, headerBackTitleVisible: false, unmountOnBlur: true }}
         />
         <StackComponent.Screen
           name={'EventShow'}

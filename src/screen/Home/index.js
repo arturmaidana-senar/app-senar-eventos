@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View,
   Text,
   FlatList,
   RefreshControl,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
+  View,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import Header from '../../components/Ui/Header';
 import CardHome from '../../components/Ui/CardHome';
@@ -48,16 +48,20 @@ export default function Home() {
 
   async function requestPermissions() {
     try {
-      const cameraPermission = await request(PERMISSIONS.ANDROID.CAMERA);
-      const locationPermission = await request(
-        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-      );
-      const audioPermission = await request(PERMISSIONS.ANDROID.RECORD_AUDIO);
+      const isAndroid = Platform.OS === 'android';
+
+      const cameraPerm = isAndroid ? PERMISSIONS.ANDROID.CAMERA : PERMISSIONS.IOS.CAMERA;
+      const locationPerm = isAndroid ? PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE;
+      const audioPerm = isAndroid ? PERMISSIONS.ANDROID.RECORD_AUDIO : PERMISSIONS.IOS.MICROPHONE;
+
+      const cameraStatus = await request(cameraPerm);
+      const locationStatus = await request(locationPerm);
+      const audioStatus = await request(audioPerm);
 
       if (
-        cameraPermission === RESULTS.GRANTED &&
-        locationPermission === RESULTS.GRANTED &&
-        audioPermission === RESULTS.GRANTED
+        cameraStatus === RESULTS.GRANTED &&
+        locationStatus === RESULTS.GRANTED &&
+        audioStatus === RESULTS.GRANTED
       ) {
         console.log('Todas as permissões foram concedidas!');
       }
@@ -81,20 +85,20 @@ export default function Home() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
         <Header />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4A9954" />
           <Text style={styles.loadingText}>Carregando eventos...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
       <Header />
 
       <FlatList
@@ -139,7 +143,7 @@ export default function Home() {
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

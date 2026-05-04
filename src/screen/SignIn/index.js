@@ -13,7 +13,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { LinearGradient } from 'react-native-linear-gradient';
 import { AuthContext } from '../../contexts/auth';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
@@ -81,7 +81,7 @@ export default function SignIn() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#00A859" />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       <LinearGradient
         colors={['#00A859', '#004A24']}
@@ -112,8 +112,7 @@ export default function SignIn() {
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Email</Text>
               <View style={styles.inputContainer}>
-                <Feather
-                  name="mail"
+                <Mail
                   size={18}
                   color="#777"
                   style={styles.icon}
@@ -133,8 +132,7 @@ export default function SignIn() {
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Senha</Text>
               <View style={styles.inputContainer}>
-                <Feather
-                  name="lock"
+                <Lock
                   size={18}
                   color="#777"
                   style={styles.icon}
@@ -151,11 +149,11 @@ export default function SignIn() {
                   onPress={() => setPasswordHide(!passwordHide)}
                   style={styles.eyeIcon}
                 >
-                  <Feather
-                    name={passwordHide ? 'eye' : 'eye-off'}
-                    size={18}
-                    color="#777"
-                  />
+                  {passwordHide ? (
+                    <Eye size={18} color="#777" />
+                  ) : (
+                    <EyeOff size={18} color="#777" />
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

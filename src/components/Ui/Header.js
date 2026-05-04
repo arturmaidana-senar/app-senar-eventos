@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Header() {
+  const insets = useSafeAreaInsets();
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function Header() {
   const displayName = formatName(userName);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top > 0 ? insets.top + 8 : 16 }]}>
       <View style={styles.userInfo}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials}</Text>

@@ -11,7 +11,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Calendar, Search, Info } from 'lucide-react-native';
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
@@ -197,7 +197,7 @@ export default function CredentialScreen() {
                   marginTop: 8,
                 }}
               >
-                <Icon name="event" size={16} color="#666" />
+                <Calendar size={16} color="#666" />
                 <Text
                   style={[styles.eventDate, { color: '#666', marginLeft: 6 }]}
                 >
@@ -236,14 +236,13 @@ export default function CredentialScreen() {
                 {loadingSearch ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Icon name="search" size={26} color="#fff" />
+                  <Search size={26} color="#fff" />
                 )}
               </TouchableOpacity>
             </View>
 
             <View style={styles.infoBox}>
-              <Icon
-                name="info-outline"
+              <Info
                 size={22}
                 color="#2E7D32"
                 style={{ marginRight: 10 }}

@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { ScrollView, Alert } from 'react-native';
 import styled from 'styled-components/native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { HelpCircle, LogOut } from 'lucide-react-native';
 import { AuthContext } from '../../contexts/auth';
 import Header from '../../components/Ui/Header';
 import Help from '../../components/Ui/Help';
@@ -56,13 +56,13 @@ const Information = () => {
     {
       title: 'Ajuda',
       description: 'Dúvidas mais frequentes sobre o Senar Atendimento.',
-      icon: 'help-outline',
+      icon: HelpCircle,
     },
     {
       title: 'Sair',
       description:
         'Obrigado por usar nosso aplicativo! Esperamos vê-lo de volta em breve.',
-      icon: 'account-balance-wallet',
+      icon: LogOut,
     },
   ];
 
@@ -111,7 +111,7 @@ const Information = () => {
       <Container>
         {cardData.map((card, index) => (
           <Card key={index} onPress={() => handleCardPress(index)}>
-            <Icon name={card.icon} size={24} color="#37C064" />
+            <card.icon size={24} color="#37C064" />
             <CardTextContainer>
               <CardTitle>{card.title}</CardTitle>
               <CardDescription>{card.description}</CardDescription>

@@ -7,17 +7,13 @@ import {
   Dimensions,
 } from 'react-native';
 
-import House from '../../assets/images/house.svg';
-import Person from '../../assets/images/user.svg';
-import Layers from '../../assets/images/layers.svg';
-
-import { Dashboard2, ProfileIcon } from '../Icons/Icons';
+import { Home, Layers, User } from 'lucide-react-native';
 const { width, height } = Dimensions.get('window');
 
 const iconConfig = {
-  Home: House,
+  Home: Home,
   Event: Layers,
-  Information: Person,
+  Information: User,
 };
 
 export default ({ state, navigation }) => {

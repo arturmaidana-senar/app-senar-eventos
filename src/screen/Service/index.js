@@ -19,8 +19,7 @@ import {
 } from '@react-navigation/native';
 
 import { Camera } from 'react-native-camera-kit';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import Feather from 'react-native-vector-icons/Feather';
+import { ArrowLeft, ChevronRight, Calendar, Users, ClipboardList, QrCode, UserPlus } from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import LoadingInfo from '../../components/Ui/LoadingInfo';
@@ -76,7 +75,7 @@ export default function Service() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={20} color="#1A1A1A" />
+          <ArrowLeft size={20} color="#1A1A1A" />
         </TouchableOpacity>
       ),
     });
@@ -259,7 +258,7 @@ export default function Service() {
   const ActionButton = ({
     title,
     subtitle,
-    iconName,
+    iconName: IconComponent,
     iconColor,
     iconBgColor,
     onPress,
@@ -272,13 +271,13 @@ export default function Service() {
       <View
         style={[styles.actionIconContainer, { backgroundColor: iconBgColor }]}
       >
-        <Icon name={iconName} size={24} color={iconColor} />
+        <IconComponent size={24} color={iconColor} />
       </View>
       <View style={styles.actionTextContainer}>
         <Text style={styles.actionTitle}>{title}</Text>
         <Text style={styles.actionSubtitle}>{subtitle}</Text>
       </View>
-      <Feather name="chevron-right" size={20} color="#D1D1D1" />
+      <ChevronRight size={20} color="#D1D1D1" />
     </TouchableOpacity>
   );
 
@@ -286,7 +285,7 @@ export default function Service() {
     <View style={styles.container}>
       <CustomTopHeader navigation={navigation} title="Evento" />
 
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F6F8" />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
       <LoadingInfo visible={loading} message={titleLoading} />
 
       {!scannerVisible && (
@@ -306,8 +305,7 @@ export default function Service() {
             </Text>
 
             <View style={styles.infoRow}>
-              <Feather
-                name="calendar"
+              <Calendar
                 size={14}
                 color="#FFFFFF"
                 style={styles.infoIcon}
@@ -319,8 +317,7 @@ export default function Service() {
             </View>
 
             <View style={styles.infoRow}>
-              <Feather
-                name="users"
+              <Users
                 size={14}
                 color="#FFFFFF"
                 style={styles.infoIcon}
@@ -337,7 +334,7 @@ export default function Service() {
             <ActionButton
               title="Registrar Presença"
               subtitle="Registrar a presença que estão na pré lista do evento."
-              iconName="assignment"
+              iconName={ClipboardList}
               iconColor="#4CAF50"
               iconBgColor="#E8F5E9"
               onPress={() => navigation.navigate('Credential', { eventId })}
@@ -348,7 +345,7 @@ export default function Service() {
             <ActionButton
               title="Check-In"
               subtitle="Registrar a presença de participantes via QRCode."
-              iconName="qr-code-scanner"
+              iconName={QrCode}
               iconColor="#9C27B0"
               iconBgColor="#F3E5F5"
               onPress={toggleScanner}
@@ -359,7 +356,7 @@ export default function Service() {
             <ActionButton
               title="Credenciar participante"
               subtitle="Credenciar participantes para participar do evento."
-              iconName="person-add-alt-1"
+              iconName={UserPlus}
               iconColor="#2196F3"
               iconBgColor="#E3F2FD"
               onPress={() =>

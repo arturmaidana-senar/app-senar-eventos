@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Search } from 'lucide-react-native';
 import { useRoute, useNavigation, useTheme } from '@react-navigation/native';
 import api from '../../services/endpont';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
@@ -177,7 +177,7 @@ export default function CredentialScreen() {
             onPress={handleSearch}
             style={[styles.iconButton, { backgroundColor: COLORS.primary }]}
           >
-            <Icon name="search" size={24} color="#fff" />
+            <Search size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 
