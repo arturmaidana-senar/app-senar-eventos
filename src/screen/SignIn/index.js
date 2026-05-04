@@ -13,6 +13,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 import Feather from 'react-native-vector-icons/Feather';
 import { LinearGradient } from 'react-native-linear-gradient';
 import { AuthContext } from '../../contexts/auth';
@@ -93,7 +94,12 @@ export default function SignIn() {
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          <View style={styles.headerContainer}>
+          <Animatable.View 
+            animation="fadeInDown" 
+            duration={1000} 
+            useNativeDriver 
+            style={styles.headerContainer}
+          >
             <Image
               source={logoImage}
               style={styles.logoImage}
@@ -101,9 +107,14 @@ export default function SignIn() {
             />
             <Text style={styles.logoTitle}>Senar Eventos</Text>
             <Text style={styles.logoSubtitle}>Controle de Eventos</Text>
-          </View>
+          </Animatable.View>
 
-          <View style={styles.card}>
+          <Animatable.View 
+            animation="fadeInUp" 
+            duration={1000} 
+            useNativeDriver 
+            style={styles.card}
+          >
             <Text style={styles.title}>Seja Bem-vindo!</Text>
             <Text style={styles.subtitle}>
               Para continuar é necessário fazer login
@@ -188,12 +199,13 @@ export default function SignIn() {
                 resizeMode="contain"
               />
             </View>
-          </View>
+          </Animatable.View>
         </ScrollView>
       </LinearGradient>
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

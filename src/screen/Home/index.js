@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  View,
-  Text,
-  FlatList,
-  RefreshControl,
-  StatusBar,
-  StyleSheet,
-  TouchableOpacity,
-  SafeAreaView,
-  ActivityIndicator,
+   View,
+   Text,
+   FlatList,
+   RefreshControl,
+   StatusBar,
+   StyleSheet,
+   TouchableOpacity,
+   SafeAreaView,
+   ActivityIndicator,
 } from 'react-native';
 import Header from '../../components/Ui/Header';
 import CardHome from '../../components/Ui/CardHome';
+import DashboardBanner from '../../components/Ui/DashboardBanner';
 import api from '../../services/endpont';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { InteractionManager } from 'react-native';
@@ -37,14 +38,32 @@ export default function Home() {
     try {
       setLoading(true);
       const response = await api.getAllEvents();
-      setEvents(response.data);
-      setFilteredEvents(response.data);
+      setEvents(response.data || []);
+      setFilteredEvents(response.data || []);
     } catch (error) {
       console.error('Erro ao buscar eventos:', error);
     } finally {
       setLoading(false);
     }
   }
+
+  const stats = useMemo(() => {
+    const total = events.length;
+    const now = new Date();
+    let realizados = 0;
+    let aguardando = 0;
+
+    events.forEach(event => {
+      const eventDate = new Date(event.ended_at || event.started_at);
+      if (now > eventDate) {
+        realizados++;
+      } else {
+        aguardando++;
+      }
+    });
+
+    return { total, realizados, aguardando };
+  }, [events]);
 
   async function requestPermissions() {
     try {
@@ -72,17 +91,12 @@ export default function Home() {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    getEvents();
-    requestPermissions();
-  }, []);
-
   const renderEventItem = ({ item }) => <CardHome item={item} />;
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+        <StatusBar barStyle="dark-content" backgroundColor="#F5F7F5" />
         <Header />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4A9954" />
@@ -94,7 +108,7 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F7F5" />
       <Header />
 
       <FlatList
@@ -114,12 +128,7 @@ export default function Home() {
         }
         ListHeaderComponent={
           <>
-            <View style={styles.banner}>
-              <Text style={styles.bannerTitle}>Bem-vindo de volta!</Text>
-              <Text style={styles.bannerSubtitle}>
-                Descubra os próximos eventos
-              </Text>
-            </View>
+            <DashboardBanner stats={stats} />
 
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Próximos Eventos</Text>
@@ -160,54 +169,35 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 16,
-  },
-  banner: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-    shadowColor: '#4CAF50',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  bannerTitle: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  bannerSubtitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
+    paddingBottom: 40,
+    paddingTop: 8,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
+    marginTop: 8,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2C3539',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
   },
   viewAllText: {
     fontSize: 14,
     color: '#4A9954',
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   emptyContainer: {
-    paddingVertical: 40,
+    paddingVertical: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyText: {
     color: '#8A8A8A',
-    fontSize: 15,
+    fontSize: 16,
     textAlign: 'center',
   },
 });
+
