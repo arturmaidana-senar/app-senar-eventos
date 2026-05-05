@@ -81,11 +81,7 @@ export default function SignIn() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent={true}
-      />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
 
       <LinearGradient
         colors={['#00A859', '#004A24']}
@@ -97,12 +93,7 @@ export default function SignIn() {
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          <Animatable.View
-            animation="fadeInDown"
-            duration={1000}
-            useNativeDriver
-            style={styles.headerContainer}
-          >
+          <View style={styles.headerContainer}>
             <Image
               source={logoImage}
               style={styles.logoImage}
@@ -110,14 +101,9 @@ export default function SignIn() {
             />
             <Text style={styles.logoTitle}>Senar Eventos</Text>
             <Text style={styles.logoSubtitle}>Controle de Eventos</Text>
-          </Animatable.View>
+          </View>
 
-          <Animatable.View
-            animation="fadeInUp"
-            duration={1000}
-            useNativeDriver
-            style={styles.card}
-          >
+          <View style={styles.card}>
             <Text style={styles.title}>Seja Bem-vindo!</Text>
             <Text style={styles.subtitle}>
               Para continuar é necessário fazer login
@@ -126,7 +112,11 @@ export default function SignIn() {
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Email</Text>
               <View style={styles.inputContainer}>
-                <Mail size={18} color="#777" style={styles.icon} />
+                <Mail
+                  size={18}
+                  color="#777"
+                  style={styles.icon}
+                />
                 <TextInput
                   placeholder="seu@senarmt.org.br"
                   placeholderTextColor="#A0A0A0"
@@ -142,7 +132,11 @@ export default function SignIn() {
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Senha</Text>
               <View style={styles.inputContainer}>
-                <Lock size={18} color="#777" style={styles.icon} />
+                <Lock
+                  size={18}
+                  color="#777"
+                  style={styles.icon}
+                />
                 <TextInput
                   placeholder="senha"
                   placeholderTextColor="#A0A0A0"
@@ -192,7 +186,7 @@ export default function SignIn() {
                 resizeMode="contain"
               />
             </View>
-          </Animatable.View>
+          </View>
         </ScrollView>
       </LinearGradient>
     </KeyboardAvoidingView>

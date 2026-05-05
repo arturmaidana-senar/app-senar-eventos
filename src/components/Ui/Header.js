@@ -6,64 +6,44 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function Header() {
   const insets = useSafeAreaInsets();
   const [userName, setUserName] = useState('');
-  const [currentDate, setCurrentDate] = useState('');
 
   useEffect(() => {
     async function loadStorage() {
       try {
+        console.log('--- DEBUG HEADER ASYNCSTORAGE ---');
         const storageUser = await AsyncStorage.getItem('@eventUser');
+        console.log('1. Valor bruto retornado (@eventUser):', storageUser);
+
         if (storageUser) {
           if (storageUser.includes('{')) {
             const parsedUser = JSON.parse(storageUser);
+            console.log('2. Objeto JSON parseado:', parsedUser);
+
             const finalName =
               parsedUser.name ||
               parsedUser.nome ||
               parsedUser.user?.name ||
               parsedUser.user?.nome ||
               '';
+
+            console.log('3. Nome encontrado nas chaves:', finalName);
             setUserName(finalName);
           } else {
+            console.log(
+              '2. Valor salvo não é JSON, usando como string:',
+              storageUser,
+            );
             setUserName(storageUser);
           }
+        } else {
+          console.log('1. A chave @eventUser está vazia ou retornou null.');
         }
       } catch (error) {
         console.error('Erro ao ler AsyncStorage no Header:', error);
       }
     }
 
-    const updateDate = () => {
-      const now = new Date();
-      const days = [
-        'Domingo',
-        'Segunda-feira',
-        'Terça-feira',
-        'Quarta-feira',
-        'Quinta-feira',
-        'Sexta-feira',
-        'Sábado',
-      ];
-      const months = [
-        'Janeiro',
-        'Fevereiro',
-        'Março',
-        'Abril',
-        'Maio',
-        'Junho',
-        'Julho',
-        'Agosto',
-        'Setembro',
-        'Outubro',
-        'Novembro',
-        'Dezembro',
-      ];
-      const dayName = days[now.getDay()];
-      const day = now.getDate();
-      const monthName = months[now.getMonth()];
-      setCurrentDate(`${day} de ${monthName} - ${dayName}`);
-    };
-
     loadStorage();
-    updateDate();
   }, []);
 
   const getInitials = name => {
@@ -79,25 +59,34 @@ export default function Header() {
 
   const formatName = name => {
     if (!name) return 'Usuário';
-    return name.toUpperCase();
+    const parts = name.trim().split(' ').filter(Boolean);
+    if (parts.length <= 2) return name;
+
+    const primeiro = parts[0];
+    const ultimo = parts[parts.length - 1];
+    const meio = parts
+      .slice(1, -1)
+      .map(n => `${n[0]}.`)
+      .join(' ');
+
+    return `${primeiro} ${meio} ${ultimo}`;
   };
 
   const initials = getInitials(userName);
+
   const displayName = formatName(userName);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top > 0 ? insets.top + 8 : 16 }]}>
       <View style={styles.userInfo}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initials}</Text>
         </View>
-        <View style={styles.textContainer}>
+        <View>
+          <Text style={styles.welcomeText}>Bem-vindo(a)</Text>
           <Text style={styles.userName} numberOfLines={1}>
             {displayName}
           </Text>
-          <Text style={styles.dateText}>{currentDate}</Text>
         </View>
       </View>
 
@@ -118,58 +107,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#F5F7F5', // Light background matching mockup
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    paddingRight: 10,
   },
-  avatarContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    padding: 2,
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 25,
-    backgroundColor: '#D1E7D3', // Subtle green for initials background
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   avatarText: {
-    color: '#4A9954',
-    fontSize: 18,
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: 'bold',
   },
-  textContainer: {
-    justifyContent: 'center',
-  },
-  userName: {
-    fontSize: 14,
-    color: '#1A1A1A',
-    fontWeight: 'bold',
+  welcomeText: {
+    fontSize: 15,
+    color: '#8A8A8A',
     marginBottom: 2,
   },
-  dateText: {
-    fontSize: 12,
-    color: '#8A8A8A',
+  userName: {
+    fontSize: 13,
+    color: '#1A1A1A',
+    fontWeight: '600',
   },
   logoContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   logo: {
-    width: 110,
-    height: 40,
+    width: 100,
+    height: 35,
   },
 });
-
