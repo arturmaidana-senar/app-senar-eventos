@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MapPin, Calendar, ChevronRight } from 'lucide-react-native';
 
 const CardEvent = ({ item }) => {
   const navigation = useNavigation();
+  const imageBaseUrl = 'https://eventos.senarmt.org.br/storage/';
 
   const formatDateObj = dateString => {
     if (!dateString) return '';
@@ -32,12 +33,20 @@ const CardEvent = ({ item }) => {
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate('EventShow', { eventId: item.id })}
-      activeOpacity={0.8}
+      activeOpacity={0.9}
     >
-      <View style={styles.cardHeader}>
-        <Text style={styles.title} numberOfLines={1}>
-          {item.name}
-        </Text>
+      <View style={styles.imageContainer}>
+        {item.image ? (
+          <Image
+            source={{ uri: `${imageBaseUrl}${item.image}` }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.placeholderImage}>
+            <Feather name="image" size={40} color="#E0E0E0" />
+          </View>
+        )}
 
         <View
           style={[
@@ -70,19 +79,11 @@ const CardEvent = ({ item }) => {
       </View>
 
       <View style={styles.infoRow}>
-        <Calendar
-          size={14}
-          color="#8A8A8A"
-          style={styles.icon}
-        />
+        <Calendar size={14} color="#8A8A8A" style={styles.icon} />
         <Text style={styles.infoText}>{displayDate}</Text>
       </View>
 
-      <ChevronRight
-        size={20}
-        color="#D3D3D3"
-        style={styles.chevronIcon}
-      />
+      <ChevronRight size={20} color="#D3D3D3" style={styles.chevronIcon} />
     </TouchableOpacity>
   );
 };
@@ -91,44 +92,46 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 5,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    marginBottom: 14,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.02,
-    shadowRadius: 8,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  imageContainer: {
+    height: 120,
+    width: '100%',
     position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F5F7F5',
     justifyContent: 'center',
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
-    paddingRight: 10,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    flex: 1,
-    marginRight: 8,
   },
   badge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   badgeRealizado: {
-    backgroundColor: '#E8F5E9',
+    // Styles for realizado badge background if needed
   },
   badgeAguardando: {
-    backgroundColor: '#FFF8E1',
+    // Styles for aguardando badge background if needed
   },
   badgeDot: {
     width: 6,
@@ -143,7 +146,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F59E0B',
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
@@ -153,24 +156,37 @@ const styles = StyleSheet.create({
   textAguardando: {
     color: '#D97706',
   },
+  content: {
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingRight: 24,
+    marginBottom: 4,
   },
   icon: {
     marginRight: 8,
+    width: 14,
   },
   infoText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6A737D',
+    fontWeight: '500',
   },
-  chevronIcon: {
-    position: 'absolute',
-    right: 16,
-    top: '50%',
-    marginTop: -2,
+  chevronContainer: {
+    paddingLeft: 8,
   },
 });
 
