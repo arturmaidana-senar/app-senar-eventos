@@ -38,5 +38,16 @@ target 'Eventos2' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Fix for fmt consteval issue in Xcode 15+
+    installer.pods_project.targets.each do |target|
+      if target.name == 'fmt' || target.name.include?("ReactNativeDependencies")
+        target.build_configurations.each do |config|
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'FMT_USE_NON_CONSTEXPR_FORMAT=1'
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+        end
+      end
+    end
   end
 end
