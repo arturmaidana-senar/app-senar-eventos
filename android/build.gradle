@@ -19,3 +19,10 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Remove stale RN 0.79 codegen file shipped inside react-native-camera-kit@17.0.1 npm package
+def staleCameraKitCpp = file("../node_modules/react-native-camera-kit/android/build/generated/source/codegen/jni/react/renderer/components/NativeCameraKitSpec/NativeCameraKitSpecJSI-generated.cpp")
+if (staleCameraKitCpp.exists()) {
+    staleCameraKitCpp.text = "// Intentionally left empty: stale RN 0.79 codegen artifact shipped in react-native-camera-kit\n"
+}
+
