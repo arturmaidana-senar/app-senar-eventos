@@ -76,7 +76,7 @@ export default function ResetPassword() {
 
   return (
     <View style={styles.page}>
-      <StatusBar backgroundColor="#37C064" barStyle="light-content" />
+      <StatusBar hidden={true} backgroundColor="#37C064" barStyle="light-content" />
       <LoadingInfo visible={loading} />
       <View style={styles.container}>
         <Text style={styles.title}>Não se preocupe, vamos te ajudar</Text>

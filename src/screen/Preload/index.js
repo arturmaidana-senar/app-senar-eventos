@@ -44,7 +44,7 @@ export default function Preload() {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#0D814E" barStyle="light-content" />
+      <StatusBar hidden={true} backgroundColor="#0D814E" barStyle="light-content" />
 
       <Animated.View style={[styles.centerContainer, { opacity: fadeAnim }]}>
         <Image

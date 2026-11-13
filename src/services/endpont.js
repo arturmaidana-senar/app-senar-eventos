@@ -55,9 +55,9 @@ export default {
     return json?.data || [];
   },
 
-  postCheckinEvent: async id => {
-    const json = await api.get(`/checkin/list-event/${id}`);
-    return json?.data || [];
+  postCheckinEvent: async data => {
+    const response = await api.post('/checkin', data);
+    return response?.data || [];
   },
 
   postCheckinEventData: async data => {

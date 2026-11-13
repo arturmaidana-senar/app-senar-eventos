@@ -6,10 +6,11 @@ const api = axios.create({
   //baseURL: 'http://192.168.0.203/api'
   //baseURL: 'http://192.168.202.3/api',
   //baseURL: 'https://heventos.senarmt.org.br/api',
-  baseURL: 'https://eventos.senarmt.org.br/api',
+  baseURL: 'https://heventos.senarmt.org.br/api',
 });
 
 api.interceptors.request.use(async config => {
+  console.log('[API Request]', config.method?.toUpperCase(), config.url, config.data || config.params || '');
   try {
     // Só injeta se ainda não tiver token no header
     if (!config.headers['Authorization']) {
@@ -44,5 +45,16 @@ api.interceptors.request.use(async config => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  response => {
+    console.log('[API Response Success]', response.config?.url, response.status, response.data);
+    return response;
+  },
+  error => {
+    console.log('[API Response Error]', error.config?.url, error.response?.status, error.response?.data || error.message);
+    return Promise.reject(error);
+  },
+);
 
 export default api;

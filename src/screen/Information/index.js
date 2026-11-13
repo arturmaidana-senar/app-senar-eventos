@@ -144,7 +144,7 @@ const Information = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F7F5" />
+      <StatusBar hidden={true} barStyle="dark-content" backgroundColor="#F5F7F5" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}

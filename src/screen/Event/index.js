@@ -83,7 +83,7 @@ export default function Event() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
+      <StatusBar hidden={true} barStyle="dark-content" backgroundColor="#FAFAFA" />
 
       <View style={styles.content}>
         <Text style={styles.pageTitle}>Eventos</Text>

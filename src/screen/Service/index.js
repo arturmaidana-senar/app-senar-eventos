@@ -160,20 +160,37 @@ export default function Service() {
     setScannerVisible(false);
 
     setLoading(true);
+    console.log('[QR Code Read] Dados lidos do QRCode:', data);
+    console.log('[QR Code Read] Payload enviado:', { token: data, eventId });
+
     try {
       const response = await api.postCheckinEvent({ token: data, eventId });
+      console.log('[QR Code Read] Resposta da API:', JSON.stringify(response, null, 2));
+
       await handleListCheckin();
       Dialog.show({
         type: response.error ? ALERT_TYPE.DANGER : ALERT_TYPE.SUCCESS,
         title: response.error ? 'Error' : 'Check-in',
-        textBody: response.error ? response.message : response.name,
+        textBody: response.error
+          ? `${response.message || JSON.stringify(response)}\n(Token lido: ${data} | Evento: ${eventId})`
+          : response.name,
         button: 'Fechar',
       });
-    } catch {
+    } catch (error) {
+      console.error('[QR Code Read] Erro na requisição:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+
       Dialog.show({
         type: ALERT_TYPE.DANGER,
         title: 'Error',
-        textBody: 'Houve uma falha tente novamente.',
+        textBody:
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          'Houve uma falha tente novamente.',
         button: 'Fechar',
       });
     } finally {
@@ -286,7 +303,7 @@ export default function Service() {
     <View style={styles.container}>
       <CustomTopHeader navigation={navigation} title="Evento" />
 
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F6F8" />
+      <StatusBar hidden={true} barStyle="dark-content" backgroundColor="#F5F6F8" />
       <LoadingInfo visible={loading} message={titleLoading} />
 
       {!scannerVisible && (

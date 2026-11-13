@@ -6,6 +6,7 @@ import {
   useWindowDimensions,
   Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import House from '../../assets/images/house.svg';
 import Person from '../../assets/images/user.svg';
@@ -22,13 +23,14 @@ const iconConfig = {
 
 export default ({ state, navigation }) => {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const isTablet = Math.min(width, height) >= 600;
   const goTo = screenName => {
     navigation.navigate(screenName);
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: Math.max(insets.bottom + 16, 25) }]}>
       <View style={[styles.tabBar, { width: isTablet ? '35%' : '65%' }]}>
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
