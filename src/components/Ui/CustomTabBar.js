@@ -1,110 +1,145 @@
 import React from 'react';
-import {
-  View,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  Dimensions,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Feather from 'react-native-vector-icons/Feather';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
-import House from '../../assets/images/house.svg';
-import Person from '../../assets/images/user.svg';
-import Layers from '../../assets/images/layers.svg';
-
-import { Dashboard2, ProfileIcon } from '../Icons/Icons';
-const { width, height } = Dimensions.get('window');
-
-const iconConfig = {
-  Home: House,
-  Event: Layers,
-  Information: Person,
+const tabConfig = {
+  Home: { icon: 'home', label: 'Início' },
+  Event: { icon: 'calendar', label: 'Eventos' },
+  Information: { icon: 'user', label: 'Perfil' },
 };
 
 export default ({ state, navigation }) => {
-  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const isTablet = Math.min(width, height) >= 600;
+
   const goTo = screenName => {
     navigation.navigate(screenName);
   };
 
-  return (
-    <View style={[styles.container, { bottom: Math.max(insets.bottom + 16, 25) }]}>
-      <View style={[styles.tabBar, { width: isTablet ? '35%' : '65%' }]}>
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          const IconComponent = iconConfig[route.name];
-          const iconColor = isFocused ? '#00A859' : '#FFFFFF';
+  const handleQrPress = async () => {
+    try {
+      const savedId = await AsyncStorage.getItem('@activeEventId');
+      if (savedId) {
+        navigation.navigate('Service', {
+          eventId: Number(savedId),
+          initialTab: 'checkin',
+          openScanner: true,
+        });
+        return;
+      }
+    } catch {}
+    navigation.navigate('Home');
+  };
 
-          return (
-            <Pressable
-              key={route.name}
-              style={styles.tabItem}
-              onPress={() => goTo(route.name)}
-              android_ripple={{
-                color: 'rgba(255,255,255,0.2)',
-                borderless: true,
-              }}
-            >
-              <View
-                style={
-                  isFocused
-                    ? styles.activeIconContainer
-                    : styles.inactiveIconContainer
-                }
-              >
-                {IconComponent && <IconComponent size={32} color={iconColor} />}
-              </View>
-            </Pressable>
-          );
-        })}
+  const renderTabButton = route => {
+    const index = state.routes.findIndex(r => r.name === route.name);
+    const isFocused = state.index === index;
+    const config = tabConfig[route.name] || {};
+    const iconName = config.icon || 'circle';
+    const label = config.label || route.name;
+    const tintColor = isFocused ? '#2F5E38' : '#8D988E';
+
+    return (
+      <Pressable
+        key={route.name}
+        style={[styles.tabItem, isFocused && styles.tabItemActive]}
+        onPress={() => goTo(route.name)}
+        android_ripple={{
+          color: 'rgba(47, 94, 56, 0.08)',
+          borderless: true,
+        }}
+      >
+        <Feather name={iconName} size={19} color={tintColor} />
+        <Text
+          style={[styles.tabLabel, isFocused && styles.tabLabelActive]}
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+      </Pressable>
+    );
+  };
+
+  const homeRoute = state.routes.find(r => r.name === 'Home');
+  const eventRoute = state.routes.find(r => r.name === 'Event');
+  const infoRoute = state.routes.find(r => r.name === 'Information');
+
+  const bottomOffset = Math.max(insets.bottom + 10, 18);
+
+  return (
+    <View
+      style={[
+        styles.wrapper,
+        { bottom: bottomOffset },
+      ]}
+    >
+      <View style={styles.tabBar}>
+        {homeRoute && renderTabButton(homeRoute)}
+        {eventRoute && renderTabButton(eventRoute)}
+
+        <Pressable
+          style={styles.tabItem}
+          onPress={handleQrPress}
+          android_ripple={{
+            color: 'rgba(47, 94, 56, 0.08)',
+            borderless: true,
+          }}
+        >
+          <Icon name="qr-code-scanner" size={19} color="#8D988E" />
+          <Text style={styles.tabLabel} numberOfLines={1}>
+            QR Code
+          </Text>
+        </Pressable>
+
+        {infoRoute && renderTabButton(infoRoute)}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     position: 'absolute',
-    bottom: 25,
-    left: 20,
-    right: 20,
-    alignItems: 'center',
+    left: 14,
+    right: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.97)',
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
+    shadowColor: '#18221B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 18,
+    elevation: 14,
   },
   tabBar: {
     flexDirection: 'row',
-    height: 75,
-    backgroundColor: '#00A859',
-    borderRadius: 43,
+    height: 60,
     alignItems: 'center',
-    justifyContent: 'space-around',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4.65,
-    elevation: 8,
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 10,
   },
   tabItem: {
     flex: 1,
-    height: '100%',
-    justifyContent: 'center',
+    height: 46,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    marginHorizontal: 3,
   },
-  inactiveIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
+  tabItemActive: {
+    backgroundColor: '#EDF4EE',
   },
-  activeIconContainer: {
-    width: 55,
-    height: 55,
-    borderRadius: 50,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+  tabLabel: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#8D988E',
+  },
+  tabLabelActive: {
+    color: '#2F5E38',
+    fontWeight: '700',
   },
 });

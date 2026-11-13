@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: '#F5F7F5', // Light background matching mockup
+   
   },
   userInfo: {
     flexDirection: 'row',

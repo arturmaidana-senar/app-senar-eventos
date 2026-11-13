@@ -32,7 +32,7 @@ const CardEvent = ({ item }) => {
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('EventShow', { eventId: item.id })}
+      onPress={() => navigation.navigate('Service', { eventId: item.id })}
       activeOpacity={0.9}
     >
       <View style={styles.imageContainer}>

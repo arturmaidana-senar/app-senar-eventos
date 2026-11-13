@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 import { initialState, UserReducer } from '../reducers/UserReducer';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
+import { ALERT_TYPE, Dialog } from '../components/Modals/CustomAlertModal';
 import axios from 'axios';
 
 export const AuthContext = createContext();

@@ -17,7 +17,7 @@ export default function ModalTermos({
   onAccept,
 }) {
   return (
-    <Modal visible={visible} animationType="slide" transparent={false}>
+    <Modal visible={visible} animationType="fade" transparent={false}>
       <SafeAreaView style={styles.termosContainer}>
         <View style={styles.termosHeader}>
           <View style={{ width: 30 }} />

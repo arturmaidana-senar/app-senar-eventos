@@ -9,20 +9,21 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Image,
-  Keyboard,
 } from 'react-native';
-import * as Animatable from 'react-native-animatable';
 import Feather from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/auth';
-import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
+import { ALERT_TYPE, Dialog } from '../../components/Modals/CustomAlertModal';
 
 export default function SignIn() {
   const { signIn, loadingAuth } = useContext(AuthContext);
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [emailField, setEmailField] = useState('');
   const [passwordField, setPasswordField] = useState('');
   const [passwordHide, setPasswordHide] = useState(true);
@@ -39,13 +40,11 @@ export default function SignIn() {
 
     const showSub = Keyboard.addListener(showEvent, e => {
       setKeyboardHeight(e.endCoordinates?.height || 0);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
     });
 
     const hideSub = Keyboard.addListener(hideEvent, () => {
       setKeyboardHeight(0);
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     });
 
     return () => {
@@ -56,6 +55,24 @@ export default function SignIn() {
 
   const logoImage = require('../../assets/images/LogoSenar1.png');
   const footerLogos = require('../../assets/images/Famato.png');
+
+  let messageAlert = '';
+  const ValidarAcesso = () => {
+    messageAlert = '';
+    let reg = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w\w+)+$/;
+    let result = false;
+    if (emailField === '') {
+      result = true;
+      messageAlert = 'O campo E-mail é obrigatório.';
+    } else if (passwordField === '') {
+      result = true;
+      messageAlert = 'O campo Senha é obrigatório.';
+    } else if (!reg.test(emailField.trim())) {
+      result = true;
+      messageAlert = 'E-mail inválido.';
+    }
+    return result;
+  };
 
   async function handleLogin() {
     if (ValidarAcesso()) {
@@ -87,24 +104,6 @@ export default function SignIn() {
     }
   }
 
-  let messageAlert = '';
-  const ValidarAcesso = () => {
-    messageAlert = '';
-    let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
-    let result = false;
-    if (emailField === '') {
-      result = true;
-      messageAlert = 'O campo E-mail é obrigatório.';
-    } else if (passwordField === '') {
-      result = true;
-      messageAlert = 'O campo Senha é obrigatório.';
-    } else if (!reg.test(emailField.trim())) {
-      result = true;
-      messageAlert = 'E-mail inválido.';
-    }
-    return result;
-  };
-
   const handleHelpPress = () => {
     Dialog.show({
       type: ALERT_TYPE.INFO,
@@ -118,192 +117,214 @@ export default function SignIn() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar hidden={true} barStyle="light-content" backgroundColor="#132A1E" />
+      <StatusBar
+        hidden={true}
+        barStyle="dark-content"
+        backgroundColor="#F6F7F2"
+      />
 
-      <LinearGradient
-        colors={['#132A1E', '#1B3E2B', '#234F37']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradientBackground}
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: Math.max(insets.top, 16) + 8,
+            paddingBottom:
+              keyboardHeight > 0
+                ? keyboardHeight + 16
+                : Math.max(insets.bottom, 20) + 16,
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={[
-            styles.scrollViewContent,
-            Platform.OS === 'android' &&
-              keyboardHeight > 0 && { paddingBottom: 24 },
-          ]}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={true}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
+        {/* Top Header */}
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.eyebrowText}>SENAR MATO GROSSO</Text>
+            <Text style={styles.pageTitle}>Acessar conta</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={handleHelpPress}
+            activeOpacity={0.75}
+          >
+            <Feather name="help-circle" size={19} color="#18221B" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Hero Welcome Card */}
+        <LinearGradient
+          colors={['#1E4B31', '#2E6241', '#3E7751']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroCard}
         >
-          {/* Decorative background circles */}
-          <View style={styles.heroDecorCircleTop} />
-          <View style={styles.heroDecorCircleBottom} />
+          <View style={styles.heroCircleDecor} />
 
-          <Animatable.View
-            animation="fadeInDown"
-            duration={800}
-            useNativeDriver
-            style={styles.headerContainer}
-          >
-            <View style={styles.brandRow}>
-              <View style={styles.brandBadge}>
-                <Image
-                  source={logoImage}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
-              </View>
-              <View>
-                <Text style={styles.brandName}>SENAR</Text>
-                <Text style={styles.brandRegion}>Mato Grosso</Text>
-              </View>
+          <View style={styles.statusPill}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statusPillText}>PORTAL DO ORGANIZADOR</Text>
+          </View>
+
+          <View style={styles.brandRow}>
+            <View style={styles.logoBadge}>
+              <Image
+                source={logoImage}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
-
-            <View style={styles.eyebrowRow}>
-              <View style={styles.eyebrowDot} />
-              <Text style={styles.eyebrowText}>CULTIVANDO CONEXÕES</Text>
+            <View style={styles.brandTextWrap}>
+              <Text style={styles.brandTitle}>SENAR Eventos</Text>
+              <Text style={styles.brandSubtitle}>
+                Gerencie eventos e realize check-ins em tempo real.
+              </Text>
             </View>
+          </View>
+        </LinearGradient>
 
-            <Text style={styles.heroHeadline}>
-              O próximo passo do agro{'\n'}começa{' '}
-              <Text style={styles.heroHeadlineAccent}>com você.</Text>
-            </Text>
-          </Animatable.View>
+        {/* Login Form Card */}
+        <View style={styles.formCard}>
+          <Text style={styles.formEyebrow}>CREDENCIAIS</Text>
+          <Text style={styles.formTitle}>Bom ter você por aqui.</Text>
+          <Text style={styles.formSubtitle}>
+            Entre com seus dados para acompanhar seus eventos.
+          </Text>
 
-          <Animatable.View
-            animation="fadeInUp"
-            duration={800}
-            useNativeDriver
-            style={styles.card}
-          >
-            <Text style={styles.cardEyebrow}>BEM-VINDO AO SENAR EVENTOS</Text>
-            <Text style={styles.title}>Bom ter você por aqui.</Text>
-            <Text style={styles.subtitle}>
-              Entre para descobrir novas experiências e acompanhar seus eventos.
-            </Text>
-
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>E-mail</Text>
-              <View style={styles.inputContainer}>
-                <Feather
-                  name="mail"
-                  size={18}
-                  color="#8C9991"
-                  style={styles.icon}
-                />
-                <TextInput
-                  placeholder="seu@email.com.br"
-                  placeholderTextColor="#9BA6A0"
-                  style={styles.input}
-                  value={emailField}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  returnKeyType="next"
-                  onSubmitEditing={() => passwordInputRef.current?.focus()}
-                  onChangeText={t => setEmailField(t.toLowerCase())}
-                />
-              </View>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>E-mail</Text>
+            <View style={styles.inputContainer}>
+              <Feather
+                name="mail"
+                size={18}
+                color="#7A847B"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                placeholder="seu@email.com.br"
+                placeholderTextColor="#9AA39B"
+                style={styles.input}
+                value={emailField}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                returnKeyType="next"
+                onFocus={() =>
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollTo({ y: 145, animated: true });
+                  }, 100)
+                }
+                onSubmitEditing={() => passwordInputRef.current?.focus()}
+                onChangeText={t => setEmailField(t.toLowerCase())}
+              />
             </View>
+          </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Senha</Text>
-              <View style={styles.inputContainer}>
-                <Feather
-                  name="lock"
-                  size={18}
-                  color="#8C9991"
-                  style={styles.icon}
-                />
-                <TextInput
-                  ref={passwordInputRef}
-                  placeholder="Digite sua senha"
-                  placeholderTextColor="#9BA6A0"
-                  style={styles.input}
-                  value={passwordField}
-                  secureTextEntry={passwordHide}
-                  returnKeyType="done"
-                  onSubmitEditing={handleLogin}
-                  onChangeText={t => setPasswordField(t)}
-                />
-                <TouchableOpacity
-                  onPress={() => setPasswordHide(!passwordHide)}
-                  style={styles.eyeIcon}
-                  activeOpacity={0.7}
-                >
-                  <Feather
-                    name={passwordHide ? 'eye' : 'eye-off'}
-                    size={18}
-                    color="#7B8881"
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.optionsRow}>
-              <View style={styles.securityBadge}>
-                <Feather name="shield" size={14} color="#8A9690" />
-                <Text style={styles.securityText}>Seus dados protegidos</Text>
-              </View>
-
+          <View style={styles.inputWrapper}>
+            <Text style={styles.label}>Senha</Text>
+            <View style={styles.inputContainer}>
+              <Feather
+                name="lock"
+                size={18}
+                color="#7A847B"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                ref={passwordInputRef}
+                placeholder="Digite sua senha"
+                placeholderTextColor="#9AA39B"
+                style={styles.input}
+                value={passwordField}
+                secureTextEntry={passwordHide}
+                returnKeyType="done"
+                onFocus={() =>
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollTo({ y: 215, animated: true });
+                  }, 100)
+                }
+                onSubmitEditing={handleLogin}
+                onChangeText={t => setPasswordField(t)}
+              />
               <TouchableOpacity
-                onPress={() => navigation.navigate('ResetPassword')}
+                onPress={() => setPasswordHide(!passwordHide)}
+                style={styles.eyeIcon}
                 activeOpacity={0.7}
               >
-                <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+                <Feather
+                  name={passwordHide ? 'eye' : 'eye-off'}
+                  size={18}
+                  color="#6E786F"
+                />
               </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.optionsRow}>
+            <View style={styles.securityBadge}>
+              <Feather name="shield" size={14} color="#7A847B" />
+              <Text style={styles.securityText}>Seus dados protegidos</Text>
             </View>
 
             <TouchableOpacity
+              onPress={() => navigation.navigate('ResetPassword')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleLogin}
+            activeOpacity={0.85}
+            disabled={loadingAuth}
+          >
+            <LinearGradient
+              colors={['#437A56', '#2F5E3E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
               style={[
                 styles.submitButton,
                 loadingAuth && styles.submitButtonDisabled,
               ]}
-              onPress={handleLogin}
-              activeOpacity={0.85}
-              disabled={loadingAuth}
             >
               {loadingAuth ? (
                 <ActivityIndicator size={22} color="#FFF" />
               ) : (
                 <View style={styles.submitContent}>
                   <Text style={styles.submitText}>Entrar</Text>
-                  <Feather name="arrow-right" size={19} color="#FFF" />
+                  <Feather name="arrow-right" size={18} color="#FFF" />
                 </View>
               )}
-            </TouchableOpacity>
+            </LinearGradient>
+          </TouchableOpacity>
 
-            <View style={styles.divider} />
+          <TouchableOpacity
+            onPress={handleHelpPress}
+            activeOpacity={0.7}
+            style={styles.helpRow}
+          >
+            <Feather name="help-circle" size={14} color="#2F5E38" />
+            <Text style={styles.helpText}>Precisa de ajuda para acessar?</Text>
+          </TouchableOpacity>
+        </View>
 
-            <TouchableOpacity
-              onPress={handleHelpPress}
-              activeOpacity={0.7}
-              style={styles.helpRow}
-            >
-              <Feather name="play" size={10} color="#2F7D4B" />
-              <Text style={styles.helpText}>Precisa de ajuda para acessar?</Text>
-            </TouchableOpacity>
-
-            <View style={styles.footerContainer}>
-              <Image
-                source={footerLogos}
-                style={styles.footerImage}
-                resizeMode="contain"
-              />
-              <Text style={styles.footerSlogan}>
-                Conectando pessoas. Fortalecendo o agro.
-              </Text>
-              <Text style={styles.footerCopyright}>
-                © {new Date().getFullYear()} SENAR Mato Grosso
-              </Text>
-            </View>
-          </Animatable.View>
-        </ScrollView>
-      </LinearGradient>
+        {/* Footer */}
+        <View style={styles.footerContainer}>
+          <Image
+            source={footerLogos}
+            style={styles.footerImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.footerCopyright}>
+            © {new Date().getFullYear()} SENAR Mato Grosso
+          </Text>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -311,236 +332,239 @@ export default function SignIn() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#132A1E',
+    backgroundColor: '#F6F7F2',
   },
-  gradientBackground: {
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  headerTextWrap: {
     flex: 1,
   },
-  scrollViewContent: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
+  eyebrowText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#2F5E38',
+    marginBottom: 2,
   },
-  heroDecorCircleTop: {
+  pageTitle: {
+    fontSize: 25,
+    fontWeight: '800',
+    color: '#18221B',
+  },
+  headerIconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroCard: {
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  heroCircleDecor: {
     position: 'absolute',
-    top: -40,
-    right: -40,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(126, 217, 154, 0.08)',
+    top: -36,
+    right: -36,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
-  heroDecorCircleBottom: {
-    position: 'absolute',
-    top: 90,
-    left: -50,
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 20,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    gap: 6,
+    marginBottom: 16,
   },
-  headerContainer: {
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 56 : 32,
-    paddingBottom: 28,
-    justifyContent: 'flex-end',
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#3E8E58',
+  },
+  statusPillText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+    color: '#18221B',
   },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    gap: 14,
   },
-  brandBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: 'rgba(126, 217, 154, 0.55)',
-    backgroundColor: 'rgba(126, 217, 154, 0.12)',
-    justifyContent: 'center',
+  logoBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
-    marginRight: 10,
+    justifyContent: 'center',
   },
   logoImage: {
-    width: 24,
-    height: 24,
-    tintColor: '#7ED99A',
+    width: 36,
+    height: 36,
   },
-  brandName: {
-    fontSize: 16,
+  brandTextWrap: {
+    flex: 1,
+  },
+  brandTitle: {
+    fontSize: 20,
     fontWeight: '800',
     color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  brandSubtitle: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.84)',
+    lineHeight: 18,
+  },
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
+    padding: 20,
+    marginBottom: 20,
+  },
+  formEyebrow: {
+    fontSize: 10.5,
+    fontWeight: '700',
     letterSpacing: 1,
+    color: '#2F5E38',
+    marginBottom: 4,
   },
-  brandRegion: {
-    fontSize: 11,
-    color: '#B5D6C0',
-    marginTop: -2,
-  },
-  eyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  eyebrowDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#7ED99A',
-    marginRight: 8,
-  },
-  eyebrowText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#CBE7D4',
-    letterSpacing: 1.5,
-  },
-  heroHeadline: {
-    fontSize: 28,
+  formTitle: {
+    fontSize: 20,
     fontWeight: '800',
-    color: '#FFFFFF',
-    lineHeight: 34,
+    color: '#18221B',
+    marginBottom: 4,
   },
-  heroHeadlineAccent: {
-    color: '#7ED99A',
-  },
-  card: {
-    backgroundColor: '#F8FAF9',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 24,
-  },
-  cardEyebrow: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#2F7D4B',
-    letterSpacing: 1.2,
-    marginBottom: 6,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#141D18',
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#67746D',
-    lineHeight: 20,
-    marginBottom: 24,
+  formSubtitle: {
+    fontSize: 13.5,
+    color: '#6E786F',
+    lineHeight: 19,
+    marginBottom: 20,
   },
   inputWrapper: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   label: {
-    color: '#1E2923',
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
-    marginBottom: 8,
+    color: '#465248',
+    marginBottom: 6,
   },
   inputContainer: {
-    width: '100%',
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8E4',
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#F6F7F2',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
     paddingHorizontal: 14,
+    height: 50,
   },
-  icon: {
+  inputIcon: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    color: '#141D18',
-    height: '100%',
-    fontSize: 15,
+    fontSize: 14.5,
+    color: '#18221B',
+    paddingVertical: 0,
   },
   eyeIcon: {
     padding: 6,
   },
   optionsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 2,
-    marginBottom: 22,
+    marginBottom: 18,
   },
   securityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
   securityText: {
     fontSize: 12,
-    color: '#8A9690',
-    marginLeft: 6,
+    color: '#7A847B',
   },
   forgotPasswordText: {
-    fontSize: 13,
-    color: '#2F7D4B',
+    fontSize: 12.5,
     fontWeight: '700',
+    color: '#2F5E38',
   },
   submitButton: {
-    backgroundColor: '#2F7D4B',
-    height: 54,
-    borderRadius: 14,
+    height: 50,
+    borderRadius: 15,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 22,
-    shadowColor: '#2F7D4B',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    elevation: 4,
+    marginBottom: 14,
   },
   submitButtonDisabled: {
-    opacity: 0.75,
+    opacity: 0.7,
   },
   submitContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 8,
   },
   submitText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15.5,
     fontWeight: '700',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E6ECE8',
-    marginTop: 24,
-    marginBottom: 16,
+    color: '#FFFFFF',
   },
   helpRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 18,
+    gap: 6,
+    paddingVertical: 4,
   },
   helpText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#1E2923',
-    marginLeft: 6,
+    fontWeight: '600',
+    color: '#2F5E38',
   },
   footerContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 'auto',
+    paddingTop: 4,
+    gap: 6,
   },
   footerImage: {
-    width: 190,
-    height: 44,
-    marginBottom: 6,
-  },
-  footerSlogan: {
-    fontSize: 11,
-    color: '#7B8881',
-    marginBottom: 4,
+    width: 140,
+    height: 36,
+    opacity: 0.85,
   },
   footerCopyright: {
-    fontSize: 10,
-    color: '#9BA6A0',
+    fontSize: 11.5,
+    color: '#8D988E',
   },
 });

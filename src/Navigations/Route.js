@@ -2,7 +2,7 @@ import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AlertNotificationRoot } from 'react-native-alert-notification';
+import { AlertNotificationRoot } from '../components/Modals/CustomAlertModal';
 import AuthContextProvider from '../contexts/auth';
 import { COLORS } from '../constants/theme';
 import CustomStatusBar from '../components/Ui/CustomStatusBar';
@@ -15,7 +15,7 @@ export default function Profile() {
         <AuthContextProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <CustomStatusBar
-              backgroundColor={COLORS.primary}
+              backgroundColor={'#F6F7F2'}
               barStyle="light-content"
             />
             <AlertNotificationRoot>

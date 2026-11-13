@@ -5,14 +5,15 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
-  SafeAreaView,
+  Modal,
+  TouchableWithoutFeedback,
   StatusBar,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
-import { AuthContext } from '../../contexts/auth';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '../../contexts/auth';
 
 // Components
 import InformativeModal from '../../components/Modals/InformativeModal';
@@ -20,94 +21,88 @@ import Help from '../../components/Ui/Help';
 
 const Information = () => {
   const { logoff, user } = useContext(AuthContext);
+  const insets = useSafeAreaInsets();
   const [userName, setUserName] = useState('');
 
   // Modal States
   const [showTerms, setShowTerms] = useState(false);
   const [showUpdates, setShowUpdates] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     async function loadUserName() {
+      if (user?.name) {
+        setUserName(user.name);
+        return;
+      }
       const storedName = await AsyncStorage.getItem('@eventUser');
       if (storedName) {
         setUserName(storedName);
-      } else if (user?.name) {
-        setUserName(user.name);
       }
     }
     loadUserName();
   }, [user]);
 
   const getInitials = name => {
-    if (!name) return 'US';
-    const parts = name.trim().split(' ');
+    if (!name) return 'OR';
+    const parts = name.trim().split(' ').filter(Boolean);
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
   };
 
-  const menuGroups = [
+  const displayName = userName || user?.name || 'Organizador';
+  const displayEmail = user?.email || 'SENAR Mato Grosso';
+
+  const accountItems = [
     {
-      title: 'CONTA',
-      items: [
-        {
-          id: 'terms',
-          title: 'Termos de uso',
-          subtitle: 'Leia nossos termos e condições',
-          icon: 'file-text',
-          iconBg: '#E0F2FE',
-          iconColor: '#0EA5E9',
-          action: () => setShowTerms(true),
-        },
-        {
-          id: 'updates',
-          title: 'Notas de atualização',
-          subtitle: 'O que há de novo no app',
-          icon: 'refresh-cw',
-          iconBg: '#F3E8FF',
-          iconColor: '#9333EA',
-          action: () => setShowUpdates(true),
-        },
-        {
-          id: 'help',
-          title: 'Ajuda',
-          subtitle: 'Dúvidas sobre o Senar Atendimento',
-          icon: 'help-circle',
-          iconBg: '#F0FDF4',
-          iconColor: '#22C55E',
-          action: () => setShowHelp(true),
-        },
-      ],
+      id: 'terms',
+      title: 'Termos de uso',
+      subtitle: 'Leia nossos termos e condições',
+      icon: 'file-text',
+      iconBg: '#EDF4EE',
+      iconColor: '#2F5E38',
+      action: () => setShowTerms(true),
     },
     {
-      title: 'SESSÃO',
-      items: [
-        {
-          id: 'logout',
-          title: 'Sair',
-          subtitle: 'Obrigado por usar nosso aplicativo!',
-          icon: 'log-out',
-          iconBg: '#FEF2F2',
-          iconColor: '#EF4444',
-          isLogout: true,
-          action: () => {
-            Alert.alert('Sair', 'Tem certeza que deseja sair da sua conta?', [
-              { text: 'Cancelar', style: 'cancel' },
-              { text: 'Sair', onPress: logoff, style: 'destructive' },
-            ]);
-          },
-        },
-      ],
+      id: 'updates',
+      title: 'Notas de atualização',
+      subtitle: 'O que há de novo no aplicativo',
+      icon: 'refresh-cw',
+      iconBg: '#FEF5E4',
+      iconColor: '#B5632E',
+      action: () => setShowUpdates(true),
+    },
+    {
+      id: 'help',
+      title: 'Ajuda e suporte',
+      subtitle: 'Dúvidas sobre o SENAR Eventos',
+      icon: 'help-circle',
+      iconBg: '#EBF3ED',
+      iconColor: '#2F5E38',
+      action: () => setShowHelp(true),
     },
   ];
 
   const renderUpdates = () => (
     <View>
       {[
-        { version: 'v1.2.0', date: '04 de Maio, 2026', notes: ['Nova interface da home.', 'Dashboard de estatísticas.', 'Redesign do perfil.'] },
-        { version: 'v1.1.5', date: '20 de Abril, 2026', notes: ['Busca de eventos.', 'Correções de performance.'] }
+        {
+          version: 'v1.2.0',
+          date: '13 de Novembro, 2026',
+          notes: [
+            'Nova interface orgânica na Home, Eventos, Detalhes e Perfil.',
+            'Leitor de QR Code aprimorado com animação de captura.',
+            'Novos modais de aviso e navbar flutuante.',
+          ],
+        },
+        {
+          version: 'v1.1.5',
+          date: '20 de Abril, 2026',
+          notes: ['Busca de eventos.', 'Correções de performance.'],
+        },
       ].map((update, idx) => (
         <View key={idx} style={styles.updateItem}>
           <View style={styles.updateHeader}>
@@ -115,7 +110,9 @@ const Information = () => {
             <Text style={styles.updateDate}>{update.date}</Text>
           </View>
           {update.notes.map((note, nIdx) => (
-            <Text key={nIdx} style={styles.updateNote}>• {note}</Text>
+            <Text key={nIdx} style={styles.updateNote}>
+              • {note}
+            </Text>
           ))}
         </View>
       ))}
@@ -125,114 +122,194 @@ const Information = () => {
   const renderTerms = () => (
     <View style={styles.termsContent}>
       <Text style={styles.termsText}>
-        Bem-vindo ao aplicativo SENAR Eventos. Ao utilizar nossos serviços, você concorda com as seguintes condições:
+        Bem-vindo ao aplicativo SENAR Eventos. Ao utilizar nossos serviços, você
+        concorda com as seguintes condições:
       </Text>
       <Text style={styles.termsTitle}>1. Coleta de Dados</Text>
       <Text style={styles.termsText}>
-        Coletamos informações básicas para garantir sua inscrição em eventos e a emissão correta de certificados. Seus dados estão protegidos conforme a LGPD.
+        Coletamos informações básicas para garantir a inscrição em eventos e a
+        emissão correta de certificados. Seus dados estão protegidos conforme a
+        LGPD.
       </Text>
       <Text style={styles.termsTitle}>2. Uso do Aplicativo</Text>
       <Text style={styles.termsText}>
-        O aplicativo deve ser utilizado apenas para fins relacionados aos eventos e capacitações promovidos pelo SENAR Mato Grosso.
+        O aplicativo deve ser utilizado apenas para fins relacionados aos eventos
+        e capacitações promovidos pelo SENAR Mato Grosso.
       </Text>
       <Text style={styles.termsTitle}>3. Responsabilidades</Text>
       <Text style={styles.termsText}>
-        O usuário é responsável pela veracidade dos dados informados no cadastro.
+        O usuário é responsável pela veracidade dos dados informados no
+        cadastro.
       </Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar hidden={true} barStyle="dark-content" backgroundColor="#F5F7F5" />
+    <View style={styles.container}>
+      <StatusBar
+        hidden={true}
+        barStyle="dark-content"
+        backgroundColor="#F6F7F2"
+      />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Math.max(insets.bottom, 20) + 96 },
+        ]}
       >
-        {/* Profile Card */}
+        {/* Top Header */}
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.eyebrowText}>MINHA CONTA</Text>
+            <Text style={styles.pageTitle}>Meu perfil</Text>
+            <Text style={styles.pageSubtitle}>
+              Gerencie sua conta e preferências do app.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={() => setShowHelp(true)}
+            activeOpacity={0.75}
+          >
+            <Feather name="help-circle" size={19} color="#18221B" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Hero Profile Card */}
         <LinearGradient
-          colors={['#1B4332', '#2D6A4F', '#40916C']}
+          colors={['#1E4B31', '#2E6241', '#3E7751']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.profileCard}
+          style={styles.heroCard}
         >
-          <View
-            style={[
-              styles.circle,
-              { top: -20, right: -20, width: 100, height: 100, opacity: 0.1 },
-            ]}
-          />
-          <View
-            style={[
-              styles.circle,
-              {
-                bottom: -30,
-                left: -30,
-                width: 150,
-                height: 150,
-                opacity: 0.05,
-              },
-            ]}
-          />
+          <View style={styles.heroCircleDecor} />
+
+          <View style={styles.statusPill}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statusPillText}>ORGANIZADOR ATIVO</Text>
+          </View>
 
           <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{getInitials(userName)}</Text>
-              </View>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.profileLabel}>PRODUTOR RURAL</Text>
-              <Text style={styles.profileName} numberOfLines={1}>
-                {userName.toUpperCase()}
+              <Text style={styles.profileName} numberOfLines={2}>
+                {displayName}
               </Text>
-              <Text style={styles.profileSub}>Membro SENAR Mato Grosso</Text>
+              <Text style={styles.profileEmail} numberOfLines={1}>
+                {displayEmail}
+              </Text>
             </View>
           </View>
 
-          <View style={styles.statusBadge}>
-            <Feather name="award" size={14} color="#D8F3DC" />
-            <Text style={styles.statusText}>Membro ativo desde 2024</Text>
+          <View style={styles.heroInnerBox}>
+            <View style={styles.heroStatItem}>
+              <Text style={styles.heroStatLabel}>Instituição</Text>
+              <Text style={styles.heroStatValue}>SENAR MT</Text>
+            </View>
+            <View style={styles.heroStatDivider} />
+            <View style={styles.heroStatItem}>
+              <Text style={styles.heroStatLabel}>Função</Text>
+              <Text style={styles.heroStatValue}>Credenciamento</Text>
+            </View>
           </View>
         </LinearGradient>
 
-        {/* Menu Groups */}
-        {menuGroups.map((group, gIdx) => (
-          <View key={gIdx} style={styles.groupContainer}>
-            <Text style={styles.groupTitle}>{group.title}</Text>
-            {group.items.map((item, iIdx) => (
-              <TouchableOpacity
-                key={iIdx}
-                style={styles.menuItem}
-                onPress={item.action}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: item.iconBg },
-                  ]}
-                >
-                  <Feather name={item.icon} size={20} color={item.iconColor} />
-                </View>
-                <View style={styles.menuTextContainer}>
-                  <Text
-                    style={[
-                      styles.menuTitle,
-                      item.isLogout && { color: '#EF4444' },
-                    ]}
-                  >
-                    {item.title}
-                  </Text>
-                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-                </View>
-                <Feather name="chevron-right" size={20} color="#D1D5DB" />
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
+        {/* Two Quick Action Cards */}
+        <View style={styles.quickActionsRow}>
+          <TouchableOpacity
+            style={styles.quickActionHalf}
+            onPress={() => setShowHelp(true)}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={['#437A56', '#2F5E3E']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.primaryQuickCard}
+            >
+              <View style={styles.primaryQuickIconBox}>
+                <Feather name="life-buoy" size={19} color="#FFFFFF" />
+              </View>
+              <View style={styles.quickTextWrap}>
+                <Text style={styles.primaryQuickTitle}>Central de Ajuda</Text>
+                <Text style={styles.primaryQuickSub}>Suporte rápido</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
 
-        <View style={{ height: 100 }} />
+          <TouchableOpacity
+            style={styles.quickActionHalf}
+            onPress={() => setShowUpdates(true)}
+            activeOpacity={0.82}
+          >
+            <View style={styles.secondaryQuickCard}>
+              <View style={styles.secondaryQuickIconBox}>
+                <Feather name="sparkles" size={18} color="#2F5E38" />
+              </View>
+              <View style={styles.quickTextWrap}>
+                <Text style={styles.secondaryQuickTitle}>Novidades</Text>
+                <Text style={styles.secondaryQuickSub}>Versão v1.2.0</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Account Section Card */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionEyebrow}>PREFERÊNCIAS</Text>
+          <Text style={styles.sectionHeading}>Conta e informações</Text>
+
+          {accountItems.map((item, idx) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[
+                styles.menuRow,
+                idx < accountItems.length - 1 && styles.menuRowBorder,
+              ]}
+              onPress={item.action}
+              activeOpacity={0.75}
+            >
+              <View
+                style={[styles.menuIconBox, { backgroundColor: item.iconBg }]}
+              >
+                <Feather name={item.icon} size={18} color={item.iconColor} />
+              </View>
+
+              <View style={styles.menuTextWrap}>
+                <Text style={styles.menuTitle}>{item.title}</Text>
+                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+              </View>
+
+              <Feather name="chevron-right" size={18} color="#9AA39B" />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Session Card */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionEyebrow}>SESSÃO</Text>
+          <TouchableOpacity
+            style={styles.logoutRow}
+            onPress={() => setShowLogoutConfirm(true)}
+            activeOpacity={0.75}
+          >
+            <View style={styles.logoutIconBox}>
+              <Feather name="log-out" size={18} color="#C94A38" />
+            </View>
+            <View style={styles.menuTextWrap}>
+              <Text style={styles.logoutTitle}>Sair da conta</Text>
+              <Text style={styles.menuSubtitle}>
+                Encerrar sessão neste dispositivo
+              </Text>
+            </View>
+            <Feather name="chevron-right" size={18} color="#D48B80" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Modals */}
@@ -253,182 +330,458 @@ const Information = () => {
       </InformativeModal>
 
       <Help visible={showHelp} onClose={() => setShowHelp(false)} />
-    </SafeAreaView>
+
+      {/* Custom Logout Confirmation Modal */}
+      <Modal
+        transparent
+        visible={showLogoutConfirm}
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowLogoutConfirm(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowLogoutConfirm(false)}>
+          <View style={styles.modalBackdrop}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.confirmCard}>
+                <View style={styles.confirmIconBox}>
+                  <Feather name="log-out" size={24} color="#C94A38" />
+                </View>
+                <Text style={styles.confirmEyebrow}>ENCERRAR SESSÃO</Text>
+                <Text style={styles.confirmTitle}>Sair da sua conta?</Text>
+                <Text style={styles.confirmBody}>
+                  Você precisará informar seu e-mail e senha novamente para
+                  acessar os eventos.
+                </Text>
+
+                <View style={styles.confirmActionsRow}>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => setShowLogoutConfirm(false)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.cancelBtnText}>Cancelar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.confirmLogoutBtn}
+                    onPress={() => {
+                      setShowLogoutConfirm(false);
+                      logoff();
+                    }}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.confirmLogoutBtnText}>Sair</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7F5',
+    backgroundColor: '#F6F7F2',
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 28,
   },
-  profileCard: {
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    overflow: 'hidden',
-    elevation: 8,
-    shadowColor: '#1B4332',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  circle: {
-    position: 'absolute',
-    borderRadius: 100,
+  headerTextWrap: {
+    flex: 1,
+  },
+  eyebrowText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#2F5E38',
+    marginBottom: 3,
+  },
+  pageTitle: {
+    fontSize: 25,
+    fontWeight: '800',
+    color: '#18221B',
+  },
+  pageSubtitle: {
+    fontSize: 13,
+    color: '#6E786F',
+    marginTop: 2,
+  },
+  headerIconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroCard: {
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 14,
+    overflow: 'hidden',
+  },
+  heroCircleDecor: {
+    position: 'absolute',
+    top: -40,
+    right: -40,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 20,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    gap: 6,
+    marginBottom: 16,
+  },
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#3E8E58',
+  },
+  statusPillText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.7,
+    color: '#18221B',
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatarContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    padding: 3,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+    gap: 14,
+    marginBottom: 18,
   },
   avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
+    width: 58,
+    height: 58,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: {
+    fontSize: 20,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
   },
   profileInfo: {
     flex: 1,
   },
-  profileLabel: {
-    color: '#D8F3DC',
-    fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    marginBottom: 2,
-    opacity: 0.8,
-  },
   profileName: {
+    fontSize: 20,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 2,
+    lineHeight: 24,
   },
-  profileSub: {
-    color: '#D8F3DC',
-    fontSize: 12,
-    opacity: 0.9,
+  profileEmail: {
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 3,
   },
-  statusBadge: {
+  heroInnerBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingVertical: 8,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
-  statusText: {
+  heroStatItem: {
+    flex: 1,
+  },
+  heroStatLabel: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.72)',
+    marginBottom: 2,
+  },
+  heroStatValue: {
+    fontSize: 14,
+    fontWeight: '700',
     color: '#FFFFFF',
+  },
+  heroStatDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    marginHorizontal: 14,
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  quickActionHalf: {
+    flex: 1,
+  },
+  primaryQuickCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    gap: 10,
+    minHeight: 72,
+  },
+  primaryQuickIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickTextWrap: {
+    flex: 1,
+  },
+  primaryQuickTitle: {
     fontSize: 13,
-    fontWeight: '500',
-    marginLeft: 8,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-  groupContainer: {
-    marginBottom: 24,
+  primaryQuickSub: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.82)',
+    marginTop: 2,
   },
-  groupTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#94A3B8',
-    letterSpacing: 1,
-    marginBottom: 12,
-    marginLeft: 4,
-  },
-  menuItem: {
+  secondaryQuickCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    gap: 10,
+    minHeight: 72,
   },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    justifyContent: 'center',
+  secondaryQuickIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    backgroundColor: '#EDF4EE',
     alignItems: 'center',
-    marginRight: 16,
+    justifyContent: 'center',
   },
-  menuTextContainer: {
+  secondaryQuickTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#18221B',
+  },
+  secondaryQuickSub: {
+    fontSize: 11,
+    color: '#7A847B',
+    marginTop: 2,
+  },
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
+    padding: 18,
+    marginBottom: 14,
+  },
+  sectionEyebrow: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#2F5E38',
+    marginBottom: 4,
+  },
+  sectionHeading: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#18221B',
+    marginBottom: 10,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 12,
+  },
+  menuRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFF2EB',
+  },
+  menuIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menuTextWrap: {
     flex: 1,
   },
   menuTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1E293B',
-    marginBottom: 2,
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#18221B',
   },
   menuSubtitle: {
-    fontSize: 13,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: '#7A847B',
+    marginTop: 2,
+  },
+  logoutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 6,
+    gap: 12,
+  },
+  logoutIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FDF0EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutTitle: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#C94A38',
   },
   updateItem: {
-    marginBottom: 20,
+    marginBottom: 18,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFF2EB',
   },
   updateHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
   updateVersion: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2B9348',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#2F5E38',
   },
   updateDate: {
     fontSize: 12,
-    color: '#64748B',
+    color: '#7A847B',
   },
   updateNote: {
-    fontSize: 14,
-    color: '#475569',
+    fontSize: 13.5,
+    color: '#465248',
+    lineHeight: 20,
     marginBottom: 4,
   },
   termsContent: {
-    paddingBottom: 10,
-  },
-  termsText: {
-    fontSize: 14,
-    color: '#475569',
-    lineHeight: 20,
-    marginBottom: 12,
+    paddingBottom: 16,
   },
   termsTitle: {
     fontSize: 15,
-    fontWeight: 'bold',
-    color: '#1E293B',
+    fontWeight: '700',
+    color: '#18221B',
+    marginTop: 14,
     marginBottom: 6,
+  },
+  termsText: {
+    fontSize: 13.5,
+    color: '#5F6A61',
+    lineHeight: 21,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(18, 34, 24, 0.58)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  confirmCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: '#E5EAE0',
+  },
+  confirmIconBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: '#FDF0EE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  confirmEyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#C94A38',
+    marginBottom: 5,
+  },
+  confirmTitle: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: '#18221B',
+    marginBottom: 8,
+  },
+  confirmBody: {
+    fontSize: 14,
+    color: '#5F6A61',
+    lineHeight: 21,
+    marginBottom: 20,
+  },
+  confirmActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: '#F3F5F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtnText: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#465248',
+  },
+  confirmLogoutBtn: {
+    flex: 1,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: '#C94A38',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmLogoutBtnText: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
 
