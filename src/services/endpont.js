@@ -45,6 +45,13 @@ export default {
     return json?.data || [];
   },
 
+  getParticipantEvents: async (search = '') => {
+    const json = await api.get('/participantes', {
+      params: search ? { search } : {},
+    });
+    return json?.data || [];
+  },
+
   getEvent: async id => {
     const json = await api.get(`/events/show/${id}`);
     return json?.data || [];
