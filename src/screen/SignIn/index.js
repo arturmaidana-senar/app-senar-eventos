@@ -13,6 +13,7 @@ import {
   Platform,
   Image,
   Keyboard,
+  RefreshControl,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import Feather from 'react-native-vector-icons/Feather';
@@ -21,12 +22,13 @@ import { AuthContext } from '../../contexts/auth';
 import { ALERT_TYPE, Dialog } from 'react-native-alert-notification';
 
 export default function SignIn() {
-  const { signIn, loadingAuth } = useContext(AuthContext);
+  const { signIn, loadingAuth, refreshUser } = useContext(AuthContext);
   const navigation = useNavigation();
   const [emailField, setEmailField] = useState('');
   const [passwordField, setPasswordField] = useState('');
   const [passwordHide, setPasswordHide] = useState(true);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const scrollViewRef = useRef(null);
   const passwordInputRef = useRef(null);
@@ -115,6 +117,18 @@ export default function SignIn() {
     });
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const updatedUser = await refreshUser();
+      if (updatedUser) {
+        navigation.reset({ routes: [{ name: 'TabNavigator' }] });
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -138,7 +152,14 @@ export default function SignIn() {
           keyboardShouldPersistTaps="handled"
           automaticallyAdjustKeyboardInsets={true}
           showsVerticalScrollIndicator={false}
-          bounces={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={['#2F5E38']}
+              tintColor="#FFFFFF"
+            />
+          }
         >
           {/* Decorative background circles */}
           <View style={styles.heroDecorCircleTop} />

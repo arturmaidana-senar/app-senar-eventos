@@ -68,7 +68,7 @@ export default function Home() {
   async function getEvents() {
     try {
       setLoading(true);
-      const response = await api.getAllEvents();
+      const response = await api.getUserEvents();
       setEvents(response.data || []);
     } catch (error) {
       console.error('Erro ao buscar eventos:', error);
@@ -275,31 +275,6 @@ export default function Home() {
         </View>
       </LinearGradient>
 
-      {/* Check-in Quick Card */}
-      <TouchableOpacity
-        style={styles.checkinBanner}
-        onPress={handleQuickCheckin}
-        activeOpacity={0.85}
-      >
-        <View style={styles.checkinIconBox}>
-          <Feather name="maximize" size={20} color="#315D3E" />
-        </View>
-
-        <View style={styles.checkinTextWrap}>
-          <Text style={styles.checkinTitle}>
-            Chegou no evento? Dê o próximo passo.
-          </Text>
-          <Text style={styles.checkinSubtitle}>
-            Seu check-in em poucos segundos. Mais tempo para viver o encontro.
-          </Text>
-        </View>
-
-        <View style={styles.checkinArrowBtn}>
-          <Feather name="arrow-right" size={16} color="#FFFFFF" />
-        </View>
-      </TouchableOpacity>
-
-      {/* Two-Column Stats */}
       <View style={styles.metricsRow}>
         <TouchableOpacity
           style={styles.metricItem}

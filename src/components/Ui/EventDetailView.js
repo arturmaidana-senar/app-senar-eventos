@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,11 @@ const EventDetailView = ({
   imageBaseUrl = 'https://eventos.senarmt.org.br/storage/',
 }) => {
   const insets = useSafeAreaInsets();
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [event?.image]);
 
   if (!event) {
     return (
@@ -76,6 +81,10 @@ const EventDetailView = ({
     ? MONTHS_SHORT[startDate.getMonth()]
     : 'EVT';
 
+  const hasCoverImage = Boolean(
+    event?.image && String(event.image).trim().length > 0 && !imageError,
+  );
+
   return (
     <ScrollView
       style={styles.container}
@@ -84,11 +93,12 @@ const EventDetailView = ({
     >
       {/* Hero Cover */}
       <View style={styles.imageContainer}>
-        {event.image ? (
+        {hasCoverImage ? (
           <Image
             source={{ uri: `${imageBaseUrl}${event.image}` }}
             style={styles.eventImage}
             resizeMode="cover"
+            onError={() => setImageError(true)}
           />
         ) : (
           <LinearGradient

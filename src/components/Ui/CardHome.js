@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -37,6 +37,15 @@ const MONTHS_FULL = [
 const CardHome = ({ item, variant = 'featured' }) => {
   const navigation = useNavigation();
   const imageBaseUrl = 'https://eventos.senarmt.org.br/storage/';
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [item?.image]);
+
+  const hasCoverImage = Boolean(
+    item?.image && String(item.image).trim().length > 0 && !imageError,
+  );
 
   const startDate = item.started_at ? new Date(item.started_at) : null;
   const endDate = item.ended_at ? new Date(item.ended_at) : startDate;
@@ -160,11 +169,12 @@ const CardHome = ({ item, variant = 'featured' }) => {
       activeOpacity={0.9}
     >
       <View style={styles.coverContainer}>
-        {item.image ? (
+        {hasCoverImage ? (
           <Image
             source={{ uri: `${imageBaseUrl}${item.image}` }}
             style={styles.coverImage}
             resizeMode="cover"
+            onError={() => setImageError(true)}
           />
         ) : (
           <LinearGradient
