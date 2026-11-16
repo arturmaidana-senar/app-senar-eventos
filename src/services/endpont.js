@@ -55,6 +55,13 @@ export default {
     return json?.data || [];
   },
 
+  getEventParticipants: async (id, search = '') => {
+    const json = await api.get(`/events/${id}/participantes`, {
+      params: search ? { search } : {},
+    });
+    return json?.data || [];
+  },
+
   postCheckinEvent: async data => {
     const response = await api.post('/checkin', data);
     return response?.data || [];
