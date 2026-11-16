@@ -79,6 +79,7 @@ export default function Home() {
 
   const [events, setEvents] = useState([]);
   const [featuredCheckins, setFeaturedCheckins] = useState([]);
+  const [featuredParticipants, setFeaturedParticipants] = useState([]);
   const [userName, setUserName] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -165,6 +166,7 @@ export default function Home() {
   const fetchFeaturedCheckins = useCallback(async eventId => {
     if (!eventId) {
       setFeaturedCheckins([]);
+      setFeaturedParticipants([]);
       return;
     }
 
@@ -176,11 +178,17 @@ export default function Home() {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) cachedList = parsed;
       }
-    } catch {}
+    } catch { }
 
-    try {
-      const res = await api.getListEventCheckin(eventId);
-      const serverList = Array.isArray(res?.data) ? res.data : [];
+    const [checkinRes, participantsRes] = await Promise.allSettled([
+      api.getListEventCheckin(eventId),
+      api.getEventParticipants(eventId),
+    ]);
+
+    if (checkinRes.status === 'fulfilled') {
+      const serverList = Array.isArray(checkinRes.value?.data)
+        ? checkinRes.value.data
+        : [];
       if (serverList.length > 0) {
         const serverNames = new Set(
           serverList.map(i => (i.name_participante || '').trim().toLowerCase()),
@@ -192,8 +200,19 @@ export default function Home() {
       } else {
         setFeaturedCheckins(cachedList);
       }
-    } catch {
+    } else {
       setFeaturedCheckins(cachedList);
+    }
+
+    if (participantsRes.status === 'fulfilled') {
+      const list = Array.isArray(participantsRes.value)
+        ? participantsRes.value
+        : Array.isArray(participantsRes.value?.data)
+          ? participantsRes.value.data
+          : [];
+      setFeaturedParticipants(list);
+    } else {
+      setFeaturedParticipants([]);
     }
   }, []);
 
@@ -321,30 +340,126 @@ export default function Home() {
     }).length;
   }, [featuredCheckins]);
 
-  const filteredParticipants = useMemo(() => {
-    if (participantTab === 'aguardando') {
-      // listEventCheckin retorna apenas quem já realizou check-in
-      return [];
+  const maskCpf = cpf => {
+    if (!cpf) return '';
+    const digits = String(cpf).replace(/\D/g, '');
+    if (digits.length === 11) {
+      return `•••.${digits.slice(3, 6)}.•••-${digits.slice(9, 11)}`;
     }
+    return String(cpf);
+  };
+
+  const mergedParticipants = useMemo(() => {
+    const checkinById = new Map();
+    const checkinByName = new Map();
+
+    featuredCheckins.forEach(c => {
+      if (c.participant_id) checkinById.set(String(c.participant_id), c);
+      if (c.name_participante) {
+        checkinByName.set(c.name_participante.trim().toLowerCase(), c);
+      }
+    });
+
+    const seenNames = new Set();
+    const fromEnrolled = featuredParticipants.map(p => {
+      const keyName = (p.name || '').trim().toLowerCase();
+      if (keyName) seenNames.add(keyName);
+      const matched =
+        checkinById.get(String(p.id)) || checkinByName.get(keyName);
+      const isConfirmed = Boolean(
+        matched || Number(p.credential) === 1 || p.date_time_credential,
+      );
+      return {
+        id: p.id,
+        name: p.name || 'Participante',
+        subtitle: p.cpf
+          ? maskCpf(p.cpf)
+          : p.participant_type_name || 'Inscrito',
+        cpf: p.cpf || '',
+        confirmed: isConfirmed,
+        checkinTime: matched?.started_at || p.date_time_credential || null,
+      };
+    });
+
+    const extraCheckins = featuredCheckins
+      .filter(c => {
+        const keyName = (c.name_participante || '').trim().toLowerCase();
+        return keyName && !seenNames.has(keyName);
+      })
+      .map((c, idx) => ({
+        id: c.participant_id || `checkin-${idx}`,
+        name: c.name_participante || 'Participante',
+        subtitle: c.user_create || 'Check-in realizado',
+        cpf: '',
+        confirmed: true,
+        checkinTime: c.started_at || null,
+      }));
+
+    return [...extraCheckins, ...fromEnrolled];
+  }, [featuredCheckins, featuredParticipants]);
+
+  const filteredParticipants = useMemo(() => {
+    let base = mergedParticipants;
+    if (participantTab === 'confirmados') {
+      base = base.filter(p => p.confirmed);
+    } else if (participantTab === 'aguardando') {
+      base = base.filter(p => !p.confirmed);
+    }
+
     const term = participantSearch.trim().toLowerCase();
-    const list = term
-      ? featuredCheckins.filter(p =>
-          p.name_participante?.toLowerCase().includes(term),
-        )
-      : featuredCheckins;
-    return list.slice(0, 6);
-  }, [featuredCheckins, participantSearch, participantTab]);
+    if (term) {
+      base = base.filter(
+        p =>
+          p.name?.toLowerCase().includes(term) ||
+          p.cpf?.toLowerCase().includes(term),
+      );
+    }
+    return base.slice(0, 6);
+  }, [mergedParticipants, participantSearch, participantTab]);
 
   const featuredProgress = useMemo(() => {
+    const enrolledTotal = mergedParticipants.length;
+    const confirmedTotal = mergedParticipants.filter(p => p.confirmed).length;
+
+    if (enrolledTotal > 0) {
+      const pct = Math.min(
+        100,
+        Math.round((confirmedTotal / enrolledTotal) * 100),
+      );
+      const waiting = Math.max(0, enrolledTotal - confirmedTotal);
+      return {
+        presentes: confirmedTotal,
+        capacidade: enrolledTotal,
+        restantes: waiting,
+        pct,
+        hasCapacity: true,
+        hasEnrolled: true,
+      };
+    }
+
     const presentes = featuredCheckins.length;
     const capacidade = Number(featuredEvent?.number_max) || 0;
     if (capacidade > 0) {
       const pct = Math.min(100, Math.round((presentes / capacidade) * 100));
       const restantes = Math.max(0, capacidade - presentes);
-      return { presentes, capacidade, restantes, pct, hasCapacity: true };
+      return {
+        presentes,
+        capacidade,
+        restantes,
+        pct,
+        hasCapacity: true,
+        hasEnrolled: false,
+      };
     }
-    return { presentes, capacidade: 0, restantes: 0, pct: 0, hasCapacity: false };
-  }, [featuredCheckins.length, featuredEvent?.number_max]);
+    return {
+      presentes,
+      capacidade: 0,
+      restantes: 0,
+      pct: 0,
+      hasCapacity: false,
+      hasEnrolled: false,
+    };
+  }, [featuredCheckins.length, featuredEvent?.number_max, mergedParticipants]);
 
   const visibleAgenda = showAllAgenda
     ? upcomingEvents
@@ -468,14 +583,28 @@ export default function Home() {
                   </View>
 
                   {featuredProgress.hasCapacity && (
-                    <View style={styles.progressTrack}>
-                      <View
-                        style={[
-                          styles.progressFill,
-                          { width: `${featuredProgress.pct}%` },
-                        ]}
-                      />
-                    </View>
+                    <>
+                      <View style={styles.statColDivider} />
+                      <View style={styles.statCol}>
+                        <Text style={styles.statNumber}>
+                          {featuredProgress.capacidade}
+                        </Text>
+                        <Text style={styles.statLabel}>
+                          {featuredProgress.hasEnrolled ? 'inscritos' : 'vagas'}
+                        </Text>
+                      </View>
+                      <View style={styles.statColDivider} />
+                      <View style={styles.statCol}>
+                        <Text style={styles.statNumber}>
+                          {featuredProgress.restantes}
+                        </Text>
+                        <Text style={styles.statLabel}>
+                          {featuredProgress.hasEnrolled
+                            ? 'aguardando'
+                            : 'restantes'}
+                        </Text>
+                      </View>
+                    </>
                   )}
 
                   <View style={styles.statsColumns}>
@@ -743,11 +872,11 @@ export default function Home() {
               <View style={styles.participantsList}>
                 {filteredParticipants.map((p, idx) => (
                   <TouchableOpacity
-                    key={`${p.participant_id}-${idx}`}
+                    key={`${p.id}-${idx}`}
                     style={[
                       styles.participantRow,
                       idx < filteredParticipants.length - 1 &&
-                        styles.participantDivider,
+                      styles.participantDivider,
                     ]}
                     activeOpacity={0.75}
                     onPress={() =>
@@ -759,26 +888,34 @@ export default function Home() {
                   >
                     <View style={styles.participantAvatar}>
                       <Text style={styles.participantAvatarText}>
-                        {getInitials(p.name_participante)}
+                        {getInitials(p.name)}
                       </Text>
                     </View>
 
                     <View style={styles.participantInfo}>
                       <Text style={styles.participantName} numberOfLines={1}>
-                        {p.name_participante}
+                        {p.name}
                       </Text>
                       <Text style={styles.participantSub} numberOfLines={1}>
-                        {p.user_create || 'Check-in realizado'}
+                        {p.subtitle}
                       </Text>
                     </View>
 
                     <View style={styles.participantRight}>
-                      <View style={styles.confirmedPill}>
-                        <Check size={11} color="#2F5E38" />
-                        <Text style={styles.confirmedPillText}>Confirmado</Text>
-                      </View>
+                      {p.confirmed ? (
+                        <View style={styles.confirmedPill}>
+                          <Feather name="check" size={11} color="#2F5E38" />
+                          <Text style={styles.confirmedPillText}>
+                            Confirmado
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={styles.waitingPill}>
+                          <Text style={styles.waitingPillText}>Aguardando</Text>
+                        </View>
+                      )}
                       <Text style={styles.participantTime}>
-                        {formatShortTime(p.started_at)}
+                        {p.confirmed ? formatShortTime(p.checkinTime) : '—'}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -787,8 +924,10 @@ export default function Home() {
             ) : (
               <Text style={styles.emptySectionText}>
                 {participantTab === 'aguardando'
-                  ? 'Consulte participantes pendentes na busca por CPF.'
-                  : 'Nenhum check-in registrado para este evento ainda.'}
+                  ? 'Nenhum participante aguardando check-in.'
+                  : participantTab === 'confirmados'
+                    ? 'Nenhum check-in registrado para este evento ainda.'
+                    : 'Nenhum participante inscrito para este evento ainda.'}
               </Text>
             )}
           </View>
@@ -1348,6 +1487,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#2F5E38',
+  },
+  waitingPill: {
+    backgroundColor: '#FEF5E4',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  waitingPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#B5632E',
   },
   participantTime: {
     fontSize: 11,
