@@ -10,12 +10,25 @@ import {
   ActivityIndicator,
   TextInput,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
-import Feather from 'react-native-vector-icons/Feather';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import {
+  User,
+  MapPin,
+  Clock,
+  Calendar,
+  QrCode,
+  CreditCard,
+  Users,
+  ChevronRight,
+  ChevronUp,
+  ArrowRight,
+  Search,
+  Check,
+} from 'lucide-react-native';
 import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../../services/endpont';
@@ -96,6 +109,10 @@ export default function Home() {
   }, []);
 
   const requestPermissions = useCallback(async () => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+
     try {
       const cameraPermission = await request(PERMISSIONS.ANDROID.CAMERA);
       const locationPermission = await request(
@@ -351,7 +368,10 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Math.max(insets.bottom, 16) + 104 },
+          {
+            paddingTop: Math.max(insets.top, 20) + 12,
+            paddingBottom: Math.max(insets.bottom, 16) + 104,
+          },
         ]}
         refreshControl={
           <RefreshControl
@@ -377,7 +397,7 @@ export default function Home() {
             onPress={() => navigation.navigate('Information')}
             activeOpacity={0.8}
           >
-            <Feather name="user" size={18} color="#2F5E38" />
+            <User size={18} color="#2F5E38" />
           </TouchableOpacity>
         </View>
 
@@ -389,106 +409,109 @@ export default function Home() {
               navigation.navigate('Service', { eventId: featuredEvent.id })
             }
           >
-            <LinearGradient
-              colors={['#2C5B3D', '#214830', '#183724']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroCard}
-            >
+            <View style={styles.heroCard}>
+              <LinearGradient
+                colors={['#2C5B3D', '#214830', '#183724']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
               <View style={styles.heroDecorCircleOne} />
               <View style={styles.heroDecorCircleTwo} />
 
-              <View style={styles.heroEyebrowRow}>
-                <View style={styles.heroEyebrowDot} />
-                <Text style={styles.heroEyebrow}>
-                  {isEventActive(featuredEvent)
-                    ? 'OPERAÇÃO EM ANDAMENTO'
-                    : 'PRÓXIMO EVENTO'}
-                </Text>
-              </View>
-
-              <Text style={styles.heroTitle} numberOfLines={2}>
-                {featuredEvent.name}
-              </Text>
-              <Text style={styles.heroSubtitle}>
-                Acompanhe o credenciamento em tempo real e mantenha sua equipe
-                sincronizada.
-              </Text>
-
-              <View style={styles.heroMetaRow}>
-                <Feather name="map-pin" size={13} color="#C7DEC9" />
-                <Text style={styles.heroMetaText} numberOfLines={1}>
-                  {featuredEvent.name_location || 'Local a definir'}
-                </Text>
-              </View>
-
-              <View style={styles.heroMetaRow}>
-                <Feather name="clock" size={13} color="#C7DEC9" />
-                <Text style={styles.heroMetaText}>
-                  {formatTimeRange(
-                    featuredEvent.started_at,
-                    featuredEvent.ended_at,
-                  )}
-                </Text>
-              </View>
-
-              {/* Inner Progress / Stats Box */}
-              <View style={styles.progressBox}>
-                <View style={styles.progressHeader}>
-                  <Text style={styles.progressLabel}>
-                    Progresso do check-in
-                  </Text>
-                  <Text style={styles.progressPct}>
-                    {featuredProgress.hasCapacity
-                      ? `${featuredProgress.pct}%`
-                      : `${featuredProgress.presentes}`}
+              <View style={styles.heroContent}>
+                <View style={styles.heroEyebrowRow}>
+                  <View style={styles.heroEyebrowDot} />
+                  <Text style={styles.heroEyebrow}>
+                    {isEventActive(featuredEvent)
+                      ? 'OPERAÇÃO EM ANDAMENTO'
+                      : 'PRÓXIMO EVENTO'}
                   </Text>
                 </View>
 
-                {featuredProgress.hasCapacity && (
-                  <View style={styles.progressTrack}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        { width: `${featuredProgress.pct}%` },
-                      ]}
-                    />
-                  </View>
-                )}
+                <Text style={styles.heroTitle} numberOfLines={2}>
+                  {featuredEvent.name}
+                </Text>
+                <Text style={styles.heroSubtitle}>
+                  Acompanhe o credenciamento em tempo real e mantenha sua equipe
+                  sincronizada.
+                </Text>
 
-                <View style={styles.statsColumns}>
-                  <View style={styles.statCol}>
-                    <Text style={styles.statNumber}>
-                      {featuredProgress.presentes}
+                <View style={styles.heroMetaRow}>
+                  <MapPin size={13} color="#C7DEC9" />
+                  <Text style={styles.heroMetaText} numberOfLines={1}>
+                    {featuredEvent.name_location || 'Local a definir'}
+                  </Text>
+                </View>
+
+                <View style={styles.heroMetaRow}>
+                  <Clock size={13} color="#C7DEC9" />
+                  <Text style={styles.heroMetaText}>
+                    {formatTimeRange(
+                      featuredEvent.started_at,
+                      featuredEvent.ended_at,
+                    )}
+                  </Text>
+                </View>
+
+                {/* Inner Progress / Stats Box */}
+                <View style={styles.progressBox}>
+                  <View style={styles.progressHeader}>
+                    <Text style={styles.progressLabel}>
+                      Progresso do check-in
                     </Text>
-                    <Text style={styles.statLabel}>presentes</Text>
+                    <Text style={styles.progressPct}>
+                      {featuredProgress.hasCapacity
+                        ? `${featuredProgress.pct}%`
+                        : `${featuredProgress.presentes}`}
+                    </Text>
                   </View>
 
                   {featuredProgress.hasCapacity && (
-                    <>
-                      <View style={styles.statColDivider} />
-                      <View style={styles.statCol}>
-                        <Text style={styles.statNumber}>
-                          {featuredProgress.capacidade}
-                        </Text>
-                        <Text style={styles.statLabel}>vagas</Text>
-                      </View>
-                      <View style={styles.statColDivider} />
-                      <View style={styles.statCol}>
-                        <Text style={styles.statNumber}>
-                          {featuredProgress.restantes}
-                        </Text>
-                        <Text style={styles.statLabel}>restantes</Text>
-                      </View>
-                    </>
+                    <View style={styles.progressTrack}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          { width: `${featuredProgress.pct}%` },
+                        ]}
+                      />
+                    </View>
                   )}
+
+                  <View style={styles.statsColumns}>
+                    <View style={styles.statCol}>
+                      <Text style={styles.statNumber}>
+                        {featuredProgress.presentes}
+                      </Text>
+                      <Text style={styles.statLabel}>presentes</Text>
+                    </View>
+
+                    {featuredProgress.hasCapacity && (
+                      <>
+                        <View style={styles.statColDivider} />
+                        <View style={styles.statCol}>
+                          <Text style={styles.statNumber}>
+                            {featuredProgress.capacidade}
+                          </Text>
+                          <Text style={styles.statLabel}>vagas</Text>
+                        </View>
+                        <View style={styles.statColDivider} />
+                        <View style={styles.statCol}>
+                          <Text style={styles.statNumber}>
+                            {featuredProgress.restantes}
+                          </Text>
+                          <Text style={styles.statLabel}>restantes</Text>
+                        </View>
+                      </>
+                    )}
+                  </View>
                 </View>
               </View>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         ) : (
           <View style={styles.emptyHeroCard}>
-            <Feather name="calendar" size={26} color="#2F5E38" />
+            <Calendar size={26} color="#2F5E38" />
             <Text style={styles.emptyHeroTitle}>
               Nenhum evento próximo no momento
             </Text>
@@ -514,7 +537,7 @@ export default function Home() {
               }
             >
               <View style={styles.qrActionIconBox}>
-                <Icon name="qr-code-scanner" size={22} color="#FFFFFF" />
+                <QrCode size={22} color="#FFFFFF" />
               </View>
               <View style={styles.actionCardTextWrap}>
                 <Text style={styles.qrActionTitle}>Escanear QR Code</Text>
@@ -532,7 +555,7 @@ export default function Home() {
               }
             >
               <View style={styles.cpfActionIconBox}>
-                <Feather name="credit-card" size={20} color="#2F5E38" />
+                <CreditCard size={20} color="#2F5E38" />
               </View>
               <View style={styles.actionCardTextWrap}>
                 <Text style={styles.cpfActionTitle}>Check-in por CPF</Text>
@@ -548,7 +571,7 @@ export default function Home() {
         {featuredEvent && (
           <View style={styles.liveMetricBanner}>
             <View style={styles.liveMetricIconBox}>
-              <Feather name="users" size={18} color="#2F5E38" />
+              <Users size={18} color="#2F5E38" />
             </View>
             <View style={styles.liveMetricTextWrap}>
               <Text style={styles.liveMetricLabel}>
@@ -573,7 +596,7 @@ export default function Home() {
               <Text style={styles.sectionTitle}>Próximos eventos</Text>
             </View>
             <View style={styles.sectionIconBadge}>
-              <Feather name="calendar" size={17} color="#2F5E38" />
+              <Calendar size={17} color="#2F5E38" />
             </View>
           </View>
 
@@ -617,14 +640,14 @@ export default function Home() {
                         {item.name}
                       </Text>
                       <View style={styles.agendaLocRow}>
-                        <Feather name="map-pin" size={11} color="#7A847B" />
+                        <MapPin size={11} color="#7A847B" />
                         <Text style={styles.agendaLocText} numberOfLines={1}>
                           {item.name_location || 'Local a definir'}
                         </Text>
                       </View>
                     </View>
 
-                    <Feather name="chevron-right" size={17} color="#8D968E" />
+                    <ChevronRight size={17} color="#8D968E" />
                   </TouchableOpacity>
                 );
               })}
@@ -646,11 +669,11 @@ export default function Home() {
                   ? 'Mostrar menos'
                   : `Ver todos os eventos (${upcomingEvents.length})`}
               </Text>
-              <Feather
-                name={showAllAgenda ? 'chevron-up' : 'arrow-right'}
-                size={15}
-                color="#2F5E38"
-              />
+              {showAllAgenda ? (
+                <ChevronUp size={15} color="#2F5E38" />
+              ) : (
+                <ArrowRight size={15} color="#2F5E38" />
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -674,12 +697,12 @@ export default function Home() {
                 }
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Feather name="arrow-right" size={18} color="#2F5E38" />
+                <ArrowRight size={18} color="#2F5E38" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.searchBox}>
-              <Feather name="search" size={16} color="#8D968E" />
+              <Search size={16} color="#8D968E" />
               <TextInput
                 placeholder="Buscar participante..."
                 placeholderTextColor="#8D968E"
@@ -751,7 +774,7 @@ export default function Home() {
 
                     <View style={styles.participantRight}>
                       <View style={styles.confirmedPill}>
-                        <Feather name="check" size={11} color="#2F5E38" />
+                        <Check size={11} color="#2F5E38" />
                         <Text style={styles.confirmedPillText}>Confirmado</Text>
                       </View>
                       <Text style={styles.participantTime}>
@@ -836,7 +859,6 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 24,
-    padding: 20,
     marginBottom: 14,
     overflow: 'hidden',
     position: 'relative',
@@ -845,6 +867,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.16,
     shadowRadius: 14,
     elevation: 6,
+  },
+  heroContent: {
+    padding: 20,
   },
   heroDecorCircleOne: {
     position: 'absolute',

@@ -13,7 +13,16 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  MoreHorizontal,
+  MapPin,
+  Clock,
+  ArrowRight,
+  RefreshCw,
+  Calendar,
+  Check,
+  Search,
+} from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '../../services/endpont';
 
@@ -155,7 +164,7 @@ function EventManagementCard({
           </View>
 
           <View style={styles.coverMoreBtn}>
-            <Feather name="more-horizontal" size={16} color="#FFFFFF" />
+            <MoreHorizontal size={16} color="#FFFFFF" />
           </View>
         </View>
 
@@ -175,14 +184,14 @@ function EventManagementCard({
         </Text>
 
         <View style={styles.metaRow}>
-          <Feather name="map-pin" size={13} color="#7A847B" />
+          <MapPin size={13} color="#7A847B" />
           <Text style={styles.metaText} numberOfLines={1}>
             {item?.name_location || 'Local a definir'}
           </Text>
         </View>
 
         <View style={styles.metaRow}>
-          <Feather name="clock" size={13} color="#7A847B" />
+          <Clock size={13} color="#7A847B" />
           <Text style={styles.metaText}>{formatTimeRange()}</Text>
         </View>
 
@@ -230,7 +239,7 @@ function EventManagementCard({
 
           <View style={styles.detailsLinkRow}>
             <Text style={styles.detailsLinkText}>Ver detalhes</Text>
-            <Feather name="arrow-right" size={15} color="#2F5E38" />
+            <ArrowRight size={15} color="#2F5E38" />
           </View>
         </View>
       </View>
@@ -419,7 +428,7 @@ export default function Event() {
             onPress={onRefresh}
             activeOpacity={0.85}
           >
-            <Feather name="refresh-cw" size={18} color="#FFFFFF" />
+            <RefreshCw size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -427,7 +436,7 @@ export default function Event() {
         <View style={styles.kpiStack}>
           <View style={styles.kpiCard}>
             <View style={[styles.kpiIconBox, { backgroundColor: '#EDF1E6' }]}>
-              <Feather name="calendar" size={18} color="#2F5E38" />
+              <Calendar size={18} color="#2F5E38" />
             </View>
             <View style={styles.kpiMiddle}>
               <Text style={styles.kpiLabel}>Total de eventos</Text>
@@ -440,7 +449,7 @@ export default function Event() {
 
           <View style={styles.kpiCard}>
             <View style={[styles.kpiIconBox, { backgroundColor: '#EDF1E6' }]}>
-              <Feather name="clock" size={18} color="#2F5E38" />
+              <Clock size={18} color="#2F5E38" />
             </View>
             <View style={styles.kpiMiddle}>
               <Text style={styles.kpiLabel}>Próximos e ativos</Text>
@@ -455,7 +464,7 @@ export default function Event() {
 
           <View style={styles.kpiCard}>
             <View style={[styles.kpiIconBox, { backgroundColor: '#FEF5E4' }]}>
-              <Feather name="check" size={18} color="#B8862D" />
+              <Check size={18} color="#B8862D" />
             </View>
             <View style={styles.kpiMiddle}>
               <Text style={styles.kpiLabel}>Eventos finalizados</Text>
@@ -509,7 +518,7 @@ export default function Event() {
 
           <View style={styles.searchRow}>
             <View style={styles.searchBox}>
-              <Feather name="search" size={16} color="#8D968E" />
+              <Search size={16} color="#8D968E" />
               <TextInput
                 placeholder="Buscar evento..."
                 placeholderTextColor="#8D968E"
@@ -527,8 +536,7 @@ export default function Event() {
               onPress={() => setFilterCurrentMonth(prev => !prev)}
               activeOpacity={0.8}
             >
-              <Feather
-                name="calendar"
+              <Calendar
                 size={15}
                 color={filterCurrentMonth ? '#2F5E38' : '#6E786F'}
               />
@@ -568,7 +576,7 @@ export default function Event() {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Feather name="calendar" size={24} color="#7A847B" />
+              <Calendar size={24} color="#7A847B" />
               <Text style={styles.emptyTitle}>Nenhum evento encontrado</Text>
               <Text style={styles.emptySubtitle}>
                 Tente limpar os filtros ou atualizar a lista.
@@ -588,7 +596,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 18,
-    paddingTop: 28,
+    paddingTop: 68,
   },
   headerRow: {
     flexDirection: 'row',

@@ -1,5 +1,12 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
 
 const AccessProfile = ({ visible, onClose }) => {
   const handleProfile = index => {
@@ -14,6 +21,7 @@ const AccessProfile = ({ visible, onClose }) => {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={styles.modalContainer}>
           <Text style={styles.title}>Entre em contato</Text>
           <Text style={styles.subTitle}>E-mail: suporte@senarmt.org.br</Text>

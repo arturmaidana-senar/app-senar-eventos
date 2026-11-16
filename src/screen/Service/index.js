@@ -18,8 +18,22 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 import { Camera } from 'react-native-camera-kit';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  Bell,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  QrCode,
+  ArrowRight,
+  ArrowUp,
+  CreditCard,
+  UserPlus,
+  Users,
+  Check,
+  Search,
+  X,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -576,7 +590,10 @@ export default function Service() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: Math.max(insets.bottom, 20) + 28 },
+            {
+              paddingTop: Math.max(insets.top, 20) + 12,
+              paddingBottom: Math.max(insets.bottom, 20) + 28,
+            },
           ]}
           refreshControl={
             <RefreshControl
@@ -599,7 +616,7 @@ export default function Service() {
               onPress={onRefresh}
               activeOpacity={0.75}
             >
-              <Feather name="bell" size={19} color="#18221B" />
+              <Bell size={19} color="#18221B" />
               <View style={styles.bellDot} />
             </TouchableOpacity>
           </View>
@@ -610,74 +627,65 @@ export default function Service() {
             onPress={() => navigation.goBack()}
             activeOpacity={0.75}
           >
-            <Feather name="arrow-left" size={16} color="#5F6A61" />
+            <ArrowLeft size={16} color="#5F6A61" />
             <Text style={styles.backLinkText}>Voltar para eventos</Text>
           </TouchableOpacity>
 
           {/* Hero Event Card */}
-          <LinearGradient
-            colors={['#1E4B31', '#2E6241', '#3E7751']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroCard}
-          >
+          <View style={styles.heroCard}>
+            <LinearGradient
+              colors={['#1E4B31', '#2E6241', '#3E7751']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
             <View style={styles.heroCircleDecor} />
 
-            <View style={styles.statusPill}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: eventStatus.dotColor },
-                ]}
-              />
-              <Text style={styles.statusPillText}>{eventStatus.label}</Text>
-            </View>
-
-            <Text style={styles.heroTitle}>
-              {event.name || 'Carregando evento...'}
-            </Text>
-
-            <Text style={styles.heroDescription} numberOfLines={3}>
-              {stripHtml(event.description) ||
-                'Uma experiência criada para conectar pessoas, conhecimento e oportunidades no campo.'}
-            </Text>
-
-            <View style={styles.heroMetaList}>
-              <View style={styles.heroMetaRow}>
-                <Feather
-                  name="calendar"
-                  size={14}
-                  color="rgba(255,255,255,0.85)"
+            <View style={styles.heroContent}>
+              <View style={styles.statusPill}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: eventStatus.dotColor },
+                  ]}
                 />
-                <Text style={styles.heroMetaText}>
-                  {formatFullDatePt(event.started_at)}
-                </Text>
+                <Text style={styles.statusPillText}>{eventStatus.label}</Text>
               </View>
 
-              <View style={styles.heroMetaRow}>
-                <Feather
-                  name="clock"
-                  size={14}
-                  color="rgba(255,255,255,0.85)"
-                />
-                <Text style={styles.heroMetaText}>
-                  {formatTimeHHMM(event.started_at)} —{' '}
-                  {formatTimeHHMM(event.ended_at)}
-                </Text>
-              </View>
+              <Text style={styles.heroTitle}>
+                {event.name || 'Carregando evento...'}
+              </Text>
 
-              <View style={styles.heroMetaRow}>
-                <Feather
-                  name="map-pin"
-                  size={14}
-                  color="rgba(255,255,255,0.85)"
-                />
-                <Text style={styles.heroMetaText} numberOfLines={1}>
-                  {eventLocation}
-                </Text>
+              <Text style={styles.heroDescription} numberOfLines={3}>
+                {stripHtml(event.description) ||
+                  'Uma experiência criada para conectar pessoas, conhecimento e oportunidades no campo.'}
+              </Text>
+
+              <View style={styles.heroMetaList}>
+                <View style={styles.heroMetaRow}>
+                  <Calendar size={14} color="rgba(255,255,255,0.85)" />
+                  <Text style={styles.heroMetaText}>
+                    {formatFullDatePt(event.started_at)}
+                  </Text>
+                </View>
+
+                <View style={styles.heroMetaRow}>
+                  <Clock size={14} color="rgba(255,255,255,0.85)" />
+                  <Text style={styles.heroMetaText}>
+                    {formatTimeHHMM(event.started_at)} —{' '}
+                    {formatTimeHHMM(event.ended_at)}
+                  </Text>
+                </View>
+
+                <View style={styles.heroMetaRow}>
+                  <MapPin size={14} color="rgba(255,255,255,0.85)" />
+                  <Text style={styles.heroMetaText} numberOfLines={1}>
+                    {eventLocation}
+                  </Text>
+                </View>
               </View>
             </View>
-          </LinearGradient>
+          </View>
 
           {/* Primary Quick Actions */}
           <View style={styles.quickActionsRow}>
@@ -686,27 +694,30 @@ export default function Service() {
               onPress={handleOpenScanner}
               activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={['#437A56', '#2F5E3E']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.qrActionCard}
-              >
-                <View style={styles.qrActionIconBox}>
-                  <Icon name="qr-code-scanner" size={20} color="#FFFFFF" />
-                </View>
+              <View style={styles.qrActionCard}>
+                <LinearGradient
+                  colors={['#437A56', '#2F5E3E']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View style={styles.qrActionContent}>
+                  <View style={styles.qrActionIconBox}>
+                    <QrCode size={20} color="#FFFFFF" />
+                  </View>
 
-                <View style={styles.quickActionTextWrap}>
-                  <Text style={styles.qrActionTitle} numberOfLines={2}>
-                    Escanear QR Code
-                  </Text>
-                  <Text style={styles.qrActionSub} numberOfLines={1}>
-                    Credenciamento rápido
-                  </Text>
-                </View>
+                  <View style={styles.quickActionTextWrap}>
+                    <Text style={styles.qrActionTitle} numberOfLines={2}>
+                      Escanear QR Code
+                    </Text>
+                    <Text style={styles.qrActionSub} numberOfLines={1}>
+                      Credenciamento rápido
+                    </Text>
+                  </View>
 
-                <Feather name="arrow-right" size={16} color="#FFFFFF" />
-              </LinearGradient>
+                  <ArrowRight size={16} color="#FFFFFF" />
+                </View>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -716,7 +727,7 @@ export default function Service() {
             >
               <View style={styles.cpfActionCard}>
                 <View style={styles.cpfActionIconBox}>
-                  <Feather name="credit-card" size={19} color="#2F5E38" />
+                  <CreditCard size={19} color="#2F5E38" />
                 </View>
 
                 <View style={styles.quickActionTextWrap}>
@@ -728,7 +739,7 @@ export default function Service() {
                   </Text>
                 </View>
 
-                <Feather name="arrow-right" size={16} color="#18221B" />
+                <ArrowRight size={16} color="#18221B" />
               </View>
             </TouchableOpacity>
           </View>
@@ -747,7 +758,7 @@ export default function Service() {
               activeOpacity={0.8}
             >
               <View style={styles.freeCheckinIconBox}>
-                <Feather name="user-plus" size={19} color="#2F5E38" />
+                <UserPlus size={19} color="#2F5E38" />
               </View>
               <View style={styles.freeCheckinTextWrap}>
                 <Text style={styles.freeCheckinTitle}>
@@ -757,7 +768,7 @@ export default function Service() {
                   Cadastrar e credenciar na lista livre
                 </Text>
               </View>
-              <Feather name="arrow-right" size={17} color="#18221B" />
+              <ArrowRight size={17} color="#18221B" />
             </TouchableOpacity>
           )}
 
@@ -765,7 +776,7 @@ export default function Service() {
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
               <View style={[styles.statIconBox, { backgroundColor: '#EBF3ED' }]}>
-                <Feather name="users" size={18} color="#2F5E38" />
+                <Users size={18} color="#2F5E38" />
               </View>
               <View style={styles.statTextCol}>
                 <Text style={styles.statLabel}>Inscritos</Text>
@@ -776,7 +787,7 @@ export default function Service() {
 
             <View style={styles.statCard}>
               <View style={[styles.statIconBox, { backgroundColor: '#E7F3EE' }]}>
-                <Feather name="check" size={18} color="#2F5E38" />
+                <Check size={18} color="#2F5E38" />
               </View>
               <View style={styles.statTextCol}>
                 <Text style={styles.statLabel}>Check-ins</Text>
@@ -789,7 +800,7 @@ export default function Service() {
 
             <View style={styles.statCard}>
               <View style={[styles.statIconBox, { backgroundColor: '#FEF5E4' }]}>
-                <Feather name="clock" size={18} color="#B5632E" />
+                <Clock size={18} color="#B5632E" />
               </View>
               <View style={styles.statTextCol}>
                 <Text style={styles.statLabel}>Aguardando</Text>
@@ -800,7 +811,7 @@ export default function Service() {
 
             <View style={styles.statCard}>
               <View style={[styles.statIconBox, { backgroundColor: '#EDF1E6' }]}>
-                <Icon name="qr-code-scanner" size={18} color="#2F5E38" />
+                <QrCode size={18} color="#2F5E38" />
               </View>
               <View style={styles.statTextCol}>
                 <Text style={styles.statLabel}>Última hora</Text>
@@ -869,7 +880,7 @@ export default function Service() {
 
             {(showAllParticipants || listCheckin.length > 4) && (
               <View style={styles.searchBox}>
-                <Feather name="search" size={16} color="#7A847B" />
+                <Search size={16} color="#7A847B" />
                 <TextInput
                   placeholder="Buscar participante..."
                   placeholderTextColor="#8D968E"
@@ -879,7 +890,7 @@ export default function Service() {
                 />
                 {searchParticipant.length > 0 && (
                   <TouchableOpacity onPress={() => setSearchParticipant('')}>
-                    <Feather name="x" size={16} color="#7A847B" />
+                    <X size={16} color="#7A847B" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -920,14 +931,14 @@ export default function Service() {
                     </Text>
 
                     <View style={styles.recentCheckCircle}>
-                      <Feather name="check" size={12} color="#FFFFFF" />
+                      <Check size={12} color="#FFFFFF" />
                     </View>
                   </TouchableOpacity>
                 ))}
               </View>
             ) : (
               <View style={styles.emptyRecordsCard}>
-                <Feather name="users" size={22} color="#7A847B" />
+                <Users size={22} color="#7A847B" />
                 <Text style={styles.emptyRecordsTitle}>
                   {listCheckin.length === 0
                     ? 'Nenhum check-in registrado ainda'
@@ -952,11 +963,11 @@ export default function Service() {
                     ? 'Mostrar menos'
                     : `Ver todos os participantes (${listCheckin.length})`}
                 </Text>
-                <Feather
-                  name={showAllParticipants ? 'arrow-up' : 'arrow-right'}
-                  size={15}
-                  color="#2F5E38"
-                />
+                {showAllParticipants ? (
+                  <ArrowUp size={15} color="#2F5E38" />
+                ) : (
+                  <ArrowRight size={15} color="#2F5E38" />
+                )}
               </TouchableOpacity>
             )}
           </View>
@@ -981,7 +992,7 @@ export default function Service() {
                 onPress={closeScanner}
                 activeOpacity={0.8}
               >
-                <Feather name="x" size={18} color="#465248" />
+                <X size={18} color="#465248" />
               </TouchableOpacity>
             </View>
 
@@ -1043,7 +1054,7 @@ export default function Service() {
                     ]}
                   >
                     <View style={styles.capturedIconBox}>
-                      <Icon name="qr-code-2" size={28} color="#2F5E38" />
+                      <QrCode size={28} color="#2F5E38" />
                     </View>
                     <Text style={styles.capturedLabel}>QR Code lido</Text>
                     <Text style={styles.capturedCodeText} numberOfLines={1}>
@@ -1158,9 +1169,11 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 24,
-    padding: 20,
     marginBottom: 14,
     overflow: 'hidden',
+  },
+  heroContent: {
+    padding: 20,
   },
   heroCircleDecor: {
     position: 'absolute',
@@ -1229,9 +1242,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   qrActionCard: {
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  qrActionContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
     paddingHorizontal: 12,
     paddingVertical: 14,
     gap: 9,

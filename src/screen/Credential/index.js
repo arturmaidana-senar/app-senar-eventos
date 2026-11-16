@@ -11,7 +11,17 @@ import {
   ScrollView,
   StatusBar,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  ArrowLeft,
+  Calendar,
+  CreditCard,
+  X,
+  Search,
+  Phone,
+  Tag,
+  Check,
+  UserCheck,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -181,43 +191,42 @@ export default function CredentialScreen() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.75}
         >
-          <Feather name="arrow-left" size={16} color="#5F6A61" />
+          <ArrowLeft size={16} color="#5F6A61" />
           <Text style={styles.backLinkText}>Voltar para o evento</Text>
         </TouchableOpacity>
 
         {/* Hero Event Card */}
-        <LinearGradient
-          colors={['#1E4B31', '#2E6241', '#3E7751']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroCard}
-        >
+        <View style={styles.heroCard}>
+          <LinearGradient
+            colors={['#1E4B31', '#2E6241', '#3E7751']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.heroCircleDecor} />
 
-          <View style={styles.statusPill}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusPillText}>CHECK-IN POR CPF</Text>
-          </View>
+          <View style={styles.heroContent}>
+            <View style={styles.statusPill}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusPillText}>CHECK-IN POR CPF</Text>
+            </View>
 
-          {event ? (
-            <>
-              <Text style={styles.heroTitle}>{event.name}</Text>
-              <View style={styles.heroMetaRow}>
-                <Feather
-                  name="calendar"
-                  size={14}
-                  color="rgba(255,255,255,0.85)"
-                />
-                <Text style={styles.heroMetaText}>
-                  {formatDateEvent(event.started_at)} —{' '}
-                  {formatDateEvent(event.ended_at)}
-                </Text>
-              </View>
-            </>
-          ) : (
-            <ActivityIndicator color="#FFFFFF" style={styles.heroLoader} />
-          )}
-        </LinearGradient>
+            {event ? (
+              <>
+                <Text style={styles.heroTitle}>{event.name}</Text>
+                <View style={styles.heroMetaRow}>
+                  <Calendar size={14} color="rgba(255,255,255,0.85)" />
+                  <Text style={styles.heroMetaText}>
+                    {formatDateEvent(event.started_at)} —{' '}
+                    {formatDateEvent(event.ended_at)}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <ActivityIndicator color="#FFFFFF" style={styles.heroLoader} />
+            )}
+          </View>
+        </View>
 
         {/* Search Card */}
         <View style={styles.sectionCard}>
@@ -226,8 +235,7 @@ export default function CredentialScreen() {
 
           <View style={styles.searchRow}>
             <View style={styles.searchInputWrap}>
-              <Feather
-                name="credit-card"
+              <CreditCard
                 size={18}
                 color="#7A847B"
                 style={styles.inputIcon}
@@ -249,20 +257,21 @@ export default function CredentialScreen() {
                   style={styles.clearBtn}
                   activeOpacity={0.7}
                 >
-                  <Feather name="x" size={16} color="#7A847B" />
+                  <X size={16} color="#7A847B" />
                 </TouchableOpacity>
               )}
             </View>
 
             <TouchableOpacity onPress={handleSearch} activeOpacity={0.85}>
-              <LinearGradient
-                colors={['#437A56', '#2F5E3E']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.searchBtn}
-              >
-                <Feather name="search" size={20} color="#FFFFFF" />
-              </LinearGradient>
+              <View style={styles.searchBtn}>
+                <LinearGradient
+                  colors={['#437A56', '#2F5E3E']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <Search size={20} color="#FFFFFF" />
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -289,12 +298,7 @@ export default function CredentialScreen() {
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>WhatsApp</Text>
               <View style={styles.fieldBox}>
-                <Feather
-                  name="phone"
-                  size={17}
-                  color="#7A847B"
-                  style={styles.inputIcon}
-                />
+                <Phone size={17} color="#7A847B" style={styles.inputIcon} />
                 <TextInput
                   style={styles.fieldInput}
                   value={participant.whatsapp}
@@ -311,12 +315,7 @@ export default function CredentialScreen() {
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>Qtde Ingressos</Text>
               <View style={styles.fieldBox}>
-                <Feather
-                  name="tag"
-                  size={17}
-                  color="#7A847B"
-                  style={styles.inputIcon}
-                />
+                <Tag size={17} color="#7A847B" style={styles.inputIcon} />
                 <TextInput
                   style={styles.fieldInput}
                   value={qtde}
@@ -333,27 +332,28 @@ export default function CredentialScreen() {
               disabled={loading}
               activeOpacity={0.85}
             >
-              <LinearGradient
-                colors={['#437A56', '#2F5E3E']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.saveButton}
-              >
+              <View style={styles.saveButton}>
+                <LinearGradient
+                  colors={['#437A56', '#2F5E3E']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={StyleSheet.absoluteFill}
+                />
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <>
                     <Text style={styles.saveText}>Confirmar presença</Text>
-                    <Feather name="check" size={18} color="#FFFFFF" />
+                    <Check size={18} color="#FFFFFF" />
                   </>
                 )}
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.emptyTipCard}>
             <View style={styles.emptyTipIconBox}>
-              <Feather name="user-check" size={22} color="#2F5E38" />
+              <UserCheck size={22} color="#2F5E38" />
             </View>
             <Text style={styles.emptyTipTitle}>Busca rápida por CPF</Text>
             <Text style={styles.emptyTipText}>
@@ -410,9 +410,11 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 24,
-    padding: 20,
     marginBottom: 16,
     overflow: 'hidden',
+  },
+  heroContent: {
+    padding: 20,
   },
   heroCircleDecor: {
     position: 'absolute',
@@ -523,6 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   participantHeader: {
     flexDirection: 'row',
@@ -588,6 +591,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginTop: 6,
+    overflow: 'hidden',
   },
   saveText: {
     color: '#FFFFFF',

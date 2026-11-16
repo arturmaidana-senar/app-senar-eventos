@@ -11,7 +11,14 @@ import {
   ScrollView,
   StatusBar,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  ArrowLeft,
+  Calendar,
+  CreditCard,
+  X,
+  Search,
+  Info,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -181,7 +188,7 @@ export default function ResponsibleSignature() {
           onPress={handleBackPress}
           activeOpacity={0.75}
         >
-          <Feather name="arrow-left" size={16} color="#5F6A61" />
+          <ArrowLeft size={16} color="#5F6A61" />
           <Text style={styles.backLinkText}>
             {showForm ? 'Voltar para busca por CPF' : 'Voltar para o evento'}
           </Text>
@@ -207,38 +214,37 @@ export default function ResponsibleSignature() {
           ]}
         >
           {/* Hero Event Card */}
-          <LinearGradient
-            colors={['#1E4B31', '#2E6241', '#3E7751']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroCard}
-          >
+          <View style={styles.heroCard}>
+            <LinearGradient
+              colors={['#1E4B31', '#2E6241', '#3E7751']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
             <View style={styles.heroCircleDecor} />
 
-            <View style={styles.statusPill}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusPillText}>NOVO PARTICIPANTE</Text>
-            </View>
+            <View style={styles.heroContent}>
+              <View style={styles.statusPill}>
+                <View style={styles.statusDot} />
+                <Text style={styles.statusPillText}>NOVO PARTICIPANTE</Text>
+              </View>
 
-            {event ? (
-              <>
-                <Text style={styles.heroTitle}>{event.name}</Text>
-                <View style={styles.heroMetaRow}>
-                  <Feather
-                    name="calendar"
-                    size={14}
-                    color="rgba(255,255,255,0.85)"
-                  />
-                  <Text style={styles.heroMetaText}>
-                    {formatDateEvent(event.started_at)} —{' '}
-                    {formatDateEvent(event.ended_at)}
-                  </Text>
-                </View>
-              </>
-            ) : (
-              <ActivityIndicator color="#FFFFFF" style={styles.heroLoader} />
-            )}
-          </LinearGradient>
+              {event ? (
+                <>
+                  <Text style={styles.heroTitle}>{event.name}</Text>
+                  <View style={styles.heroMetaRow}>
+                    <Calendar size={14} color="rgba(255,255,255,0.85)" />
+                    <Text style={styles.heroMetaText}>
+                      {formatDateEvent(event.started_at)} —{' '}
+                      {formatDateEvent(event.ended_at)}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <ActivityIndicator color="#FFFFFF" style={styles.heroLoader} />
+              )}
+            </View>
+          </View>
 
           {/* CPF Search Card */}
           <View style={styles.searchCard}>
@@ -249,8 +255,7 @@ export default function ResponsibleSignature() {
 
             <View style={styles.inputRow}>
               <View style={styles.inputBox}>
-                <Feather
-                  name="credit-card"
+                <CreditCard
                   size={18}
                   color="#7A847B"
                   style={styles.inputIcon}
@@ -272,7 +277,7 @@ export default function ResponsibleSignature() {
                     style={styles.clearBtn}
                     activeOpacity={0.7}
                   >
-                    <Feather name="x" size={16} color="#7A847B" />
+                    <X size={16} color="#7A847B" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -282,23 +287,24 @@ export default function ResponsibleSignature() {
                 disabled={loadingSearch}
                 activeOpacity={0.85}
               >
-                <LinearGradient
-                  colors={['#437A56', '#2F5E3E']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.searchButton}
-                >
+                <View style={styles.searchButton}>
+                  <LinearGradient
+                    colors={['#437A56', '#2F5E3E']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
                   {loadingSearch ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Feather name="search" size={20} color="#FFFFFF" />
+                    <Search size={20} color="#FFFFFF" />
                   )}
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
 
             <View style={styles.infoBox}>
-              <Feather name="info" size={17} color="#2F5E38" />
+              <Info size={17} color="#2F5E38" />
               <Text style={styles.infoText}>
                 Informe o CPF. Se o responsável já tiver cadastro, os dados
                 (Nome, WhatsApp e Data de Nasc.) serão carregados
@@ -353,9 +359,11 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 24,
-    padding: 20,
     marginBottom: 16,
     overflow: 'hidden',
+  },
+  heroContent: {
+    padding: 20,
   },
   heroCircleDecor: {
     position: 'absolute',
@@ -466,6 +474,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   infoBox: {
     flexDirection: 'row',

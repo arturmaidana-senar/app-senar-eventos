@@ -10,7 +10,15 @@ import {
   StatusBar,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  HelpCircle,
+  LifeBuoy,
+  Sparkles,
+  FileText,
+  RefreshCw,
+  ChevronRight,
+  LogOut,
+} from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../../contexts/auth';
@@ -61,7 +69,7 @@ const Information = () => {
       id: 'terms',
       title: 'Termos de uso',
       subtitle: 'Leia nossos termos e condições',
-      icon: 'file-text',
+      Icon: FileText,
       iconBg: '#EDF4EE',
       iconColor: '#2F5E38',
       action: () => setShowTerms(true),
@@ -70,7 +78,7 @@ const Information = () => {
       id: 'updates',
       title: 'Notas de atualização',
       subtitle: 'O que há de novo no aplicativo',
-      icon: 'refresh-cw',
+      Icon: RefreshCw,
       iconBg: '#FEF5E4',
       iconColor: '#B5632E',
       action: () => setShowUpdates(true),
@@ -79,7 +87,7 @@ const Information = () => {
       id: 'help',
       title: 'Ajuda e suporte',
       subtitle: 'Dúvidas sobre o SENAR Eventos',
-      icon: 'help-circle',
+      Icon: HelpCircle,
       iconBg: '#EBF3ED',
       iconColor: '#2F5E38',
       action: () => setShowHelp(true),
@@ -156,7 +164,10 @@ const Information = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: Math.max(insets.bottom, 20) + 96 },
+          {
+            paddingTop: Math.max(insets.top, 20) + 12,
+            paddingBottom: Math.max(insets.bottom, 20) + 96,
+          },
         ]}
       >
         {/* Top Header */}
@@ -174,50 +185,53 @@ const Information = () => {
             onPress={() => setShowHelp(true)}
             activeOpacity={0.75}
           >
-            <Feather name="help-circle" size={19} color="#18221B" />
+            <HelpCircle size={19} color="#18221B" />
           </TouchableOpacity>
         </View>
 
         {/* Hero Profile Card */}
-        <LinearGradient
-          colors={['#1E4B31', '#2E6241', '#3E7751']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroCard}
-        >
+        <View style={styles.heroCard}>
+          <LinearGradient
+            colors={['#1E4B31', '#2E6241', '#3E7751']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.heroCircleDecor} />
 
-          <View style={styles.statusPill}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusPillText}>ORGANIZADOR ATIVO</Text>
-          </View>
+          <View style={styles.heroContent}>
+            <View style={styles.statusPill}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusPillText}>ORGANIZADOR ATIVO</Text>
+            </View>
 
-          <View style={styles.profileHeader}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
+            <View style={styles.profileHeader}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{getInitials(displayName)}</Text>
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName} numberOfLines={2}>
+                  {displayName}
+                </Text>
+                <Text style={styles.profileEmail} numberOfLines={1}>
+                  {displayEmail}
+                </Text>
+              </View>
             </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName} numberOfLines={2}>
-                {displayName}
-              </Text>
-              <Text style={styles.profileEmail} numberOfLines={1}>
-                {displayEmail}
-              </Text>
-            </View>
-          </View>
 
-          <View style={styles.heroInnerBox}>
-            <View style={styles.heroStatItem}>
-              <Text style={styles.heroStatLabel}>Instituição</Text>
-              <Text style={styles.heroStatValue}>SENAR MT</Text>
-            </View>
-            <View style={styles.heroStatDivider} />
-            <View style={styles.heroStatItem}>
-              <Text style={styles.heroStatLabel}>Função</Text>
-              <Text style={styles.heroStatValue}>Credenciamento</Text>
+            <View style={styles.heroInnerBox}>
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatLabel}>Instituição</Text>
+                <Text style={styles.heroStatValue}>SENAR MT</Text>
+              </View>
+              <View style={styles.heroStatDivider} />
+              <View style={styles.heroStatItem}>
+                <Text style={styles.heroStatLabel}>Função</Text>
+                <Text style={styles.heroStatValue}>Credenciamento</Text>
+              </View>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Two Quick Action Cards */}
         <View style={styles.quickActionsRow}>
@@ -226,20 +240,23 @@ const Information = () => {
             onPress={() => setShowHelp(true)}
             activeOpacity={0.85}
           >
-            <LinearGradient
-              colors={['#437A56', '#2F5E3E']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.primaryQuickCard}
-            >
-              <View style={styles.primaryQuickIconBox}>
-                <Feather name="life-buoy" size={19} color="#FFFFFF" />
+            <View style={styles.primaryQuickCard}>
+              <LinearGradient
+                colors={['#437A56', '#2F5E3E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.primaryQuickContent}>
+                <View style={styles.primaryQuickIconBox}>
+                  <LifeBuoy size={19} color="#FFFFFF" />
+                </View>
+                <View style={styles.quickTextWrap}>
+                  <Text style={styles.primaryQuickTitle}>Central de Ajuda</Text>
+                  <Text style={styles.primaryQuickSub}>Suporte rápido</Text>
+                </View>
               </View>
-              <View style={styles.quickTextWrap}>
-                <Text style={styles.primaryQuickTitle}>Central de Ajuda</Text>
-                <Text style={styles.primaryQuickSub}>Suporte rápido</Text>
-              </View>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -249,7 +266,7 @@ const Information = () => {
           >
             <View style={styles.secondaryQuickCard}>
               <View style={styles.secondaryQuickIconBox}>
-                <Feather name="sparkles" size={18} color="#2F5E38" />
+                <Sparkles size={18} color="#2F5E38" />
               </View>
               <View style={styles.quickTextWrap}>
                 <Text style={styles.secondaryQuickTitle}>Novidades</Text>
@@ -264,30 +281,33 @@ const Information = () => {
           <Text style={styles.sectionEyebrow}>PREFERÊNCIAS</Text>
           <Text style={styles.sectionHeading}>Conta e informações</Text>
 
-          {accountItems.map((item, idx) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.menuRow,
-                idx < accountItems.length - 1 && styles.menuRowBorder,
-              ]}
-              onPress={item.action}
-              activeOpacity={0.75}
-            >
-              <View
-                style={[styles.menuIconBox, { backgroundColor: item.iconBg }]}
+          {accountItems.map((item, idx) => {
+            const MenuIcon = item.Icon;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.menuRow,
+                  idx < accountItems.length - 1 && styles.menuRowBorder,
+                ]}
+                onPress={item.action}
+                activeOpacity={0.75}
               >
-                <Feather name={item.icon} size={18} color={item.iconColor} />
-              </View>
+                <View
+                  style={[styles.menuIconBox, { backgroundColor: item.iconBg }]}
+                >
+                  <MenuIcon size={18} color={item.iconColor} />
+                </View>
 
-              <View style={styles.menuTextWrap}>
-                <Text style={styles.menuTitle}>{item.title}</Text>
-                <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-              </View>
+                <View style={styles.menuTextWrap}>
+                  <Text style={styles.menuTitle}>{item.title}</Text>
+                  <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                </View>
 
-              <Feather name="chevron-right" size={18} color="#9AA39B" />
-            </TouchableOpacity>
-          ))}
+                <ChevronRight size={18} color="#9AA39B" />
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Session Card */}
@@ -299,7 +319,7 @@ const Information = () => {
             activeOpacity={0.75}
           >
             <View style={styles.logoutIconBox}>
-              <Feather name="log-out" size={18} color="#C94A38" />
+              <LogOut size={18} color="#C94A38" />
             </View>
             <View style={styles.menuTextWrap}>
               <Text style={styles.logoutTitle}>Sair da conta</Text>
@@ -307,7 +327,7 @@ const Information = () => {
                 Encerrar sessão neste dispositivo
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#D48B80" />
+            <ChevronRight size={18} color="#D48B80" />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -344,7 +364,7 @@ const Information = () => {
             <TouchableWithoutFeedback onPress={() => {}}>
               <View style={styles.confirmCard}>
                 <View style={styles.confirmIconBox}>
-                  <Feather name="log-out" size={24} color="#C94A38" />
+                  <LogOut size={24} color="#C94A38" />
                 </View>
                 <Text style={styles.confirmEyebrow}>ENCERRAR SESSÃO</Text>
                 <Text style={styles.confirmTitle}>Sair da sua conta?</Text>
@@ -429,9 +449,11 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 24,
-    padding: 20,
     marginBottom: 14,
     overflow: 'hidden',
+  },
+  heroContent: {
+    padding: 20,
   },
   heroCircleDecor: {
     position: 'absolute',
@@ -538,9 +560,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryQuickCard: {
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  primaryQuickContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
     paddingHorizontal: 12,
     paddingVertical: 14,
     gap: 10,

@@ -1,6 +1,14 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+import { X } from 'lucide-react-native';
 
 const InformativeModal = ({ visible, onClose, title, children }) => {
   return (
@@ -11,11 +19,12 @@ const InformativeModal = ({ visible, onClose, title, children }) => {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={styles.modalContainer}>
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Feather name="x" size={24} color="#64748B" />
+              <X size={24} color="#64748B" />
             </TouchableOpacity>
           </View>
 

@@ -2,13 +2,12 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Feather from 'react-native-vector-icons/Feather';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Home, Calendar, User, QrCode, Circle } from 'lucide-react-native';
 
 const tabConfig = {
-  Home: { icon: 'home', label: 'Início' },
-  Event: { icon: 'calendar', label: 'Eventos' },
-  Information: { icon: 'user', label: 'Perfil' },
+  Home: { Icon: Home, label: 'Início' },
+  Event: { Icon: Calendar, label: 'Eventos' },
+  Information: { Icon: User, label: 'Perfil' },
 };
 
 export default ({ state, navigation }) => {
@@ -37,7 +36,7 @@ export default ({ state, navigation }) => {
     const index = state.routes.findIndex(r => r.name === route.name);
     const isFocused = state.index === index;
     const config = tabConfig[route.name] || {};
-    const iconName = config.icon || 'circle';
+    const TabIcon = config.Icon || Circle;
     const label = config.label || route.name;
     const tintColor = isFocused ? '#2F5E38' : '#8D988E';
 
@@ -51,7 +50,7 @@ export default ({ state, navigation }) => {
           borderless: true,
         }}
       >
-        <Feather name={iconName} size={19} color={tintColor} />
+        <TabIcon size={19} color={tintColor} />
         <Text
           style={[styles.tabLabel, isFocused && styles.tabLabelActive]}
           numberOfLines={1}
@@ -87,7 +86,7 @@ export default ({ state, navigation }) => {
             borderless: true,
           }}
         >
-          <Icon name="qr-code-scanner" size={19} color="#8D988E" />
+          <QrCode size={19} color="#8D988E" />
           <Text style={styles.tabLabel} numberOfLines={1}>
             QR Code
           </Text>

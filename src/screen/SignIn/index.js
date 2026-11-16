@@ -14,7 +14,15 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  HelpCircle,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Shield,
+  ArrowRight,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthContext } from '../../contexts/auth';
@@ -154,40 +162,43 @@ export default function SignIn() {
             onPress={handleHelpPress}
             activeOpacity={0.75}
           >
-            <Feather name="help-circle" size={19} color="#18221B" />
+            <HelpCircle size={19} color="#18221B" />
           </TouchableOpacity>
         </View>
 
         {/* Hero Welcome Card */}
-        <LinearGradient
-          colors={['#1E4B31', '#2E6241', '#3E7751']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroCard}
-        >
+        <View style={styles.heroCard}>
+          <LinearGradient
+            colors={['#1E4B31', '#2E6241', '#3E7751']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.heroCircleDecor} />
 
-          <View style={styles.statusPill}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusPillText}>PORTAL DO ORGANIZADOR</Text>
-          </View>
+          <View style={styles.heroContent}>
+            <View style={styles.statusPill}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusPillText}>PORTAL DO ORGANIZADOR</Text>
+            </View>
 
-          <View style={styles.brandRow}>
-            <View style={styles.logoBadge}>
-              <Image
-                source={logoImage}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
-            </View>
-            <View style={styles.brandTextWrap}>
-              <Text style={styles.brandTitle}>SENAR Eventos</Text>
-              <Text style={styles.brandSubtitle}>
-                Gerencie eventos e realize check-ins em tempo real.
-              </Text>
+            <View style={styles.brandRow}>
+              <View style={styles.logoBadge}>
+                <Image
+                  source={logoImage}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.brandTextWrap}>
+                <Text style={styles.brandTitle}>SENAR Eventos</Text>
+                <Text style={styles.brandSubtitle}>
+                  Gerencie eventos e realize check-ins em tempo real.
+                </Text>
+              </View>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Login Form Card */}
         <View style={styles.formCard}>
@@ -200,12 +211,7 @@ export default function SignIn() {
           <View style={styles.inputWrapper}>
             <Text style={styles.label}>E-mail</Text>
             <View style={styles.inputContainer}>
-              <Feather
-                name="mail"
-                size={18}
-                color="#7A847B"
-                style={styles.inputIcon}
-              />
+              <Mail size={18} color="#7A847B" style={styles.inputIcon} />
               <TextInput
                 placeholder="seu@email.com.br"
                 placeholderTextColor="#9AA39B"
@@ -228,12 +234,7 @@ export default function SignIn() {
           <View style={styles.inputWrapper}>
             <Text style={styles.label}>Senha</Text>
             <View style={styles.inputContainer}>
-              <Feather
-                name="lock"
-                size={18}
-                color="#7A847B"
-                style={styles.inputIcon}
-              />
+              <Lock size={18} color="#7A847B" style={styles.inputIcon} />
               <TextInput
                 ref={passwordInputRef}
                 placeholder="Digite sua senha"
@@ -255,18 +256,18 @@ export default function SignIn() {
                 style={styles.eyeIcon}
                 activeOpacity={0.7}
               >
-                <Feather
-                  name={passwordHide ? 'eye' : 'eye-off'}
-                  size={18}
-                  color="#6E786F"
-                />
+                {passwordHide ? (
+                  <Eye size={18} color="#6E786F" />
+                ) : (
+                  <EyeOff size={18} color="#6E786F" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.optionsRow}>
             <View style={styles.securityBadge}>
-              <Feather name="shield" size={14} color="#7A847B" />
+              <Shield size={14} color="#7A847B" />
               <Text style={styles.securityText}>Seus dados protegidos</Text>
             </View>
 
@@ -283,24 +284,27 @@ export default function SignIn() {
             activeOpacity={0.85}
             disabled={loadingAuth}
           >
-            <LinearGradient
-              colors={['#437A56', '#2F5E3E']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
               style={[
                 styles.submitButton,
                 loadingAuth && styles.submitButtonDisabled,
               ]}
             >
+              <LinearGradient
+                colors={['#437A56', '#2F5E3E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
               {loadingAuth ? (
                 <ActivityIndicator size={22} color="#FFF" />
               ) : (
                 <View style={styles.submitContent}>
                   <Text style={styles.submitText}>Entrar</Text>
-                  <Feather name="arrow-right" size={18} color="#FFF" />
+                  <ArrowRight size={18} color="#FFF" />
                 </View>
               )}
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -308,7 +312,7 @@ export default function SignIn() {
             activeOpacity={0.7}
             style={styles.helpRow}
           >
-            <Feather name="help-circle" size={14} color="#2F5E38" />
+            <HelpCircle size={14} color="#2F5E38" />
             <Text style={styles.helpText}>Precisa de ajuda para acessar?</Text>
           </TouchableOpacity>
         </View>
@@ -371,9 +375,11 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: 24,
-    padding: 20,
     marginBottom: 16,
     overflow: 'hidden',
+  },
+  heroContent: {
+    padding: 20,
   },
   heroCircleDecor: {
     position: 'absolute',
@@ -525,6 +531,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
+    overflow: 'hidden',
   },
   submitButtonDisabled: {
     opacity: 0.7,
