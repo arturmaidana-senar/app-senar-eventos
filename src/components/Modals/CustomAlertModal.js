@@ -8,7 +8,13 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  CheckCircle,
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  X,
+} from 'lucide-react-native';
 
 export const ALERT_TYPE = {
   SUCCESS: 'SUCCESS',
@@ -19,25 +25,25 @@ export const ALERT_TYPE = {
 
 const VARIANT_CONFIG = {
   [ALERT_TYPE.SUCCESS]: {
-    icon: 'check-circle',
+    Icon: CheckCircle,
     accentColor: '#2F5E38',
     iconBg: '#E3EFE6',
     badgeLabel: 'CONFIRMAÇÃO',
   },
   [ALERT_TYPE.DANGER]: {
-    icon: 'alert-circle',
+    Icon: AlertCircle,
     accentColor: '#C94A38',
     iconBg: '#FDF0EE',
     badgeLabel: 'ATENÇÃO',
   },
   [ALERT_TYPE.WARNING]: {
-    icon: 'alert-triangle',
+    Icon: AlertTriangle,
     accentColor: '#B5632E',
     iconBg: '#FEF5E4',
     badgeLabel: 'AVISO',
   },
   [ALERT_TYPE.INFO]: {
-    icon: 'info',
+    Icon: Info,
     accentColor: '#2F5E38',
     iconBg: '#EDF1E6',
     badgeLabel: 'INFORMAÇÃO',
@@ -140,6 +146,7 @@ export function AlertNotificationRoot({ children }) {
 
   const variant =
     VARIANT_CONFIG[alertState?.type] || VARIANT_CONFIG[ALERT_TYPE.INFO];
+  const VariantIcon = variant.Icon;
 
   return (
     <>
@@ -175,11 +182,7 @@ export function AlertNotificationRoot({ children }) {
                       { backgroundColor: variant.iconBg },
                     ]}
                   >
-                    <Feather
-                      name={variant.icon}
-                      size={26}
-                      color={variant.accentColor}
-                    />
+                    <VariantIcon size={26} color={variant.accentColor} />
                   </View>
 
                   <TouchableOpacity
@@ -187,7 +190,7 @@ export function AlertNotificationRoot({ children }) {
                     onPress={handleClose}
                     activeOpacity={0.7}
                   >
-                    <Feather name="x" size={18} color="#6E786E" />
+                    <X size={18} color="#6E786E" />
                   </TouchableOpacity>
                 </View>
 

@@ -11,7 +11,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  HelpCircle,
+  ArrowLeft,
+  Shield,
+  RefreshCw,
+  ArrowRight,
+  Mail,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ALERT_TYPE, Dialog } from '../../components/Modals/CustomAlertModal';
@@ -145,7 +152,7 @@ export default function ValidatePin() {
             onPress={handleNotResendCode}
             activeOpacity={0.75}
           >
-            <Feather name="help-circle" size={19} color="#18221B" />
+            <HelpCircle size={19} color="#18221B" />
           </TouchableOpacity>
         </View>
 
@@ -155,7 +162,7 @@ export default function ValidatePin() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.75}
         >
-          <Feather name="arrow-left" size={16} color="#5F6A61" />
+          <ArrowLeft size={16} color="#5F6A61" />
           <Text style={styles.backLinkText}>Voltar</Text>
         </TouchableOpacity>
 
@@ -175,7 +182,7 @@ export default function ValidatePin() {
 
           <View style={styles.heroContentRow}>
             <View style={styles.heroIconBox}>
-              <Feather name="shield" size={22} color="#FFFFFF" />
+              <Shield size={22} color="#FFFFFF" />
             </View>
             <View style={styles.heroTextWrap}>
               <Text style={styles.heroTitle} numberOfLines={2}>
@@ -240,7 +247,7 @@ export default function ValidatePin() {
             style={styles.resendRow}
             activeOpacity={0.75}
           >
-            <Feather name="refresh-cw" size={14} color="#2F5E38" />
+            <RefreshCw size={14} color="#2F5E38" />
             <Text style={styles.resendText}>Reenviar código PIN</Text>
           </TouchableOpacity>
 
@@ -258,7 +265,7 @@ export default function ValidatePin() {
               style={styles.submitButton}
             >
               <Text style={styles.submitButtonText}>Continuar</Text>
-              <Feather name="arrow-right" size={18} color="#FFFFFF" />
+              <ArrowRight size={18} color="#FFFFFF" />
             </LinearGradient>
           </TouchableOpacity>
 
@@ -267,7 +274,7 @@ export default function ValidatePin() {
             style={styles.helpBtn}
             activeOpacity={0.75}
           >
-            <Feather name="mail" size={14} color="#5F6A61" />
+            <Mail size={14} color="#5F6A61" />
             <Text style={styles.helpBtnText}>Não recebi o PIN</Text>
           </TouchableOpacity>
         </View>

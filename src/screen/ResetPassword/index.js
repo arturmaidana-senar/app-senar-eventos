@@ -11,7 +11,16 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  HelpCircle,
+  ArrowLeft,
+  Key,
+  User,
+  X,
+  Mail,
+  ArrowRight,
+  Info,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from './../../services/endpont';
@@ -126,7 +135,7 @@ export default function ResetPassword() {
             }
             activeOpacity={0.75}
           >
-            <Feather name="help-circle" size={19} color="#18221B" />
+            <HelpCircle size={19} color="#18221B" />
           </TouchableOpacity>
         </View>
 
@@ -136,7 +145,7 @@ export default function ResetPassword() {
           onPress={() => navigation.goBack()}
           activeOpacity={0.75}
         >
-          <Feather name="arrow-left" size={16} color="#5F6A61" />
+          <ArrowLeft size={16} color="#5F6A61" />
           <Text style={styles.backLinkText}>Voltar para o login</Text>
         </TouchableOpacity>
 
@@ -156,7 +165,7 @@ export default function ResetPassword() {
 
           <View style={styles.heroContentRow}>
             <View style={styles.heroIconBox}>
-              <Feather name="key" size={22} color="#FFFFFF" />
+              <Key size={22} color="#FFFFFF" />
             </View>
             <View style={styles.heroTextWrap}>
               <Text style={styles.heroTitle}>
@@ -180,12 +189,7 @@ export default function ResetPassword() {
           </Text>
 
           <View style={styles.inputContainer}>
-            <Feather
-              name="user"
-              size={18}
-              color="#7A847B"
-              style={styles.inputIcon}
-            />
+            <User size={18} color="#7A847B" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="000.000.000-00"
@@ -203,7 +207,7 @@ export default function ResetPassword() {
                 style={styles.clearBtn}
                 activeOpacity={0.7}
               >
-                <Feather name="x" size={16} color="#7A847B" />
+                <X size={16} color="#7A847B" />
               </TouchableOpacity>
             )}
           </View>
@@ -216,7 +220,7 @@ export default function ResetPassword() {
                 activeOpacity={0.8}
               >
                 <View style={styles.optionIconBox}>
-                  <Feather name="mail" size={19} color="#2F5E38" />
+                  <Mail size={19} color="#2F5E38" />
                 </View>
                 <View style={styles.optionTextContainer}>
                   <Text style={styles.optionTitle}>Enviar PIN por E-mail</Text>
@@ -224,7 +228,7 @@ export default function ResetPassword() {
                     Receber código no e-mail cadastrado
                   </Text>
                 </View>
-                <Feather name="arrow-right" size={18} color="#2F5E38" />
+                <ArrowRight size={18} color="#2F5E38" />
               </TouchableOpacity>
 
               <TouchableOpacity onPress={handleCpfPress} activeOpacity={0.85}>
@@ -235,14 +239,14 @@ export default function ResetPassword() {
                   style={styles.submitButton}
                 >
                   <Text style={styles.submitButtonText}>Continuar</Text>
-                  <Feather name="arrow-right" size={18} color="#FFFFFF" />
+                  <ArrowRight size={18} color="#FFFFFF" />
                 </LinearGradient>
               </TouchableOpacity>
             </>
           )}
 
           <View style={styles.tipBox}>
-            <Feather name="info" size={16} color="#2F5E38" />
+            <Info size={16} color="#2F5E38" />
             <Text style={styles.tipText}>
               Vamos enviar o código PIN por e-mail. Caso não encontre, confira
               também sua caixa de spam.

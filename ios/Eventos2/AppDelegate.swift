@@ -31,6 +31,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     return true
   }
+
+  func application(
+    _ application: UIApplication,
+    supportedInterfaceOrientationsFor window: UIWindow?
+  ) -> UIInterfaceOrientationMask {
+    if let orientationClass = NSClassFromString("Orientation") as AnyObject as? NSObjectProtocol {
+      let selector = NSSelectorFromString("getOrientation")
+      if orientationClass.responds(to: selector),
+         let method = class_getClassMethod(NSClassFromString("Orientation"), selector) {
+        typealias GetOrientationFn = @convention(c) (AnyObject, Selector) -> UIInterfaceOrientationMask
+        let imp = method_getImplementation(method)
+        let fn = unsafeBitCast(imp, to: GetOrientationFn.self)
+        return fn(orientationClass, selector)
+      }
+    }
+    return .portrait
+  }
 }
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {

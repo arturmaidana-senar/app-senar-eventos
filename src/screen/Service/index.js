@@ -1062,7 +1062,7 @@ export default function Service() {
                           {formatTimeHHMM(item.started_at)}
                         </Text>
                         <View style={styles.recentCheckCircle}>
-                          <Feather name="check" size={12} color="#FFFFFF" />
+                          <Check size={12} color="#FFFFFF" />
                         </View>
                       </>
                     ) : (

@@ -6,7 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import { ArrowLeft } from 'lucide-react-native';
 
 export default function CustomTopHeader({ navigation, title }) {
   return (
@@ -17,7 +17,7 @@ export default function CustomTopHeader({ navigation, title }) {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={20} color="#1A1A1A" />
+          <ArrowLeft size={20} color="#1A1A1A" />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle} numberOfLines={1}>

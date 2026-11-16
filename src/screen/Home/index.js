@@ -582,31 +582,6 @@ export default function Home() {
                     </Text>
                   </View>
 
-                  {featuredProgress.hasCapacity && (
-                    <>
-                      <View style={styles.statColDivider} />
-                      <View style={styles.statCol}>
-                        <Text style={styles.statNumber}>
-                          {featuredProgress.capacidade}
-                        </Text>
-                        <Text style={styles.statLabel}>
-                          {featuredProgress.hasEnrolled ? 'inscritos' : 'vagas'}
-                        </Text>
-                      </View>
-                      <View style={styles.statColDivider} />
-                      <View style={styles.statCol}>
-                        <Text style={styles.statNumber}>
-                          {featuredProgress.restantes}
-                        </Text>
-                        <Text style={styles.statLabel}>
-                          {featuredProgress.hasEnrolled
-                            ? 'aguardando'
-                            : 'restantes'}
-                        </Text>
-                      </View>
-                    </>
-                  )}
-
                   <View style={styles.statsColumns}>
                     <View style={styles.statCol}>
                       <Text style={styles.statNumber}>
@@ -622,14 +597,20 @@ export default function Home() {
                           <Text style={styles.statNumber}>
                             {featuredProgress.capacidade}
                           </Text>
-                          <Text style={styles.statLabel}>vagas</Text>
+                          <Text style={styles.statLabel}>
+                            {featuredProgress.hasEnrolled ? 'inscritos' : 'vagas'}
+                          </Text>
                         </View>
                         <View style={styles.statColDivider} />
                         <View style={styles.statCol}>
                           <Text style={styles.statNumber}>
                             {featuredProgress.restantes}
                           </Text>
-                          <Text style={styles.statLabel}>restantes</Text>
+                          <Text style={styles.statLabel}>
+                            {featuredProgress.hasEnrolled
+                              ? 'aguardando'
+                              : 'restantes'}
+                          </Text>
                         </View>
                       </>
                     )}
@@ -904,7 +885,7 @@ export default function Home() {
                     <View style={styles.participantRight}>
                       {p.confirmed ? (
                         <View style={styles.confirmedPill}>
-                          <Feather name="check" size={11} color="#2F5E38" />
+                          <Check size={11} color="#2F5E38" />
                           <Text style={styles.confirmedPillText}>
                             Confirmado
                           </Text>

@@ -15,7 +15,14 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  ArrowLeft,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  Check,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ALERT_TYPE, Dialog } from '../../components/Modals/CustomAlertModal';
@@ -151,7 +158,7 @@ export default function NewPassword() {
           onPress={handleBackToLogin}
           activeOpacity={0.75}
         >
-          <Feather name="arrow-left" size={16} color="#5F6A61" />
+          <ArrowLeft size={16} color="#5F6A61" />
           <Text style={styles.backLinkText}>Voltar para o login</Text>
         </TouchableOpacity>
 
@@ -171,7 +178,7 @@ export default function NewPassword() {
 
           <View style={styles.heroContentRow}>
             <View style={styles.heroIconBox}>
-              <Feather name="lock" size={22} color="#FFFFFF" />
+              <Lock size={22} color="#FFFFFF" />
             </View>
             <View style={styles.heroTextWrap}>
               <Text style={styles.heroTitle} numberOfLines={2}>
@@ -195,12 +202,7 @@ export default function NewPassword() {
           <View style={styles.inputWrapper}>
             <Text style={styles.label}>Nova senha</Text>
             <View style={styles.inputContainer}>
-              <Feather
-                name="lock"
-                size={18}
-                color="#7A847B"
-                style={styles.inputIcon}
-              />
+              <Lock size={18} color="#7A847B" style={styles.inputIcon} />
               <TextInput
                 placeholder="Mínimo 6 caracteres"
                 placeholderTextColor="#9AA39B"
@@ -216,11 +218,11 @@ export default function NewPassword() {
                 style={styles.eyeIcon}
                 activeOpacity={0.7}
               >
-                <Feather
-                  name={passwordHide ? 'eye' : 'eye-off'}
-                  size={18}
-                  color="#6E786F"
-                />
+                {passwordHide ? (
+                  <Eye size={18} color="#6E786F" />
+                ) : (
+                  <EyeOff size={18} color="#6E786F" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -228,8 +230,7 @@ export default function NewPassword() {
           <View style={styles.inputWrapper}>
             <Text style={styles.label}>Confirmar nova senha</Text>
             <View style={styles.inputContainer}>
-              <Feather
-                name="check-circle"
+              <CheckCircle
                 size={18}
                 color="#7A847B"
                 style={styles.inputIcon}
@@ -250,11 +251,11 @@ export default function NewPassword() {
                 style={styles.eyeIcon}
                 activeOpacity={0.7}
               >
-                <Feather
-                  name={passwordNewHide ? 'eye' : 'eye-off'}
-                  size={18}
-                  color="#6E786F"
-                />
+                {passwordNewHide ? (
+                  <Eye size={18} color="#6E786F" />
+                ) : (
+                  <EyeOff size={18} color="#6E786F" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -267,7 +268,7 @@ export default function NewPassword() {
               style={styles.submitButton}
             >
               <Text style={styles.submitButtonText}>Cadastrar nova senha</Text>
-              <Feather name="check" size={18} color="#FFFFFF" />
+              <Check size={18} color="#FFFFFF" />
             </LinearGradient>
           </TouchableOpacity>
         </View>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Feather from 'react-native-vector-icons/Feather';
+import { Sparkles, TrendingUp, Users, Star } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -18,7 +18,7 @@ const DashboardBanner = ({ stats = { total: 0, realizados: 0, aguardando: 0 } })
       <View style={[styles.circle, { bottom: -30, left: -30, width: 150, height: 150, opacity: 0.05 }]} />
 
       <View style={styles.header}>
-        <Feather name="sparkles" size={16} color="#B7E4C7" />
+        <Sparkles size={16} color="#B7E4C7" />
         <Text style={styles.headerTitle}>PAINEL PRINCIPAL</Text>
       </View>
 
@@ -27,19 +27,19 @@ const DashboardBanner = ({ stats = { total: 0, realizados: 0, aguardando: 0 } })
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Feather name="trending-up" size={18} color="#B7E4C7" />
+          <TrendingUp size={18} color="#B7E4C7" />
           <Text style={styles.statValue}>{stats.total}</Text>
           <Text style={styles.statLabel}>Total</Text>
         </View>
 
         <View style={styles.statCard}>
-          <Feather name="users" size={18} color="#B7E4C7" />
+          <Users size={18} color="#B7E4C7" />
           <Text style={styles.statValue}>{stats.realizados}</Text>
           <Text style={styles.statLabel}>Realizados</Text>
         </View>
 
         <View style={styles.statCard}>
-          <Feather name="star" size={18} color="#B7E4C7" />
+          <Star size={18} color="#B7E4C7" />
           <Text style={styles.statValue}>{stats.aguardando}</Text>
           <Text style={styles.statLabel}>Aguardando</Text>
         </View>

@@ -1,7 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Feather from 'react-native-vector-icons/Feather';
+import {
+  Image as ImageIcon,
+  MapPin,
+  Calendar,
+  ChevronRight,
+} from 'lucide-react-native';
 
 const CardEvent = ({ item }) => {
   const navigation = useNavigation();
@@ -44,7 +49,7 @@ const CardEvent = ({ item }) => {
           />
         ) : (
           <View style={styles.placeholderImage}>
-            <Feather name="image" size={40} color="#E0E0E0" />
+            <ImageIcon size={40} color="#E0E0E0" />
           </View>
         )}
         
@@ -78,20 +83,20 @@ const CardEvent = ({ item }) => {
           </Text>
 
           <View style={styles.infoRow}>
-            <Feather name="map-pin" size={14} color="#4A9954" style={styles.icon} />
+            <MapPin size={14} color="#4A9954" style={styles.icon} />
             <Text style={styles.infoText} numberOfLines={1}>
               {item.name_location || 'Local não informado'}
             </Text>
           </View>
 
           <View style={styles.infoRow}>
-            <Feather name="calendar" size={14} color="#8A8A8A" style={styles.icon} />
+            <Calendar size={14} color="#8A8A8A" style={styles.icon} />
             <Text style={styles.infoText}>{displayDate}</Text>
           </View>
         </View>
 
         <View style={styles.chevronContainer}>
-          <Feather name="chevron-right" size={20} color="#D3D3D3" />
+          <ChevronRight size={20} color="#D3D3D3" />
         </View>
       </View>
     </TouchableOpacity>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import { X } from 'lucide-react-native';
 
 const ModalUpdates = ({ visible, onClose }) => {
   const updates = [
@@ -38,7 +38,7 @@ const ModalUpdates = ({ visible, onClose }) => {
           <View style={styles.header}>
             <Text style={styles.title}>Notas de Atualização</Text>
             <TouchableOpacity onPress={onClose}>
-              <Feather name="x" size={24} color="#64748B" />
+              <X size={24} color="#64748B" />
             </TouchableOpacity>
           </View>
 
