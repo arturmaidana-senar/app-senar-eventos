@@ -76,7 +76,11 @@ export default function ResetPassword() {
 
   return (
     <View style={styles.page}>
-      <StatusBar backgroundColor="transparent" barStyle="dark-content" translucent={true} />
+      <StatusBar
+        hidden={true}
+        backgroundColor="#37C064"
+        barStyle="light-content"
+      />
       <LoadingInfo visible={loading} />
       <View style={styles.container}>
         <Text style={styles.title}>Não se preocupe, vamos te ajudar</Text>
@@ -103,11 +107,7 @@ export default function ResetPassword() {
               onPress={() => handleCpfPress()}
               style={styles.optionButton}
             >
-              <Mail
-                size={24}
-                color="#4CAF50"
-                style={styles.icon}
-              />
+              <Mail size={24} color="#4CAF50" style={styles.icon} />
               <View style={styles.optionTextContainer}>
                 <Text style={styles.optionTitle}>E-mail</Text>
                 <Text style={styles.optionSubtitle}>

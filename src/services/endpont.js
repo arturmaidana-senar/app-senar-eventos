@@ -45,6 +45,13 @@ export default {
     return json?.data || [];
   },
 
+  getParticipantEvents: async (search = '') => {
+    const json = await api.get('/participantes', {
+      params: search ? { search } : {},
+    });
+    return json?.data || [];
+  },
+
   getEvent: async id => {
     const json = await api.get(`/events/show/${id}`);
     return json?.data || [];
@@ -55,9 +62,9 @@ export default {
     return json?.data || [];
   },
 
-  postCheckinEvent: async id => {
-    const json = await api.get(`/checkin/list-event/${id}`);
-    return json?.data || [];
+  postCheckinEvent: async data => {
+    const response = await api.post('/checkin', data);
+    return response?.data || [];
   },
 
   postCheckinEventData: async data => {

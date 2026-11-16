@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, Text } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Text,
+  StatusBar,
+} from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
@@ -54,17 +61,17 @@ export default function EventShow() {
       headerTitle: 'Detalhes do Evento',
       headerTitleStyle: {
         fontFamily: EventTheme.typography.fontFamily.bold,
-        fontSize: EventTheme.typography.fontSize.lg,
-        color: EventTheme.colors.gray[900],
-        fontWeight: EventTheme.typography.fontWeight.bold,
+        fontSize: 16,
+        color: '#18221B',
+        fontWeight: '700',
       },
-      headerTintColor: EventTheme.colors.gray[900],
+      headerTintColor: '#18221B',
       headerStyle: {
-        backgroundColor: EventTheme.colors.white,
+        backgroundColor: '#F6F7F2',
         elevation: 0,
         shadowOpacity: 0,
         borderBottomWidth: 1,
-        borderBottomColor: EventTheme.colors.gray[200],
+        borderBottomColor: '#E9EDE3',
       },
     });
 
@@ -97,6 +104,7 @@ export default function EventShow() {
 
   return (
     <View style={styles.container}>
+      <StatusBar hidden={true} barStyle="dark-content" backgroundColor="#F6F7F2" />
       <EventDetailView
         event={event}
         imageBaseUrl="https://eventos.senarmt.org.br/storage/"
@@ -108,7 +116,7 @@ export default function EventShow() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7F5',
+    backgroundColor: '#F6F7F2',
   },
   loadingContainer: {
     flex: 1,

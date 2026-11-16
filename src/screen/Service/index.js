@@ -19,7 +19,15 @@ import {
 } from '@react-navigation/native';
 
 import { Camera } from 'react-native-camera-kit';
-import { ArrowLeft, ChevronRight, Calendar, Users, ClipboardList, QrCode, UserPlus } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  ChevronRight,
+  Calendar,
+  Users,
+  ClipboardList,
+  QrCode,
+  UserPlus,
+} from 'lucide-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { setHeaderOptions } from '../../components/Ui/HeaderTitle';
 import LoadingInfo from '../../components/Ui/LoadingInfo';
@@ -50,6 +58,7 @@ export default function Service() {
   const [isCheckin, setIsCheckin] = useState(false);
   const [isCredential, setIsCredential] = useState(false);
   const [freeCheckin, setFreeCheckin] = useState(false);
+  const [myParticipation, setMyParticipation] = useState(null);
 
   const [hasTerm, setHasTerm] = useState(false);
   const [termText, setTermText] = useState(null);
@@ -103,6 +112,7 @@ export default function Service() {
         firstEvent(),
         handleListCheckin(),
         checkEventTerm(),
+        fetchMyParticipation(),
       ]).finally(() => {
         clearTimeout(safetyTimer);
         setLoading(false);
@@ -153,26 +163,94 @@ export default function Service() {
     } catch {}
   };
 
+  const fetchMyParticipation = async () => {
+    try {
+      const [partRes, userRes] = await Promise.allSettled([
+        api.getParticipantEvents(),
+        apiService.get('/user'),
+      ]);
+
+      const partList =
+        partRes.status === 'fulfilled' && Array.isArray(partRes.value?.data)
+          ? partRes.value.data
+          : [];
+      const foundPart =
+        partList.find(p => Number(p.id) === Number(eventId)) || null;
+
+      const userCpf =
+        userRes.status === 'fulfilled' ? userRes.value?.data?.cpf : null;
+
+      let credData = null;
+      if (userCpf && eventId) {
+        try {
+          const credRes = await api.searchCredential(eventId, userCpf);
+          credData = credRes?.data || null;
+        } catch {
+          // Usuário pode não estar inscrito neste evento
+        }
+      }
+
+      const hasCheckedIn = Boolean(
+        foundPart?.date_time_confirmation || (credData?.qtde_used || 0) > 0,
+      );
+
+      if (hasCheckedIn) {
+        setMyParticipation({
+          checkedIn: true,
+          participantId:
+            credData?.participant_id || foundPart?.participant_id || null,
+          confirmedAt: foundPart?.date_time_confirmation || null,
+        });
+      } else {
+        setMyParticipation(null);
+      }
+    } catch {
+      setMyParticipation(null);
+    }
+  };
+
   const handleQRCodeRead = async data => {
     if (isScanning.current || !data) return;
     isScanning.current = true;
     setScannerVisible(false);
 
     setLoading(true);
+    console.log('[QR Code Read] Dados lidos do QRCode:', data);
+    console.log('[QR Code Read] Payload enviado:', { token: data, eventId });
+
     try {
       const response = await api.postCheckinEvent({ token: data, eventId });
-      await handleListCheckin();
+      console.log(
+        '[QR Code Read] Resposta da API:',
+        JSON.stringify(response, null, 2),
+      );
+
+      await Promise.allSettled([handleListCheckin(), fetchMyParticipation()]);
       Dialog.show({
         type: response.error ? ALERT_TYPE.DANGER : ALERT_TYPE.SUCCESS,
         title: response.error ? 'Error' : 'Check-in',
-        textBody: response.error ? response.message : response.name,
+        textBody: response.error
+          ? `${
+              response.message || JSON.stringify(response)
+            }\n(Token lido: ${data} | Evento: ${eventId})`
+          : response.name,
         button: 'Fechar',
       });
-    } catch {
+    } catch (error) {
+      console.error('[QR Code Read] Erro na requisição:', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+
       Dialog.show({
         type: ALERT_TYPE.DANGER,
         title: 'Error',
-        textBody: 'Houve uma falha tente novamente.',
+        textBody:
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          'Houve uma falha tente novamente.',
         button: 'Fechar',
       });
     } finally {
@@ -285,7 +363,11 @@ export default function Service() {
     <View style={styles.container}>
       <CustomTopHeader navigation={navigation} title="Evento" />
 
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+      <StatusBar
+        hidden={true}
+        barStyle="dark-content"
+        backgroundColor="#F5F6F8"
+      />
       <LoadingInfo visible={loading} message={titleLoading} />
 
       {!scannerVisible && (
@@ -300,16 +382,21 @@ export default function Service() {
             end={{ x: 1, y: 1 }}
             style={styles.eventCard}
           >
+            {myParticipation?.checkedIn ? (
+              <View style={styles.myCheckinHeaderPill}>
+                <Feather name="check-circle" size={12} color="#1E4627" />
+                <Text style={styles.myCheckinHeaderPillText}>
+                  Check-in realizado
+                </Text>
+              </View>
+            ) : null}
+
             <Text style={styles.eventName}>
               {event.name || 'Carregando evento...'}
             </Text>
 
             <View style={styles.infoRow}>
-              <Calendar
-                size={14}
-                color="#FFFFFF"
-                style={styles.infoIcon}
-              />
+              <Calendar size={14} color="#FFFFFF" style={styles.infoIcon} />
               <Text style={styles.infoText}>
                 {event.started_at ? formatDateEvent(event.started_at) : '--'} —{' '}
                 {event.ended_at ? formatDateEvent(event.ended_at) : '--'}
@@ -317,16 +404,35 @@ export default function Service() {
             </View>
 
             <View style={styles.infoRow}>
-              <Users
-                size={14}
-                color="#FFFFFF"
-                style={styles.infoIcon}
-              />
+              <Users size={14} color="#FFFFFF" style={styles.infoIcon} />
               <Text style={styles.infoText}>
                 {listCheckin.length} check-ins realizados
               </Text>
             </View>
           </LinearGradient>
+
+          {myParticipation?.checkedIn ? (
+            <View style={styles.myCheckinCard}>
+              <View style={styles.myCheckinIconBox}>
+                <Feather name="check-circle" size={22} color="#2F5E38" />
+              </View>
+              <View style={styles.myCheckinTextWrap}>
+                <Text style={styles.myCheckinTitle}>
+                  Você já fez o check-in neste evento
+                </Text>
+                <Text style={styles.myCheckinSubtitle}>
+                  {myParticipation.confirmedAt
+                    ? `Confirmado em ${formatDateEvent(
+                        myParticipation.confirmedAt,
+                      )}`
+                    : 'Presença confirmada'}
+                  {myParticipation.participantId
+                    ? ` · Inscrição #${myParticipation.participantId}`
+                    : ''}
+                </Text>
+              </View>
+            </View>
+          ) : null}
 
           <Text style={styles.sectionTitle}>Ações Disponíveis</Text>
 
@@ -512,6 +618,55 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#FFFFFF',
     opacity: 0.9,
+  },
+  myCheckinHeaderPill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#E3EFE6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginBottom: 10,
+  },
+  myCheckinHeaderPillText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#1E4627',
+  },
+  myCheckinCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF7EE',
+    borderWidth: 1,
+    borderColor: '#C5DEC0',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 20,
+    gap: 12,
+  },
+  myCheckinIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#DCECD9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  myCheckinTextWrap: {
+    flex: 1,
+  },
+  myCheckinTitle: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#1E4627',
+    marginBottom: 2,
+  },
+  myCheckinSubtitle: {
+    fontSize: 12.5,
+    color: '#3F6547',
+    lineHeight: 17,
   },
   sectionTitle: {
     fontSize: 12,

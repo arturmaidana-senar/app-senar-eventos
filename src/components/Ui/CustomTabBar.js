@@ -1,35 +1,35 @@
 import React from 'react';
-import {
-  View,
-  Pressable,
-  StyleSheet,
-  useWindowDimensions,
-  Dimensions,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Home, Layers, User } from 'lucide-react-native';
-const { width, height } = Dimensions.get('window');
+import House from '../../assets/images/house.svg';
+import Person from '../../assets/images/user.svg';
+import Layers from '../../assets/images/layers.svg';
 
-const iconConfig = {
-  Home: Home,
-  Event: Layers,
-  Information: User,
+const tabConfig = {
+  Home: { Icon: House, label: 'Início' },
+  Event: { Icon: Layers, label: 'Eventos' },
+  Information: { Icon: Person, label: 'Perfil' },
 };
 
 export default ({ state, navigation }) => {
-  const { width } = useWindowDimensions();
-  const isTablet = Math.min(width, height) >= 600;
+  const insets = useSafeAreaInsets();
+
   const goTo = screenName => {
     navigation.navigate(screenName);
   };
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.tabBar, { width: isTablet ? '35%' : '65%' }]}>
+    <View
+      style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}
+    >
+      <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
           const isFocused = state.index === index;
-          const IconComponent = iconConfig[route.name];
-          const iconColor = isFocused ? '#00A859' : '#FFFFFF';
+          const config = tabConfig[route.name] || {};
+          const IconComponent = config.Icon;
+          const label = config.label || route.name;
+          const tintColor = isFocused ? '#2F5E38' : '#8D988E';
 
           return (
             <Pressable
@@ -37,19 +37,24 @@ export default ({ state, navigation }) => {
               style={styles.tabItem}
               onPress={() => goTo(route.name)}
               android_ripple={{
-                color: 'rgba(255,255,255,0.2)',
+                color: 'rgba(47, 94, 56, 0.08)',
                 borderless: true,
               }}
             >
               <View
-                style={
-                  isFocused
-                    ? styles.activeIconContainer
-                    : styles.inactiveIconContainer
-                }
-              >
-                {IconComponent && <IconComponent size={32} color={iconColor} />}
+                style={[
+                  styles.topIndicator,
+                  isFocused && styles.topIndicatorActive,
+                ]}
+              />
+              <View style={styles.iconWrap}>
+                {IconComponent && <IconComponent size={22} color={tintColor} />}
               </View>
+              <Text
+                style={[styles.tabLabel, isFocused && styles.tabLabelActive]}
+              >
+                {label}
+              </Text>
             </Pressable>
           );
         })}
@@ -59,46 +64,55 @@ export default ({ state, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     position: 'absolute',
-    bottom: 25,
-    left: 20,
-    right: 20,
-    alignItems: 'center',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E7EBE2',
+    shadowColor: '#18221B',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 10,
   },
   tabBar: {
     flexDirection: 'row',
-    height: 75,
-    backgroundColor: '#00A859',
-    borderRadius: 43,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'space-around',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4.65,
-    elevation: 8,
   },
   tabItem: {
     flex: 1,
     height: '100%',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  inactiveIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+  topIndicator: {
+    position: 'absolute',
+    top: 0,
+    width: 28,
+    height: 3,
+    borderRadius: 2,
     backgroundColor: 'transparent',
   },
-  activeIconContainer: {
-    width: 55,
-    height: 55,
-    borderRadius: 50,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+  topIndicatorActive: {
+    backgroundColor: '#2F5E38',
+  },
+  iconWrap: {
+    marginBottom: 4,
+    marginTop: 4,
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#8D988E',
+  },
+  tabLabelActive: {
+    color: '#2F5E38',
+    fontWeight: '700',
   },
 });

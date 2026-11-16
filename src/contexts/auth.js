@@ -49,6 +49,30 @@ export default ({ children }) => {
     }
   }
 
+  async function refreshUser() {
+    try {
+      const storageToken = await AsyncStorage.getItem('@eventToken');
+      if (!storageToken) return null;
+
+      const response = await api.get('/user', {
+        headers: {
+          Authorization: `Bearer ${storageToken}`,
+        },
+      });
+
+      if (response.data) {
+        api.defaults.headers['Authorization'] = `Bearer ${storageToken}`;
+        setUser(response.data);
+        await AsyncStorage.setItem('@eventUser', response.data.name ?? '');
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao atualizar dados do usuário:', error);
+      return null;
+    }
+  }
+
   async function signIn(email, password) {
     setLoadingAuth(true);
 
@@ -123,6 +147,7 @@ export default ({ children }) => {
         loading,
         logoff,
         loadStorage,
+        refreshUser,
       }}
     >
       {children}
